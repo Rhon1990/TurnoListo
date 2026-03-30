@@ -346,12 +346,38 @@ function getOrderById(id) {
   return loadOrders().find((order) => order.id === id);
 }
 
+function getOrderByPublicId(value) {
+  const normalized = normalizeSourceOrderId(value);
+  if (!normalized) return null;
+
+  return (
+    loadOrders().find(
+      (order) => normalizeSourceOrderId(order.sourceOrderId) === normalized || normalizeSourceOrderId(order.id) === normalized,
+    ) || null
+  );
+}
+
 function getPublicOrderById(id) {
   return loadOrders().find((order) => {
     if (order.id !== id) return false;
     if (!order.archivedAt) return true;
     return order.status === "delivered";
   });
+}
+
+function getPublicOrderByPublicId(value) {
+  const normalized = normalizeSourceOrderId(value);
+  if (!normalized) return null;
+
+  return (
+    loadOrders().find((order) => {
+      const matchesPublicId = normalizeSourceOrderId(order.sourceOrderId) === normalized;
+      const matchesLegacyId = normalizeSourceOrderId(order.id) === normalized;
+      if (!matchesPublicId && !matchesLegacyId) return false;
+      if (!order.archivedAt) return true;
+      return order.status === "delivered";
+    }) || null
+  );
 }
 
 function normalizeSourceOrderId(value) {
@@ -403,7 +429,22 @@ function createOrder(orderData) {
 }
 
 function updateOrder(id, updates) {
-  const nextOrders = loadOrders().map((order) => (order.id === id ? { ...order, ...updates } : order));
+  const currentOrder = getOrderById(id);
+  if (!currentOrder) return null;
+
+  const nextUpdates = { ...updates };
+
+  if (Object.prototype.hasOwnProperty.call(nextUpdates, "sourceOrderId")) {
+    const normalizedSourceOrderId = normalizeSourceOrderId(nextUpdates.sourceOrderId);
+
+    if (normalizedSourceOrderId && sourceOrderIdExists(normalizedSourceOrderId, id)) {
+      throw new Error("duplicate-source-order");
+    }
+
+    nextUpdates.sourceOrderId = normalizedSourceOrderId;
+  }
+
+  const nextOrders = loadOrders().map((order) => (order.id === id ? { ...order, ...nextUpdates } : order));
   saveOrders(nextOrders);
   return getOrderById(id);
 }
