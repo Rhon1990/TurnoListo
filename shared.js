@@ -375,7 +375,7 @@ function getPublicOrderByPublicId(value) {
       const matchesLegacyId = normalizeSourceOrderId(order.id) === normalized;
       if (!matchesPublicId && !matchesLegacyId) return false;
       if (!order.archivedAt) return true;
-      return order.status === "delivered" || order.status === "cancelled";
+      return order.status === "delivered";
     }) || null
   );
 }
