@@ -516,7 +516,7 @@ function buildOrderCard(order, isArchived) {
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
-  qrCode.textContent = order.id;
+  qrCode.textContent = order.sourceOrderId || order.id;
   rating.className = "order-card__rating";
   rating.textContent = order.rating ? formatRating(order.rating.score) : "Sin valorar";
   commentButton.type = "button";
@@ -543,7 +543,7 @@ function buildOrderCard(order, isArchived) {
     renderRestaurant();
   });
 
-  qr.src = buildQrUrl(order.id);
+  qr.src = buildQrUrl(order.sourceOrderId || order.id);
   qr.alt = `QR del pedido ${order.orderNumber}`;
   qr.className = "order-card__qr";
 
@@ -557,17 +557,26 @@ function buildOrderCard(order, isArchived) {
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const formData = new FormData(form);
-    updateOrder(order.id, {
-      sourceOrderId: String(formData.get("sourceOrderId") || "").trim(),
-      customerName: String(formData.get("customerName") || "").trim() || "Cliente mostrador",
-      items: String(formData.get("items") || "").trim() || "Pedido rápido",
-      notes: String(formData.get("notes") || "").trim(),
-    });
-    editingOrderId = null;
-    renderRestaurant();
+    try {
+      updateOrder(order.id, {
+        sourceOrderId: String(formData.get("sourceOrderId") || "").trim(),
+        customerName: String(formData.get("customerName") || "").trim() || "Cliente mostrador",
+        items: String(formData.get("items") || "").trim() || "Pedido rápido",
+        notes: String(formData.get("notes") || "").trim(),
+      });
+      editingOrderId = null;
+      renderRestaurant();
+    } catch (error) {
+      if (error instanceof Error && error.message === "duplicate-source-order") {
+        window.alert("Ese pedido original ya existe.");
+        return;
+      }
+
+      throw error;
+    }
   });
 
-  link.href = buildClientUrl(order.id);
+  link.href = buildClientUrl(order.sourceOrderId || order.id);
   link.target = "_blank";
   link.rel = "noreferrer";
   link.className = "qr-link";
