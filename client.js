@@ -61,7 +61,8 @@ ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 
 function renderClient() {
-  const order = getPublicOrderByPublicId(selectedOrderId) || getOperationalOrders()[0];
+  const fallbackOrderId = currentOrder?.sourceOrderId || currentOrder?.id || initialOrderId;
+  const order = getPublicOrderByPublicId(selectedOrderId) || getPublicOrderByPublicId(fallbackOrderId);
   if (!order) {
     lastRenderedStatus = null;
     currentOrder = null;
@@ -74,6 +75,7 @@ function renderClient() {
   const meta = statusMeta[order.status];
   const publicOrderId = order.sourceOrderId || order.id;
 
+  selectedOrderId = publicOrderId;
   orderInput.value = publicOrderId;
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = order.customerName;
