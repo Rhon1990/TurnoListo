@@ -38,7 +38,7 @@ onOrdersChanged(renderClient);
 
 loadButton.addEventListener("click", () => {
   const nextId = orderInput.value.trim().toUpperCase();
-  if (!getOrderById(nextId)) {
+  if (!getOrderByPublicId(nextId)) {
     orderInput.setCustomValidity("Ese QR no existe en la demo.");
     orderInput.reportValidity();
     return;
@@ -61,7 +61,7 @@ ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 
 function renderClient() {
-  const order = getPublicOrderById(selectedOrderId) || getOperationalOrders()[0];
+  const order = getPublicOrderByPublicId(selectedOrderId) || getOperationalOrders()[0];
   if (!order) {
     lastRenderedStatus = null;
     currentOrder = null;
@@ -72,8 +72,9 @@ function renderClient() {
   currentOrder = order;
   const queue = getQueueBefore(order.id);
   const meta = statusMeta[order.status];
+  const publicOrderId = order.sourceOrderId || order.id;
 
-  orderInput.value = order.id;
+  orderInput.value = publicOrderId;
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = order.customerName;
   statusPill.textContent = meta.label;
@@ -83,8 +84,8 @@ function renderClient() {
   renderProgressSteps(order.status);
   statsBlock.hidden = order.status === "delivered";
   queueCount.textContent = queue.length;
-  qrImage.src = buildQrUrl(order.id);
-  qrValue.textContent = order.id;
+  qrImage.src = buildQrUrl(publicOrderId);
+  qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
   readyBanner.hidden = order.status !== "ready";
   feedbackCard.hidden = order.status !== "delivered";
