@@ -806,7 +806,8 @@ function buildClientUrl(orderId) {
 }
 
 function buildQrUrl(orderId) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(buildClientUrl(orderId))}`;
+  const cacheBust = `${normalizeSourceOrderId(orderId)}-${Date.now()}`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(buildClientUrl(orderId))}&cb=${encodeURIComponent(cacheBust)}`;
 }
 
 function getNextOrderIndex(orders) {
