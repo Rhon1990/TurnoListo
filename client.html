@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo | Cliente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="client-view">
+    <div class="app-shell">
+      <main class="grid grid--single">
+        <section class="panel panel--client glass-card">
+          <div class="scan-box scan-box--client">
+            <label for="clientOrderInput">Código del QR</label>
+            <div class="scan-box__row">
+              <input id="clientOrderInput" type="text" placeholder="Ej. POS-801" />
+              <button id="clientLoadButton" type="button">Leer QR</button>
+            </div>
+            <button class="ghost-button ghost-button--full" id="clientShowQrButton" type="button">
+              Ver mi QR
+            </button>
+          </div>
+
+          <div class="stats stats--client" id="clientStats">
+            <div class="stat">
+              <span class="stat__label">Pedidos antes que tú</span>
+              <strong class="stat__value" id="clientQueueCount">0</strong>
+            </div>
+          </div>
+
+          <article class="ticket ticket--client" id="clientTicket">
+            <div class="ticket__top">
+              <div>
+                <h3 id="clientOrderNumber">#2048</h3>
+                <p class="ticket__label" id="clientCustomer"></p>
+              </div>
+              <span class="status-pill" id="clientStatus">Recibido</span>
+            </div>
+
+            <div class="progress">
+              <div class="progress__bar">
+                <span id="clientProgress"></span>
+              </div>
+              <div class="progress-steps" id="clientProgressSteps">
+                <span class="progress-step" data-step="received">Recibido</span>
+                <span class="progress-step" data-step="preparing">Preparando</span>
+                <span class="progress-step" data-step="ready">Listo</span>
+                <span class="progress-step" data-step="delivered">Entregado</span>
+              </div>
+            </div>
+
+            <div class="callout" id="clientReadyBanner" hidden>
+              <strong>Tu pedido ya está listo.</strong>
+              <span>Ya puedes acercarte al punto de recogida.</span>
+            </div>
+
+            <section class="feedback-card" id="clientFeedbackCard" hidden>
+              <p class="ticket__label">Pedido entregado</p>
+              <h4>Gracias por su compra, vuelva pronto</h4>
+              <p class="feedback-card__text">Valora tu experiencia</p>
+              <div class="rating-actions" id="clientRatingActions">
+                <button type="button" class="rating-button" data-score="1">1</button>
+                <button type="button" class="rating-button" data-score="2">2</button>
+                <button type="button" class="rating-button" data-score="3">3</button>
+                <button type="button" class="rating-button" data-score="4">4</button>
+                <button type="button" class="rating-button" data-score="5">5</button>
+              </div>
+              <div class="feedback-comment" id="clientFeedbackComment" hidden>
+                <label class="field">
+                  <span>¿Qué podemos mejorar?</span>
+                  <input id="clientCommentInput" type="text" maxlength="160" placeholder="Escribe un comentario corto" />
+                </label>
+                <button type="button" class="button-secondary ghost-button--full" id="clientCommentSave">
+                  Enviar comentario
+                </button>
+                <p class="feedback-card__value" id="clientCommentSentMessage" hidden>
+                  Gracias por sus comentarios.
+                </p>
+              </div>
+              <p class="feedback-card__value" id="clientRatingValue"></p>
+            </section>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <div class="qr-modal" id="clientQrModal" hidden>
+      <div class="qr-modal__backdrop" id="clientQrBackdrop"></div>
+      <div class="qr-modal__card glass-card">
+        <button class="qr-modal__close" id="clientQrClose" type="button" aria-label="Cerrar QR">
+          Cerrar
+        </button>
+        <div class="qr-card qr-card--modal">
+          <div class="qr-card__media">
+            <img id="clientQrImage" alt="QR del pedido" />
+          </div>
+          <div class="qr-card__content">
+            <p class="ticket__label">Tu código</p>
+            <strong id="clientQrValue">POS-801</strong>
+            <p class="scan-box__hint" id="clientQrHint"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./shared.js"></script>
+    <script src="./client.js"></script>
+  </body>
+</html>

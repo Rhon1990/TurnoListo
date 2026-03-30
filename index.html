@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero hero--landing">
+        <div class="hero__copy">
+          <p class="eyebrow">TurnoListo</p>
+          <h1>Dos códigos, un mismo pedido.</h1>
+          <p class="hero__text">
+            Una pantalla para el restaurante y otra para el cliente, conectadas por el mismo flujo.
+          </p>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section class="panel glass-card">
+          <p class="panel__kicker">Código 0</p>
+          <h2>Panel administrador</h2>
+          <p class="hero__hint">
+            Crea restaurantes, define su usuario y contraseña y controla quién entra al panel operativo.
+          </p>
+          <a class="launcher" href="./admin.html">Abrir administrador</a>
+        </section>
+
+        <section class="panel glass-card">
+          <p class="panel__kicker">Código 1</p>
+          <h2>Panel restaurante</h2>
+          <p class="hero__hint">
+            Cambia el estado de cada pedido de forma amigable y entrega un QR al cliente.
+          </p>
+          <a class="launcher" href="./restaurant.html">Abrir restaurante</a>
+        </section>
+
+        <section class="panel glass-card">
+          <p class="panel__kicker">Código 2</p>
+          <h2>Vista cliente</h2>
+          <p class="hero__hint">
+            El usuario lee su QR y ve el estado por colores junto a los pedidos anteriores.
+          </p>
+          <a class="launcher" href="./client.html">Abrir cliente</a>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

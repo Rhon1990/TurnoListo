@@ -1,0 +1,701 @@
+const restaurantLoginView = document.querySelector("#restaurantLoginView");
+const restaurantWorkspace = document.querySelector("#restaurantWorkspace");
+const restaurantLoginForm = document.querySelector("#restaurantLoginForm");
+const restaurantLoginFeedback = document.querySelector("#restaurantLoginFeedback");
+const restaurantLoginPassword = document.querySelector("#restaurantLoginPassword");
+const restaurantLoginTogglePassword = document.querySelector("#restaurantLoginTogglePassword");
+const restaurantSessionLabel = document.querySelector("#restaurantSessionLabel");
+const restaurantLogoutButton = document.querySelector("#restaurantLogoutButton");
+const restaurantList = document.querySelector("#restaurantOrders");
+const activeCount = document.querySelector("#restaurantActiveCount");
+const readyCount = document.querySelector("#restaurantReadyCount");
+const archivedCount = document.querySelector("#restaurantArchivedCount");
+const archivedList = document.querySelector("#restaurantArchivedOrders");
+const quickCreateForm = document.querySelector("#quickCreateForm");
+const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
+const activeSearchInput = document.querySelector("#activeSearchInput");
+const activeStatusFilter = document.querySelector("#activeStatusFilter");
+const activePriorityFilter = document.querySelector("#activePriorityFilter");
+const archivedSearchInput = document.querySelector("#archivedSearchInput");
+const archivedStatusFilter = document.querySelector("#archivedStatusFilter");
+const archivedRatingFilter = document.querySelector("#archivedRatingFilter");
+const sectionTabs = document.querySelectorAll("[data-section]");
+const sectionPanels = document.querySelectorAll("[data-section-panel]");
+const dashboardTotalToday = document.querySelector("#dashboardTotalToday");
+const dashboardActiveNow = document.querySelector("#dashboardActiveNow");
+const dashboardDeliveredToday = document.querySelector("#dashboardDeliveredToday");
+const dashboardReadyNow = document.querySelector("#dashboardReadyNow");
+const dashboardAvgDelivered = document.querySelector("#dashboardAvgDelivered");
+const dashboardOnTimeRate = document.querySelector("#dashboardOnTimeRate");
+const dashboardAverageRating = document.querySelector("#dashboardAverageRating");
+const dashboardDelayedActive = document.querySelector("#dashboardDelayedActive");
+const dashboardLongestWait = document.querySelector("#dashboardLongestWait");
+const dashboardSlowestOrder = document.querySelector("#dashboardSlowestOrder");
+const dashboardSlowestOrderHint = document.querySelector("#dashboardSlowestOrderHint");
+const dashboardSlowestStatus = document.querySelector("#dashboardSlowestStatus");
+const dashboardSlowestStatusHint = document.querySelector("#dashboardSlowestStatusHint");
+const dashboardFeedbackCount = document.querySelector("#dashboardFeedbackCount");
+const dashboardLowRatingCount = document.querySelector("#dashboardLowRatingCount");
+const dashboardPeakHour = document.querySelector("#dashboardPeakHour");
+const dashboardCancellationRate = document.querySelector("#dashboardCancellationRate");
+const dashboardAvgResolution = document.querySelector("#dashboardAvgResolution");
+const dashboardStatusBars = document.querySelector("#dashboardStatusBars");
+const dashboardInsights = document.querySelector("#dashboardInsights");
+const dashboardCardActiveNow = document.querySelector("#dashboardCardActiveNow");
+const dashboardCardDeliveredToday = document.querySelector("#dashboardCardDeliveredToday");
+const dashboardCardReadyNow = document.querySelector("#dashboardCardReadyNow");
+const dashboardCardDelayedActive = document.querySelector("#dashboardCardDelayedActive");
+const dashboardCardLongestWait = document.querySelector("#dashboardCardLongestWait");
+const dashboardCardSlowestOrder = document.querySelector("#dashboardCardSlowestOrder");
+const dashboardCardSlowestStatus = document.querySelector("#dashboardCardSlowestStatus");
+const dashboardSignalFeedback = document.querySelector("#dashboardSignalFeedback");
+const dashboardSignalLowRating = document.querySelector("#dashboardSignalLowRating");
+const dashboardSignalCancellation = document.querySelector("#dashboardSignalCancellation");
+const commentModal = document.querySelector("#restaurantCommentModal");
+const commentBackdrop = document.querySelector("#restaurantCommentBackdrop");
+const commentClose = document.querySelector("#restaurantCommentClose");
+const commentTitle = document.querySelector("#restaurantCommentTitle");
+const commentMeta = document.querySelector("#restaurantCommentMeta");
+const commentBody = document.querySelector("#restaurantCommentBody");
+const cancelModal = document.querySelector("#restaurantCancelModal");
+const cancelBackdrop = document.querySelector("#restaurantCancelBackdrop");
+const cancelClose = document.querySelector("#restaurantCancelClose");
+const cancelBack = document.querySelector("#restaurantCancelBack");
+const cancelConfirm = document.querySelector("#restaurantCancelConfirm");
+const cancelMeta = document.querySelector("#restaurantCancelMeta");
+
+let expandedOrderId = null;
+let editingOrderId = null;
+let pendingCancelOrderId = null;
+let pendingCancelOrderLabel = "";
+let activeSection = "orders";
+let lastDashboardStats = null;
+
+bootRestaurantPage();
+window.setInterval(() => {
+  if (getCurrentRestaurantSession()) renderRestaurant();
+}, 1000);
+onOrdersChanged(renderRestaurant);
+quickCreateForm.addEventListener("submit", handleCreateOrder);
+restaurantLoginForm.addEventListener("submit", handleRestaurantLogin);
+restaurantLoginTogglePassword.addEventListener("click", (event) => {
+  event.preventDefault();
+  togglePasswordVisibility(restaurantLoginPassword, restaurantLoginTogglePassword);
+});
+restaurantLogoutButton.addEventListener("click", handleRestaurantLogout);
+[
+  activeSearchInput,
+  activeStatusFilter,
+  activePriorityFilter,
+  archivedSearchInput,
+  archivedStatusFilter,
+  archivedRatingFilter,
+].forEach((control) => {
+  control.addEventListener("input", renderRestaurant);
+  control.addEventListener("change", renderRestaurant);
+});
+sectionTabs.forEach((button) => {
+  button.addEventListener("click", () => {
+    setActiveSection(button.dataset.section || "orders");
+  });
+});
+commentBackdrop.addEventListener("click", closeCommentModal);
+commentClose.addEventListener("click", closeCommentModal);
+cancelBackdrop.addEventListener("click", closeCancelModal);
+cancelClose.addEventListener("click", closeCancelModal);
+cancelBack.addEventListener("click", closeCancelModal);
+cancelConfirm.addEventListener("click", confirmCancelOrder);
+dashboardCardActiveNow.addEventListener("click", () => goToOrdersView({ status: "all", priority: "all", search: "" }));
+dashboardCardDeliveredToday.addEventListener("click", () =>
+  goToHistoryView({ status: "delivered", rating: "all", search: "" }),
+);
+dashboardCardReadyNow.addEventListener("click", () => goToOrdersView({ status: "ready", priority: "all", search: "" }));
+dashboardCardDelayedActive.addEventListener("click", () =>
+  goToOrdersView({ status: "all", priority: "delayed", search: "" }),
+);
+dashboardCardLongestWait.addEventListener("click", () => focusSlowestOrder());
+dashboardCardSlowestOrder.addEventListener("click", () => focusSlowestOrder());
+dashboardCardSlowestStatus.addEventListener("click", () => focusSlowestStatus());
+dashboardSignalFeedback.addEventListener("click", () =>
+  goToHistoryView({ status: "all", rating: "commented", search: "" }),
+);
+dashboardSignalLowRating.addEventListener("click", () =>
+  goToHistoryView({ status: "all", rating: "low", search: "" }),
+);
+dashboardSignalCancellation.addEventListener("click", () =>
+  goToHistoryView({ status: "cancelled", rating: "all", search: "" }),
+);
+
+function bootRestaurantPage() {
+  syncRestaurantAccess();
+  if (getCurrentRestaurantSession()) {
+    renderRestaurant();
+  }
+}
+
+function syncRestaurantAccess() {
+  const session = getCurrentRestaurantSession();
+  const restaurant = session ? getRestaurantById(session.restaurantId) : null;
+  const isAuthenticated = Boolean(session && restaurant && isRestaurantAccessActive(restaurant));
+
+  if (session && (!restaurant || !isRestaurantAccessActive(restaurant))) {
+    clearCurrentRestaurantSession();
+  }
+
+  restaurantLoginView.hidden = isAuthenticated;
+  restaurantWorkspace.hidden = !isAuthenticated;
+
+  if (restaurant) {
+    restaurantSessionLabel.textContent = restaurant.name;
+  }
+}
+
+function renderRestaurant() {
+  const session = getCurrentRestaurantSession();
+  if (!session) {
+    syncRestaurantAccess();
+    return;
+  }
+
+  const orders = [...getOperationalOrders()].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+  const archivedOrders = getArchivedOrders();
+  const filteredOrders = orders.filter((order) => matchesActiveFilters(order));
+  const filteredArchivedOrders = archivedOrders.filter((order) => matchesArchivedFilters(order));
+  const dashboard = getDashboardStats();
+  lastDashboardStats = dashboard;
+
+  restaurantList.innerHTML = "";
+  archivedList.innerHTML = "";
+  activeCount.textContent = getActiveOrderCount();
+  readyCount.textContent = `${orders.filter((order) => order.status === "ready").length} listos`;
+  archivedCount.textContent = `${archivedOrders.length} archivados`;
+  syncSectionView();
+  renderDashboard(dashboard);
+
+  filteredOrders.forEach((order) => {
+    restaurantList.append(buildOrderCard(order, false));
+  });
+
+  if (!filteredOrders.length) {
+    restaurantList.append(buildEmptyState("No hay pedidos activos que coincidan con esos filtros."));
+  }
+
+  filteredArchivedOrders
+    .sort((left, right) => new Date(right.archivedAt) - new Date(left.archivedAt))
+    .forEach((order) => {
+      archivedList.append(buildOrderCard(order, true));
+    });
+
+  if (!filteredArchivedOrders.length) {
+    archivedList.append(buildEmptyState("No hay pedidos archivados que coincidan con esos filtros."));
+  }
+}
+
+function handleRestaurantLogin(event) {
+  event.preventDefault();
+  const formData = new FormData(restaurantLoginForm);
+  const username = String(formData.get("username") || "");
+  const password = String(formData.get("password") || "");
+  const knownRestaurant = loadRestaurants().find(
+    (item) => normalizeRestaurantUsername(item.username) === normalizeRestaurantUsername(username),
+  );
+  const restaurant = authenticateRestaurant(username, password);
+
+  if (!restaurant) {
+    restaurantLoginFeedback.textContent =
+      knownRestaurant && knownRestaurant.password === password && !isRestaurantAccessActive(knownRestaurant)
+        ? "El acceso está vencido. Debe renovarse desde administración."
+        : "Usuario o contraseña incorrectos.";
+    restaurantLoginFeedback.className = "form-feedback form-feedback--error";
+    restaurantLoginFeedback.hidden = false;
+    return;
+  }
+
+  setCurrentRestaurantSession(restaurant);
+  restaurantLoginForm.reset();
+  restaurantLoginFeedback.hidden = true;
+  restaurantLoginFeedback.textContent = "";
+  syncRestaurantAccess();
+  renderRestaurant();
+}
+
+function handleRestaurantLogout() {
+  clearCurrentRestaurantSession();
+  syncRestaurantAccess();
+}
+
+function togglePasswordVisibility(input, button) {
+  const shouldShow = input.type === "password";
+  input.type = shouldShow ? "text" : "password";
+  button.setAttribute("aria-label", shouldShow ? "Ocultar contraseña" : "Mostrar contraseña");
+  button.classList.toggle("is-active", shouldShow);
+}
+
+function setActiveSection(section) {
+  activeSection = section;
+  syncSectionView();
+}
+
+function goToOrdersView({ status = "all", priority = "all", search = "" }) {
+  activeSection = "orders";
+  activeStatusFilter.value = status;
+  activePriorityFilter.value = priority;
+  activeSearchInput.value = search;
+  renderRestaurant();
+}
+
+function goToHistoryView({ status = "all", rating = "all", search = "" }) {
+  activeSection = "history";
+  archivedStatusFilter.value = status;
+  archivedRatingFilter.value = rating;
+  archivedSearchInput.value = search;
+  renderRestaurant();
+}
+
+function focusSlowestOrder() {
+  const order = lastDashboardStats?.slowestOrder;
+  if (!order) return;
+
+  if (order.archivedAt) {
+    goToHistoryView({
+      status: order.status === "cancelled" ? "cancelled" : order.status === "delivered" ? "delivered" : "all",
+      rating: "all",
+      search: order.orderNumber,
+    });
+    return;
+  }
+
+  goToOrdersView({
+    status: ["received", "preparing", "ready"].includes(order.status) ? order.status : "all",
+    priority: "all",
+    search: order.orderNumber,
+  });
+}
+
+function focusSlowestStatus() {
+  const slowestStatus = lastDashboardStats?.slowestStatus?.status;
+  if (!slowestStatus) return;
+
+  goToOrdersView({
+    status: slowestStatus,
+    priority: "all",
+    search: "",
+  });
+}
+
+function syncSectionView() {
+  sectionTabs.forEach((button) => {
+    const isActive = button.dataset.section === activeSection;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  sectionPanels.forEach((panel) => {
+    const isActive = panel.dataset.sectionPanel === activeSection;
+    panel.hidden = !isActive;
+    panel.classList.toggle("restaurant-section--active", isActive);
+  });
+}
+
+function renderDashboard(stats) {
+  dashboardTotalToday.textContent = stats.totalToday;
+  dashboardActiveNow.textContent = stats.activeNow;
+  dashboardDeliveredToday.textContent = stats.deliveredToday;
+  dashboardReadyNow.textContent = stats.readyNow;
+  dashboardAvgDelivered.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
+  dashboardOnTimeRate.textContent = `${stats.onTimeRate}%`;
+  dashboardAverageRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : "Sin datos";
+  dashboardDelayedActive.textContent = stats.delayedActive;
+  dashboardLongestWait.textContent = formatDurationMinutes(stats.longestActiveMinutes);
+  dashboardSlowestOrder.textContent = stats.slowestOrder ? stats.slowestOrder.orderNumber : "Sin datos";
+  dashboardSlowestOrderHint.textContent = stats.slowestOrder
+    ? `${stats.slowestOrder.customerName} · ${formatDurationMinutes(getOrderDurationMinutes(stats.slowestOrder))}`
+    : "Pedido con mayor espera activa";
+  dashboardSlowestStatus.textContent = stats.slowestStatus ? stats.slowestStatus.label : "Sin datos";
+  dashboardSlowestStatusHint.textContent = stats.slowestStatus
+    ? `Promedio ${formatStatusDurationLabel(stats.slowestStatus.averageMinutes)}`
+    : "Promedio por estado";
+  dashboardFeedbackCount.textContent = stats.feedbackCount;
+  dashboardLowRatingCount.textContent = stats.lowRatingCount;
+  dashboardPeakHour.textContent = `Hora pico ${stats.peakHour}`;
+  dashboardCancellationRate.textContent = `${stats.cancellationRate}%`;
+  dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
+
+  dashboardStatusBars.innerHTML = "";
+  dashboardInsights.innerHTML = "";
+
+  const maxCount = Math.max(1, ...stats.statusCounts.map((item) => item.count));
+  stats.statusCounts.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("div");
+    const track = document.createElement("div");
+    const fill = document.createElement("span");
+    const value = document.createElement("strong");
+
+    row.className = "dashboard-bar";
+    label.className = "dashboard-bar__label";
+    track.className = "dashboard-bar__track";
+    value.className = "dashboard-bar__value";
+
+    label.textContent = item.label;
+    value.textContent = item.count;
+    fill.style.width = `${(item.count / maxCount) * 100}%`;
+    fill.style.background = `linear-gradient(90deg, ${item.color}, rgba(255,255,255,0.92))`;
+    track.append(fill);
+    row.append(label, track, value);
+    dashboardStatusBars.append(row);
+  });
+
+  buildImprovementInsights(stats).forEach((message) => {
+    const item = document.createElement("article");
+    item.className = "dashboard-insight";
+    item.textContent = message;
+    dashboardInsights.append(item);
+  });
+}
+
+function buildImprovementInsights(stats) {
+  const insights = [];
+
+  if (stats.avgDeliveredMinutes >= 20) {
+    insights.push("El tiempo medio de entrega está alto. Conviene revisar preparación y retirada para bajar la espera.");
+  } else if (stats.deliveredCount > 0) {
+    insights.push("El promedio de entrega va bien. Mantener este ritmo ayuda a reducir colas y mejorar percepción.");
+  }
+
+  if (stats.delayedActive >= 2) {
+    insights.push("Hay varios pedidos activos con más de 15 minutos. Priorizar estos pedidos puede evitar reclamaciones.");
+  }
+
+  if (stats.onTimeRate > 0 && stats.onTimeRate < 70) {
+    insights.push("Menos del 70% de los pedidos se entregan en 15 minutos. Aquí hay margen directo para mejorar la operación.");
+  }
+
+  if (stats.cancellationRate >= 10) {
+    insights.push("La tasa de cancelación es relevante. Merece revisar retrasos, stock o comunicación con el cliente.");
+  }
+
+  if (stats.averageRating && Number(stats.averageRating) < 4) {
+    insights.push("La valoración media está por debajo de 4. Revisar comentarios bajos puede señalar fallos repetidos.");
+  } else if (stats.ratedCount > 0) {
+    insights.push("La satisfacción del cliente es sólida. Pedir más valoraciones puede reforzar esta métrica.");
+  }
+
+  if (stats.lowRatingCount >= 2) {
+    insights.push("Hay varias valoraciones bajas hoy. Conviene revisar esos casos antes de que se repitan en más clientes.");
+  }
+
+  if (!insights.length) {
+    insights.push("Todavía hay pocos datos para detectar mejoras. En cuanto entren más pedidos, aquí verás patrones útiles.");
+  }
+
+  return insights.slice(0, 3);
+}
+
+function matchesActiveFilters(order) {
+  const search = String(activeSearchInput.value || "").trim().toLowerCase();
+  const status = activeStatusFilter.value || "all";
+  const priority = activePriorityFilter.value || "all";
+  const orderTone = getElapsedOrderTone(order);
+
+  if (search) {
+    const haystack = [
+      order.orderNumber,
+      order.id,
+      order.sourceOrderId,
+      order.customerName,
+      order.items,
+      order.notes,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    if (!haystack.includes(search)) return false;
+  }
+
+  if (status !== "all" && order.status !== status) return false;
+  if (priority === "delayed" && !["warning", "danger"].includes(orderTone)) return false;
+  if (priority === "critical" && orderTone !== "danger") return false;
+  if (priority === "normal" && orderTone !== "safe") return false;
+
+  return true;
+}
+
+function matchesArchivedFilters(order) {
+  const search = String(archivedSearchInput.value || "").trim().toLowerCase();
+  const status = archivedStatusFilter.value || "all";
+  const rating = archivedRatingFilter.value || "all";
+  const score = Number(order.rating?.score || 0);
+  const hasComment = Boolean(String(order.rating?.comment || "").trim());
+  const hasRating = score > 0;
+
+  if (search) {
+    const haystack = [
+      order.orderNumber,
+      order.id,
+      order.sourceOrderId,
+      order.customerName,
+      order.items,
+      order.notes,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    if (!haystack.includes(search)) return false;
+  }
+
+  if (status !== "all" && order.status !== status) return false;
+  if (rating === "low" && !(hasRating && score <= 2)) return false;
+  if (rating === "rated" && !hasRating) return false;
+  if (rating === "unrated" && hasRating) return false;
+  if (rating === "commented" && !hasComment) return false;
+
+  return true;
+}
+
+function buildEmptyState(message) {
+  const card = document.createElement("article");
+  const text = document.createElement("p");
+
+  card.className = "empty-state";
+  text.textContent = message;
+  card.append(text);
+  return card;
+}
+
+function buildOrderCard(order, isArchived) {
+  const card = document.createElement("article");
+  const compactButton = document.createElement("button");
+  const compactMain = document.createElement("div");
+  const compactMeta = document.createElement("div");
+  const compactTop = document.createElement("div");
+  const elapsedTime = document.createElement("span");
+  const compactTitle = document.createElement("strong");
+  const compactLine = document.createElement("span");
+  const compactTime = document.createElement("span");
+  const compactSide = document.createElement("div");
+  const qrCode = document.createElement("strong");
+  const ratingRow = document.createElement("div");
+  const rating = document.createElement("span");
+  const commentButton = document.createElement("button");
+  const badge = document.createElement("span");
+  const quickStatusActions = document.createElement("div");
+  const details = document.createElement("div");
+  const detailsTop = document.createElement("div");
+  const qr = document.createElement("img");
+  const form = document.createElement("form");
+  const grid = document.createElement("div");
+  const footer = document.createElement("div");
+  const link = document.createElement("a");
+  const editButton = document.createElement("button");
+  const saveButton = document.createElement("button");
+  const isExpanded = expandedOrderId === order.id;
+  const isEditing = editingOrderId === order.id && !isArchived;
+
+  card.className = "order-card order-card--compact";
+  if (isArchived) card.classList.add("order-card--archived");
+  compactButton.type = "button";
+  compactButton.className = "order-card__summary";
+  compactMain.className = "order-card__summary-main";
+  compactMeta.className = "order-card__summary-meta";
+  compactTop.className = "order-card__summary-top";
+  compactTime.className = "order-card__summary-time";
+  compactSide.className = "order-card__summary-side";
+  ratingRow.className = "order-card__rating-row";
+  badge.className = "status-pill";
+  quickStatusActions.className = "status-actions status-actions--compact";
+  details.className = "order-card__details";
+  if (isExpanded) details.classList.add("is-open");
+  detailsTop.className = "order-card__details-top";
+  form.className = "order-edit-form";
+  grid.className = "order-edit-grid";
+  footer.className = "order-card__footer";
+
+  compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
+  compactLine.textContent = order.items;
+  compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
+  elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
+  elapsedTime.textContent = getElapsedOrderTime(order);
+  qrCode.textContent = order.id;
+  rating.className = "order-card__rating";
+  rating.textContent = order.rating ? formatRating(order.rating.score) : "Sin valorar";
+  commentButton.type = "button";
+  commentButton.className = "comment-button";
+  commentButton.textContent = "Ver comentario";
+  commentButton.hidden = !(order.rating && order.rating.comment);
+  commentButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openCommentModal(order);
+  });
+  badge.textContent = statusMeta[order.status].label;
+  badge.style.background = statusMeta[order.status].bg;
+  badge.style.color = statusMeta[order.status].color;
+
+  compactTop.append(elapsedTime);
+  compactMeta.append(compactTop, compactTitle, compactLine, compactTime);
+  buildQuickStatusButtons(order, quickStatusActions, isArchived);
+  compactMain.append(compactMeta);
+  ratingRow.append(rating, commentButton);
+  compactSide.append(qrCode, ratingRow, badge, quickStatusActions);
+  compactButton.append(compactMain, compactSide);
+  compactButton.addEventListener("click", () => {
+    expandedOrderId = expandedOrderId === order.id ? null : order.id;
+    renderRestaurant();
+  });
+
+  qr.src = buildQrUrl(order.id);
+  qr.alt = `QR del pedido ${order.orderNumber}`;
+  qr.className = "order-card__qr";
+
+  grid.append(
+    buildField("Pedido original", "sourceOrderId", order.sourceOrderId, !isEditing),
+    buildField("Cliente", "customerName", order.customerName, !isEditing),
+    buildField("Pedido", "items", order.items, !isEditing, true),
+    buildField("Diligencias opcionales", "notes", order.notes, !isEditing, true),
+  );
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    updateOrder(order.id, {
+      sourceOrderId: String(formData.get("sourceOrderId") || "").trim(),
+      customerName: String(formData.get("customerName") || "").trim() || "Cliente mostrador",
+      items: String(formData.get("items") || "").trim() || "Pedido rápido",
+      notes: String(formData.get("notes") || "").trim(),
+    });
+    editingOrderId = null;
+    renderRestaurant();
+  });
+
+  link.href = buildClientUrl(order.id);
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.className = "qr-link";
+  link.textContent = "Abrir vista cliente";
+
+  editButton.type = "button";
+  editButton.className = "button-secondary";
+  editButton.textContent = "Editar información";
+  editButton.hidden = isArchived || isEditing;
+  editButton.addEventListener("click", () => {
+    editingOrderId = order.id;
+    renderRestaurant();
+  });
+
+  saveButton.type = "submit";
+  saveButton.className = "button-secondary";
+  saveButton.textContent = "Guardar cambios";
+  saveButton.hidden = !isEditing;
+
+  detailsTop.append(qr);
+  footer.append(link, editButton, saveButton);
+  form.append(grid, footer);
+  details.append(detailsTop, form);
+  card.append(compactButton, details);
+  return card;
+}
+
+function buildQuickStatusButtons(order, container, disabled) {
+  ORDER_STATUSES.forEach((status) => {
+    const button = document.createElement("button");
+    const label = document.createElement("span");
+    const duration = document.createElement("span");
+    button.type = "button";
+    button.className = "status-action status-action--compact";
+    if (order.status === status) button.classList.add("is-active");
+    label.className = "status-action__label";
+    duration.className = "status-action__time";
+    label.textContent = statusMeta[status].label;
+    duration.textContent = formatStatusDurationLabel(getStatusDurationMinutes(order, status));
+    button.disabled = disabled;
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (status === "cancelled") {
+        openCancelModal(order);
+        return;
+      }
+      updateOrderStatus(order.id, status);
+      renderRestaurant();
+    });
+    button.append(label, duration);
+    container.append(button);
+  });
+}
+
+function buildField(label, name, value, disabled, wide = false) {
+  const wrapper = document.createElement("label");
+  const text = document.createElement("span");
+  const input = document.createElement("input");
+
+  wrapper.className = `field${wide ? " field--wide" : ""}`;
+  text.textContent = label;
+  input.name = name;
+  input.value = value;
+  input.disabled = disabled;
+
+  wrapper.append(text, input);
+  return wrapper;
+}
+
+function handleCreateOrder(event) {
+  event.preventDefault();
+  const formData = new FormData(quickCreateForm);
+  let order = null;
+
+  try {
+    order = createOrder({
+      sourceOrderId: String(formData.get("sourceOrderId") || ""),
+      customerName: String(formData.get("customerName") || ""),
+      items: String(formData.get("items") || ""),
+      notes: String(formData.get("notes") || ""),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "duplicate-source-order") {
+      quickCreateFeedback.textContent = "Ese pedido ya existe.";
+      quickCreateFeedback.className = "form-feedback form-feedback--error";
+      quickCreateFeedback.hidden = false;
+      return;
+    }
+
+    throw error;
+  }
+
+  quickCreateForm.reset();
+  quickCreateFeedback.hidden = true;
+  quickCreateFeedback.textContent = "";
+  expandedOrderId = order.id;
+  editingOrderId = null;
+  activeSection = "orders";
+  renderRestaurant();
+}
+
+function openCommentModal(order) {
+  commentTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
+  commentMeta.textContent = `Valoración ${formatRating(order.rating?.score || 0)} · ${order.items}`;
+  commentBody.textContent = order.rating?.comment || "Sin comentario";
+  commentModal.hidden = false;
+}
+
+function closeCommentModal() {
+  commentModal.hidden = true;
+}
+
+function openCancelModal(order) {
+  pendingCancelOrderId = order.id;
+  pendingCancelOrderLabel = `${order.orderNumber} · ${order.customerName}`;
+  cancelMeta.textContent = pendingCancelOrderLabel;
+  cancelModal.hidden = false;
+}
+
+function closeCancelModal() {
+  cancelModal.hidden = true;
+  pendingCancelOrderId = null;
+  pendingCancelOrderLabel = "";
+}
+
+function confirmCancelOrder() {
+  if (!pendingCancelOrderId) return;
+  updateOrderStatus(pendingCancelOrderId, "cancelled");
+  closeCancelModal();
+  renderRestaurant();
+}

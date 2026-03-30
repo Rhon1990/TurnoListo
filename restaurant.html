@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo | Restaurante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="restaurantLoginView" hidden>
+      <main class="grid grid--single">
+        <section class="panel glass-card auth-panel">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Acceso restaurante</p>
+              <h2>Inicia sesión para gestionar tus pedidos</h2>
+            </div>
+          </div>
+          <form class="quick-form auth-form" id="restaurantLoginForm">
+            <label class="field">
+              <span>Usuario</span>
+              <input id="restaurantLoginUsername" name="username" type="text" placeholder="Usuario del restaurante" required />
+            </label>
+            <label class="field">
+              <span>Contraseña</span>
+              <div class="password-field">
+                <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" required />
+                <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
+                  👁
+                </button>
+              </div>
+            </label>
+            <div class="quick-form__actions">
+              <button type="submit" class="launcher">Entrar</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="restaurantLoginFeedback" hidden></p>
+        </section>
+      </main>
+    </div>
+
+    <div class="app-shell" id="restaurantWorkspace" hidden>
+      <header class="hero hero--compact">
+        <div class="hero__copy">
+          <p class="eyebrow">Panel restaurante</p>
+          <h1>Actualiza cada pedido con un toque.</h1>
+          <p class="hero__text">
+            El equipo cambia estados de forma simple y comparte el QR de seguimiento con el cliente.
+          </p>
+        </div>
+        <div class="hero__card glass-card">
+          <p class="hero__metric-label" id="restaurantSessionLabel">Restaurante</p>
+          <p class="hero__metric-label">Pedidos activos</p>
+          <strong class="hero__metric" id="restaurantActiveCount">0</strong>
+          <p class="hero__hint">Recibido, en preparación o listo para recoger.</p>
+          <button class="button-secondary" id="restaurantLogoutButton" type="button">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel glass-card">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Gestión</p>
+              <h2>Pedidos del día</h2>
+            </div>
+            <div class="summary-strip">
+              <span class="summary-chip" id="restaurantReadyCount">0 listos</span>
+              <span class="summary-chip" id="restaurantArchivedCount">0 archivados</span>
+            </div>
+          </div>
+          <div class="section-switcher" id="restaurantSectionTabs">
+            <button class="section-switcher__button is-active" type="button" data-section="orders">Pedidos activos</button>
+            <button class="section-switcher__button" type="button" data-section="create">Nuevo pedido</button>
+            <button class="section-switcher__button" type="button" data-section="dashboard">Dashboard</button>
+            <button class="section-switcher__button" type="button" data-section="history">Archivados</button>
+          </div>
+          <section class="restaurant-section restaurant-section--active" data-section-panel="orders">
+            <p class="hero__hint">
+              Vista rápida para cocina y mostrador. Aquí solo aparecen los pedidos que todavía requieren acción.
+            </p>
+            <div class="list-toolbar">
+              <label class="list-toolbar__search">
+                <span>Buscar pedido</span>
+                <input
+                  id="activeSearchInput"
+                  type="search"
+                  placeholder="Cliente, código QR, pedido original o detalle"
+                />
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Estado</span>
+                <select id="activeStatusFilter">
+                  <option value="all">Todos</option>
+                  <option value="received">Recibidos</option>
+                  <option value="preparing">En preparación</option>
+                  <option value="ready">Listos</option>
+                </select>
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Prioridad</span>
+                <select id="activePriorityFilter">
+                  <option value="all">Todas</option>
+                  <option value="delayed">Retrasados +15 min</option>
+                  <option value="critical">Críticos +30 min</option>
+                  <option value="normal">En tiempo</option>
+                </select>
+              </label>
+            </div>
+            <div class="restaurant-grid" id="restaurantOrders"></div>
+          </section>
+          <section class="restaurant-section" data-section-panel="create" hidden>
+            <form class="quick-form" id="quickCreateForm">
+              <label class="field">
+                <span>Pedido original</span>
+                <input id="sourceOrderId" name="sourceOrderId" type="text" placeholder="Ej. POS-804" />
+              </label>
+              <label class="field">
+                <span>Cliente</span>
+                <input id="customerName" name="customerName" type="text" placeholder="Nombre o alias" required />
+              </label>
+              <label class="field field--wide">
+                <span>Pedido</span>
+                <input id="items" name="items" type="text" placeholder="Burger doble + bebida" required />
+              </label>
+              <label class="field field--wide">
+                <span>Diligencias opcionales</span>
+                <input id="notes" name="notes" type="text" placeholder="Opcional: sin gluten, avisar, extra salsa..." />
+              </label>
+              <div class="quick-form__actions">
+                <button type="submit" class="launcher">Crear pedido</button>
+              </div>
+            </form>
+            <p class="form-feedback" id="quickCreateFeedback" hidden></p>
+            <p class="hero__hint">
+              Este panel gestiona el seguimiento del pedido y su QR, sin modificar el registro original del TPV.
+            </p>
+          </section>
+          <section class="restaurant-section" data-section-panel="dashboard" hidden>
+            <section class="dashboard-block">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Dashboard</p>
+                  <h2>Resumen del restaurante</h2>
+                </div>
+              </div>
+              <div class="dashboard-grid">
+                <article class="dashboard-card">
+                  <p class="stat__label">Pedidos de hoy</p>
+                  <strong class="dashboard-card__value" id="dashboardTotalToday">0</strong>
+                  <p class="dashboard-card__hint">Pedidos registrados hoy</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Promedio entregado</p>
+                  <strong class="dashboard-card__value" id="dashboardAvgDelivered">00:00</strong>
+                  <p class="dashboard-card__hint">Tiempo medio hasta entregar</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Entregas a tiempo</p>
+                  <strong class="dashboard-card__value" id="dashboardOnTimeRate">0%</strong>
+                  <p class="dashboard-card__hint">Entregados en 15 min o menos</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Valoración media</p>
+                  <strong class="dashboard-card__value" id="dashboardAverageRating">Sin datos</strong>
+                  <p class="dashboard-card__hint">Opinión de los clientes</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardActiveNow">
+                  <p class="stat__label">Activos ahora</p>
+                  <strong class="dashboard-card__value" id="dashboardActiveNow">0</strong>
+                  <p class="dashboard-card__hint">Pedidos aún por atender</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardDeliveredToday">
+                  <p class="stat__label">Entregados hoy</p>
+                  <strong class="dashboard-card__value" id="dashboardDeliveredToday">0</strong>
+                  <p class="dashboard-card__hint">Pedidos completados</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardReadyNow">
+                  <p class="stat__label">Listos ahora</p>
+                  <strong class="dashboard-card__value" id="dashboardReadyNow">0</strong>
+                  <p class="dashboard-card__hint">Esperando recogida</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardDelayedActive">
+                  <p class="stat__label">Riesgo operativo</p>
+                  <strong class="dashboard-card__value" id="dashboardDelayedActive">0</strong>
+                  <p class="dashboard-card__hint">Pedidos activos con más de 15 min</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardLongestWait">
+                  <p class="stat__label">Espera más larga</p>
+                  <strong class="dashboard-card__value" id="dashboardLongestWait">00:00</strong>
+                  <p class="dashboard-card__hint">Ir al pedido con mayor espera</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestOrder">
+                  <p class="stat__label">Pedido más lento</p>
+                  <strong class="dashboard-card__value" id="dashboardSlowestOrder">Sin datos</strong>
+                  <p class="dashboard-card__hint" id="dashboardSlowestOrderHint">Pedido con mayor espera activa</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestStatus">
+                  <p class="stat__label">Estado más lento</p>
+                  <strong class="dashboard-card__value" id="dashboardSlowestStatus">Sin datos</strong>
+                  <p class="dashboard-card__hint" id="dashboardSlowestStatusHint">Promedio por estado</p>
+                </article>
+              </div>
+              <div class="dashboard-layout">
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Propietario</p>
+                      <h3>Señales clave</h3>
+                    </div>
+                    <span class="summary-chip" id="dashboardPeakHour">Hora pico --:--</span>
+                  </div>
+                  <div class="dashboard-signals">
+                    <div class="dashboard-signal">
+                      <span class="dashboard-signal__label">Tiempo medio de cierre</span>
+                      <strong class="dashboard-signal__value" id="dashboardAvgResolution">00:00</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalFeedback">
+                      <span class="dashboard-signal__label">Comentarios recibidos</span>
+                      <strong class="dashboard-signal__value" id="dashboardFeedbackCount">0</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalLowRating">
+                      <span class="dashboard-signal__label">Valoraciones bajas</span>
+                      <strong class="dashboard-signal__value" id="dashboardLowRatingCount">0</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalCancellation">
+                      <span class="dashboard-signal__label">Tasa de cancelación</span>
+                      <strong class="dashboard-signal__value" id="dashboardCancellationRate">0%</strong>
+                    </div>
+                  </div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Estados</p>
+                      <h3>Distribución del día</h3>
+                    </div>
+                    <span class="summary-chip">Seguimiento del flujo</span>
+                  </div>
+                  <div class="dashboard-bars" id="dashboardStatusBars"></div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Mejoras</p>
+                      <h3>Qué podemos mejorar</h3>
+                    </div>
+                    <span class="summary-chip">Recomendación automática</span>
+                  </div>
+                  <div class="dashboard-insights" id="dashboardInsights"></div>
+                </article>
+              </div>
+            </section>
+          </section>
+          <section class="restaurant-section" data-section-panel="history" hidden>
+            <section class="history-block">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Historial seguro</p>
+                  <h2>Pedidos archivados</h2>
+                </div>
+              </div>
+              <div class="list-toolbar">
+                <label class="list-toolbar__search">
+                  <span>Buscar archivado</span>
+                  <input
+                    id="archivedSearchInput"
+                    type="search"
+                    placeholder="Cliente, código QR, pedido original o detalle"
+                  />
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Resultado</span>
+                  <select id="archivedStatusFilter">
+                    <option value="all">Todos</option>
+                    <option value="delivered">Entregados</option>
+                    <option value="cancelled">Cancelados</option>
+                  </select>
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Valoración</span>
+                  <select id="archivedRatingFilter">
+                    <option value="all">Todas</option>
+                    <option value="low">Bajas 1-2</option>
+                    <option value="rated">Con valoración</option>
+                    <option value="unrated">Sin valorar</option>
+                    <option value="commented">Con comentario</option>
+                  </select>
+                </label>
+              </div>
+              <div class="restaurant-grid restaurant-grid--history" id="restaurantArchivedOrders"></div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="qr-modal" id="restaurantCommentModal" hidden>
+      <div class="qr-modal__backdrop" id="restaurantCommentBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="restaurantCommentClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Comentario del cliente</p>
+          <h3 id="restaurantCommentTitle">Pedido</h3>
+          <p class="comment-modal__meta" id="restaurantCommentMeta"></p>
+          <div class="comment-modal__quote">
+            <p id="restaurantCommentBody"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-modal" id="restaurantCancelModal" hidden>
+      <div class="qr-modal__backdrop" id="restaurantCancelBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="restaurantCancelClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Confirmación</p>
+          <h3>¿Desea cancelar este pedido?</h3>
+          <p class="comment-modal__meta" id="restaurantCancelMeta"></p>
+          <div class="cancel-modal__actions">
+            <button class="button-tertiary" id="restaurantCancelBack" type="button">Volver</button>
+            <button class="launcher" id="restaurantCancelConfirm" type="button">Sí, cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./shared.js"></script>
+    <script src="./restaurant.js"></script>
+  </body>
+</html>

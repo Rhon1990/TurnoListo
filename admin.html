@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo | Administrador</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="adminLoginView">
+      <main class="grid grid--single">
+        <section class="panel glass-card auth-panel">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Administrador</p>
+              <h2>Accede al panel maestro</h2>
+            </div>
+          </div>
+          <form class="quick-form auth-form" id="adminLoginForm">
+            <label class="field">
+              <span>Usuario</span>
+              <input name="username" type="text" placeholder="Administrador" required />
+            </label>
+            <label class="field">
+              <span>Contraseña</span>
+              <div class="password-field">
+                <input id="adminLoginPassword" name="password" type="password" placeholder="Contraseña" required />
+                <button class="password-toggle password-toggle--field" id="adminLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
+                  👁
+                </button>
+              </div>
+            </label>
+            <div class="quick-form__actions">
+              <button type="submit" class="launcher">Entrar</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="adminLoginFeedback" hidden></p>
+        </section>
+      </main>
+    </div>
+
+    <div class="app-shell" id="adminWorkspace" hidden>
+      <header class="hero hero--compact">
+        <div class="hero__copy">
+          <p class="eyebrow">Administrador</p>
+          <h1>Gestiona restaurantes, accesos y vencimientos.</h1>
+          <p class="hero__text">
+            Controla qué restaurantes están activos, cuándo vence su acceso y cómo está rindiendo cada cuenta.
+          </p>
+        </div>
+        <div class="hero__card glass-card">
+          <p class="hero__metric-label">Restaurantes</p>
+          <strong class="hero__metric" id="adminRestaurantCount">0</strong>
+          <p class="hero__hint">Cuentas dadas de alta en la plataforma.</p>
+          <button class="button-secondary" id="adminLogoutButton" type="button">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel glass-card">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Administración</p>
+              <h2>Panel maestro</h2>
+            </div>
+          </div>
+
+          <div class="section-switcher">
+            <button class="section-switcher__button is-active" type="button" data-admin-section="dashboard">Dashboard</button>
+            <button class="section-switcher__button" type="button" data-admin-section="create">Alta</button>
+            <button class="section-switcher__button" type="button" data-admin-section="restaurants">Restaurantes</button>
+          </div>
+
+          <section class="restaurant-section restaurant-section--active" data-admin-panel="dashboard">
+            <section class="dashboard-block">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Dashboard administrador</p>
+                  <h2>Resumen general</h2>
+                </div>
+              </div>
+              <div class="dashboard-grid">
+                <article class="dashboard-card">
+                  <p class="stat__label">Restaurantes totales</p>
+                  <strong class="dashboard-card__value" id="adminStatRestaurants">0</strong>
+                  <p class="dashboard-card__hint">Cuentas registradas</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Restaurantes activos</p>
+                  <strong class="dashboard-card__value" id="adminStatActiveRestaurants">0</strong>
+                  <p class="dashboard-card__hint">Con acceso vigente</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Accesos vencidos</p>
+                  <strong class="dashboard-card__value" id="adminStatExpiredRestaurants">0</strong>
+                  <p class="dashboard-card__hint">Pendientes de renovación</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Vencen pronto</p>
+                  <strong class="dashboard-card__value" id="adminStatSoonToExpire">0</strong>
+                  <p class="dashboard-card__hint">En los próximos 7 días</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Pedidos totales</p>
+                  <strong class="dashboard-card__value" id="adminStatTotalOrders">0</strong>
+                  <p class="dashboard-card__hint">Acumulado global</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Pedidos activos</p>
+                  <strong class="dashboard-card__value" id="adminStatActiveOrders">0</strong>
+                  <p class="dashboard-card__hint">Operación abierta ahora</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Entregados</p>
+                  <strong class="dashboard-card__value" id="adminStatDelivered">0</strong>
+                  <p class="dashboard-card__hint">Pedidos completados</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Cancelados</p>
+                  <strong class="dashboard-card__value" id="adminStatCancelled">0</strong>
+                  <p class="dashboard-card__hint">Pedidos cerrados sin entrega</p>
+                </article>
+              </div>
+              <div class="dashboard-layout">
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Seguimiento</p>
+                      <h3>Mejor restaurante hoy</h3>
+                    </div>
+                  </div>
+                  <div class="dashboard-insights" id="adminTopRestaurantPanel"></div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Atención</p>
+                      <h3>Qué revisar</h3>
+                    </div>
+                  </div>
+                  <div class="dashboard-insights" id="adminInsights"></div>
+                </article>
+              </div>
+            </section>
+          </section>
+
+          <section class="restaurant-section" data-admin-panel="create" hidden>
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Alta completa</p>
+                <h2>Nuevo restaurante</h2>
+              </div>
+            </div>
+            <form class="quick-form admin-create-form" id="adminCreateRestaurantForm">
+              <label class="field">
+                <span>Nombre del restaurante</span>
+                <input name="name" type="text" placeholder="Ej. Burger Centro" required />
+              </label>
+              <label class="field">
+                <span>Responsable</span>
+                <input name="ownerName" type="text" placeholder="Nombre del responsable" required />
+              </label>
+              <label class="field">
+                <span>Correo electrónico</span>
+                <input name="email" type="email" placeholder="correo@restaurante.com" required />
+              </label>
+              <label class="field">
+                <span>Número móvil</span>
+                <input name="phone" type="text" placeholder="+34 600 000 000" required />
+              </label>
+              <label class="field">
+                <span>Ciudad</span>
+                <input name="city" type="text" placeholder="Ciudad" />
+              </label>
+              <label class="field">
+                <span>Dirección</span>
+                <input name="address" type="text" placeholder="Dirección del restaurante" />
+              </label>
+              <label class="field">
+                <span>Plan</span>
+                <select id="adminPlanSelect" name="planName">
+                  <option value="Quincenal">Quincenal</option>
+                  <option value="Mensual" selected>Mensual</option>
+                  <option value="Trimestral">Trimestral</option>
+                  <option value="Semestral">Semestral</option>
+                  <option value="Anual">Anual</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Días de activación</span>
+                <input id="adminActivationDays" name="activationDays" type="number" min="1" value="30" required />
+              </label>
+              <label class="field field--wide">
+                <span>Notas internas</span>
+                <input name="notes" type="text" placeholder="Observaciones comerciales, facturación, seguimiento..." />
+              </label>
+              <p class="hero__hint field--wide">
+                El correo electrónico será el usuario de acceso y la contraseña se genera automáticamente al crear el restaurante.
+              </p>
+              <div class="quick-form__actions">
+                <button type="submit" class="launcher">Crear acceso</button>
+              </div>
+            </form>
+            <p class="form-feedback" id="adminCreateFeedback" hidden></p>
+          </section>
+
+          <section class="restaurant-section" data-admin-panel="restaurants" hidden>
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Base de clientes</p>
+                <h2>Restaurantes registrados</h2>
+              </div>
+            </div>
+            <div class="list-toolbar">
+              <label class="list-toolbar__search">
+                <span>Buscar restaurante</span>
+                <input
+                  id="adminSearchInput"
+                  type="search"
+                  placeholder="Nombre, responsable, usuario, correo o móvil"
+                />
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Estado</span>
+                <select id="adminStatusFilter">
+                  <option value="all">Todos</option>
+                  <option value="active">Activos</option>
+                  <option value="expired">Vencidos</option>
+                  <option value="expiring">Vencen pronto</option>
+                </select>
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Actividad</span>
+                <select id="adminActivityFilter">
+                  <option value="all">Todos</option>
+                  <option value="with-orders">Con pedidos</option>
+                  <option value="without-orders">Sin pedidos</option>
+                </select>
+              </label>
+            </div>
+            <div class="admin-list" id="adminRestaurantList"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="qr-modal" id="adminDeleteModal" hidden>
+      <div class="qr-modal__backdrop" id="adminDeleteBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="adminDeleteClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Confirmación</p>
+          <h3>¿Desea eliminar este restaurante?</h3>
+          <p class="comment-modal__meta" id="adminDeleteMeta"></p>
+          <div class="cancel-modal__actions">
+            <button class="button-tertiary" id="adminDeleteBack" type="button">Volver</button>
+            <button class="launcher" id="adminDeleteConfirm" type="button">Sí, eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./shared.js"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>
