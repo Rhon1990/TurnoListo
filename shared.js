@@ -442,11 +442,14 @@ function updateOrder(id, updates) {
     }
 
     nextUpdates.sourceOrderId = normalizedSourceOrderId;
+    nextUpdates.id = normalizedSourceOrderId
+      ? buildOrderTrackingId(currentOrder.restaurantId, normalizedSourceOrderId)
+      : currentOrder.id;
   }
 
   const nextOrders = loadOrders().map((order) => (order.id === id ? { ...order, ...nextUpdates } : order));
   saveOrders(nextOrders);
-  return getOrderById(id);
+  return getOrderById(nextUpdates.id || id);
 }
 
 function updateOrderStatus(id, status) {
