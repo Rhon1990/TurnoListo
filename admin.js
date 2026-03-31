@@ -158,6 +158,7 @@ async function handleAdminLogin(event) {
     adminLoginFeedback.textContent = "Credenciales incorrectas o la cuenta no tiene un perfil admin en users/{uid}.";
     adminLoginFeedback.className = "form-feedback form-feedback--error";
     adminLoginFeedback.hidden = false;
+    showTurnoAlert("No se pudo iniciar sesion como administrador. Verifica credenciales, dominio autorizado y el perfil users/{uid}.", "error");
   }
 }
 
@@ -227,6 +228,7 @@ function initializeAdminFirebaseAuth() {
         adminLoginFeedback.textContent = "La cuenta autenticada no tiene role=admin en users/{uid}.";
         adminLoginFeedback.className = "form-feedback form-feedback--error";
         adminLoginFeedback.hidden = false;
+        showTurnoAlert("La cuenta autenticada no tiene permisos de administrador.", "error");
         await backend.signOut();
         return;
       }

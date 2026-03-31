@@ -34,6 +34,8 @@ const statusMeta = {
   cancelled: { label: "Cancelado", color: "#7f1d1d", bg: "rgba(127, 29, 29, 0.12)", progress: 100 },
 };
 
+initializeTurnoAlerts();
+
 function readOrdersFromLocalStorage() {
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (!stored) {
@@ -182,6 +184,7 @@ async function connectPublicTrackingToFirebase() {
     });
   } catch (error) {
     console.error("No se pudo inicializar el tracking publico desde Firebase.", error);
+    notifyFirebaseError(error, "No se pudo cargar el seguimiento publico.");
     disconnectPublicFirebaseSubscriptions();
   }
 
@@ -246,6 +249,7 @@ async function connectPrivateDataStoreToFirebase() {
     });
   } catch (error) {
     console.error("No se pudo inicializar Firebase. Se mantiene localStorage.", error);
+    notifyFirebaseError(error, "No se pudo cargar la informacion privada de Firestore.");
     disconnectPrivateFirebaseSubscriptions();
     firebaseBackend = backend;
     updateDataBackendMode();
@@ -300,6 +304,7 @@ async function refreshOrdersFromBackend() {
     return { enabled: true, refreshed: true };
   } catch (error) {
     console.error("No se pudieron refrescar los pedidos desde Firebase.", error);
+    notifyFirebaseError(error, "No se pudieron refrescar los pedidos.");
     return { enabled: true, refreshed: false, error };
   }
 }
@@ -315,6 +320,7 @@ async function refreshPublicTrackingFromBackend() {
     return { enabled: true, refreshed: true };
   } catch (error) {
     console.error("No se pudo refrescar el tracking publico desde Firebase.", error);
+    notifyFirebaseError(error, "No se pudo refrescar el seguimiento publico.");
     return { enabled: true, refreshed: false, error };
   }
 }
@@ -323,6 +329,7 @@ function syncOrdersToBackend() {
   if (!firebaseBackend?.enabled) return;
   firebaseBackend.replaceCollection(FIREBASE_ORDERS_COLLECTION, cachedOrders).catch((error) => {
     console.error("No se pudieron sincronizar los pedidos con Firebase.", error);
+    notifyFirebaseError(error, "No se pudieron guardar los pedidos en Firebase.");
   });
 }
 
@@ -330,6 +337,7 @@ function syncRestaurantsToBackend() {
   if (!firebaseBackend?.enabled) return;
   firebaseBackend.replaceCollection(FIREBASE_RESTAURANTS_COLLECTION, cachedRestaurants).catch((error) => {
     console.error("No se pudieron sincronizar los restaurantes con Firebase.", error);
+    notifyFirebaseError(error, "No se pudieron guardar los restaurantes en Firebase.");
   });
 }
 
@@ -340,6 +348,7 @@ function syncTrackingToBackend() {
   applyTrackingSnapshot(trackingRecords);
   firebaseBackend.replaceCollection(FIREBASE_TRACKING_COLLECTION, trackingRecords).catch((error) => {
     console.error("No se pudo sincronizar el tracking publico con Firebase.", error);
+    notifyFirebaseError(error, "No se pudo guardar el seguimiento publico.");
   });
 }
 
@@ -827,7 +836,10 @@ function updatePublicTrackingRating(id, score, comment = "") {
     const nextRecord = nextTracking.find((order) => order.id === id);
     firebaseBackend
       .setDocument(FIREBASE_TRACKING_COLLECTION, id, nextRecord)
-      .catch((error) => console.error("No se pudo guardar la valoracion publica del pedido.", error));
+      .catch((error) => {
+        console.error("No se pudo guardar la valoracion publica del pedido.", error);
+        notifyFirebaseError(error, "No se pudo guardar la valoracion del cliente.");
+      });
   }
   broadcastOrdersChanged();
   return nextTracking.find((order) => order.id === id) || null;
@@ -1241,4 +1253,76 @@ function normalizePublicTracking(trackingRecords) {
       ...tracking,
     }))
     .sort((left, right) => new Date(left.createdAt) - new Date(right.createdAt));
+}
+
+function initializeTurnoAlerts() {
+  if (window.__turnoAlertsInitialized) return;
+  window.__turnoAlertsInitialized = true;
+  window.showTurnoAlert = showTurnoAlert;
+}
+
+function getTurnoAlertRoot() {
+  let root = document.querySelector("#turnoAlertRoot");
+  if (root) return root;
+
+  root = document.createElement("div");
+  root.id = "turnoAlertRoot";
+  root.className = "turno-alert-root";
+  document.body.append(root);
+  return root;
+}
+
+function showTurnoAlert(message, type = "error", options = {}) {
+  const root = getTurnoAlertRoot();
+  const alert = document.createElement("article");
+  const title = document.createElement("strong");
+  const body = document.createElement("p");
+  const close = document.createElement("button");
+  const timeoutMs = options.timeoutMs ?? 6000;
+
+  alert.className = `turno-alert turno-alert--${type}`;
+  title.className = "turno-alert__title";
+  body.className = "turno-alert__body";
+  close.className = "turno-alert__close";
+  close.type = "button";
+  close.setAttribute("aria-label", "Cerrar alerta");
+  close.textContent = "Cerrar";
+  title.textContent =
+    type === "success" ? "Todo correcto" : type === "warning" ? "Revisa esto" : "Algo ha fallado";
+  body.textContent = String(message || "Ha ocurrido un error inesperado.");
+
+  close.addEventListener("click", () => {
+    alert.remove();
+  });
+
+  alert.append(title, body, close);
+  root.append(alert);
+
+  window.setTimeout(() => {
+    alert.remove();
+  }, timeoutMs);
+}
+
+function notifyFirebaseError(error, fallbackMessage) {
+  const code = error?.code || "";
+  const message = mapFirebaseErrorMessage(code, fallbackMessage);
+  showTurnoAlert(message, "error");
+}
+
+function mapFirebaseErrorMessage(code, fallbackMessage) {
+  switch (code) {
+    case "permission-denied":
+      return "No tienes permiso para acceder a estos datos. Revisa el rol del usuario o las reglas de Firestore.";
+    case "unauthenticated":
+      return "Tu sesion no es valida o ha expirado. Inicia sesion de nuevo.";
+    case "auth/unauthorized-domain":
+      return "Este dominio no esta autorizado en Firebase Authentication.";
+    case "auth/invalid-credential":
+    case "auth/invalid-login-credentials":
+      return "Las credenciales no son validas. Revisa correo y contrasena.";
+    case "auth/network-request-failed":
+      return "No se pudo conectar con Firebase. Comprueba tu conexion e intentalo otra vez.";
+    default:
+      return fallbackMessage || "Ha ocurrido un error al comunicar con Firebase.";
+  }
 }

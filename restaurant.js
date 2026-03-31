@@ -162,6 +162,7 @@ function initializeRestaurantFirebaseAuth() {
           "Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.";
         restaurantLoginFeedback.className = "form-feedback form-feedback--error";
         restaurantLoginFeedback.hidden = false;
+        showTurnoAlert("Tu cuenta no tiene acceso valido al restaurante asignado.", "error");
         await backend.signOut();
         return;
       }
@@ -246,6 +247,7 @@ async function handleRestaurantLogin(event) {
     restaurantLoginFeedback.textContent = "El acceso está vencido. Debe renovarse desde administración.";
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
+    showTurnoAlert("El acceso de este restaurante esta vencido.", "warning");
     return;
   }
 
@@ -254,6 +256,7 @@ async function handleRestaurantLogin(event) {
     restaurantLoginFeedback.textContent = "Firebase Authentication no está disponible en esta configuración.";
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
+    showTurnoAlert("Firebase Authentication no esta disponible en esta configuracion.", "error");
     return;
   }
 
@@ -269,6 +272,7 @@ async function handleRestaurantLogin(event) {
         : "Usuario o contrasena incorrectos.";
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
+    showTurnoAlert("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}.", "error");
   }
 }
 
@@ -626,7 +630,7 @@ function buildOrderCard(order, isArchived) {
       renderRestaurant();
     } catch (error) {
       if (error instanceof Error && error.message === "duplicate-source-order") {
-        window.alert("Ese pedido original ya existe.");
+        showTurnoAlert("Ese pedido original ya existe.", "warning");
         return;
       }
 
