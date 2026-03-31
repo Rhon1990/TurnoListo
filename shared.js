@@ -128,7 +128,15 @@ async function initializeDataStore() {
 }
 
 async function waitForFirebaseBackend() {
-  if (!window.__turnoFirebaseReadyPromise) return { enabled: false };
+  const maxAttempts = 50;
+  let attempt = 0;
+
+  while (!window.__turnoFirebaseReadyPromise && attempt < maxAttempts) {
+    attempt += 1;
+    await new Promise((resolve) => window.setTimeout(resolve, 100));
+  }
+
+  if (!window.__turnoFirebaseReadyPromise) return { enabled: false, reason: "firebase-timeout" };
 
   try {
     return await window.__turnoFirebaseReadyPromise;
