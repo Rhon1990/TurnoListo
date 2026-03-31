@@ -32,11 +32,17 @@ let lastRenderedStatus = null;
 let currentOrder = null;
 let pendingLowRatingScore = null;
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
+const CLIENT_REFRESH_INTERVAL_MS = 4000;
 
 waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
   waitForDataReady().then(renderClient);
 });
+window.setInterval(() => {
+  if (document.visibilityState !== "visible") return;
+  if (window.__turnoDataBackendMode !== "firebase") return;
+  refreshOrdersFromBackend();
+}, CLIENT_REFRESH_INTERVAL_MS);
 
 loadButton.addEventListener("click", () => {
   const nextId = orderInput.value.trim().toUpperCase();

@@ -160,6 +160,20 @@ function waitForDataReady() {
   return dataReadyPromise;
 }
 
+async function refreshOrdersFromBackend() {
+  if (!firebaseBackend?.enabled) return { enabled: false, reason: "firebase-disabled" };
+
+  try {
+    const remoteOrders = await firebaseBackend.loadCollection(FIREBASE_ORDERS_COLLECTION);
+    applyOrdersSnapshot(remoteOrders.length ? remoteOrders : []);
+    broadcastOrdersChanged();
+    return { enabled: true, refreshed: true };
+  } catch (error) {
+    console.error("No se pudieron refrescar los pedidos desde Firebase.", error);
+    return { enabled: true, refreshed: false, error };
+  }
+}
+
 function syncOrdersToBackend() {
   if (!firebaseBackend?.enabled) return;
   firebaseBackend.replaceCollection(FIREBASE_ORDERS_COLLECTION, cachedOrders).catch((error) => {
