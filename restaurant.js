@@ -71,11 +71,15 @@ let pendingCancelOrderLabel = "";
 let activeSection = "orders";
 let lastDashboardStats = null;
 
-bootRestaurantPage();
+waitForDataReady().then(bootRestaurantPage);
 window.setInterval(() => {
-  if (getCurrentRestaurantSession()) renderRestaurant();
+  if (getCurrentRestaurantSession()) {
+    waitForDataReady().then(renderRestaurant);
+  }
 }, 1000);
-onOrdersChanged(renderRestaurant);
+onOrdersChanged(() => {
+  waitForDataReady().then(renderRestaurant);
+});
 quickCreateForm.addEventListener("submit", handleCreateOrder);
 restaurantLoginForm.addEventListener("submit", handleRestaurantLogin);
 restaurantLoginTogglePassword.addEventListener("click", (event) => {

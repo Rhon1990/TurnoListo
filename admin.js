@@ -49,8 +49,10 @@ const PLAN_DURATIONS = {
   Anual: 365,
 };
 
-bootAdminPage();
-onOrdersChanged(renderAdminWorkspace);
+waitForDataReady().then(bootAdminPage);
+onOrdersChanged(() => {
+  waitForDataReady().then(renderAdminWorkspace);
+});
 adminLoginForm.addEventListener("submit", handleAdminLogin);
 adminLoginTogglePassword.addEventListener("click", (event) => {
   event.preventDefault();

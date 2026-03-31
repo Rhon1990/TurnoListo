@@ -33,8 +33,10 @@ let currentOrder = null;
 let pendingLowRatingScore = null;
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 
-renderClient();
-onOrdersChanged(renderClient);
+waitForDataReady().then(renderClient);
+onOrdersChanged(() => {
+  waitForDataReady().then(renderClient);
+});
 
 loadButton.addEventListener("click", () => {
   const nextId = orderInput.value.trim().toUpperCase();

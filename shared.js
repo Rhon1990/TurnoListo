@@ -3,12 +3,19 @@ const RESTAURANT_STORAGE_KEY = "turnolisto-restaurants-v1";
 const RESTAURANT_SESSION_KEY = "turnolisto-restaurant-session-v1";
 const SYNC_CHANNEL_NAME = "turnolisto-sync";
 const DEFAULT_RESTAURANT_ID = "rest-demo";
+const FIREBASE_ORDERS_COLLECTION = "orders";
+const FIREBASE_RESTAURANTS_COLLECTION = "restaurants";
 
 const ORDER_STATUSES = ["received", "preparing", "ready", "delivered", "cancelled"];
 const QUEUE_ACTIVE_STATUSES = ["received", "preparing"];
 
 const defaultOrders = createDefaultOrders();
 const defaultRestaurants = createDefaultRestaurants();
+let cachedOrders = [];
+let cachedRestaurants = [];
+let firebaseBackend = null;
+let dataBackendMode = "local";
+const dataReadyPromise = initializeDataStore();
 
 const statusMeta = {
   received: { label: "Recibido", color: "#8f3513", bg: "rgba(216, 95, 49, 0.12)", progress: 18 },
@@ -18,38 +25,140 @@ const statusMeta = {
   cancelled: { label: "Cancelado", color: "#7f1d1d", bg: "rgba(127, 29, 29, 0.12)", progress: 100 },
 };
 
-function loadOrders() {
+function readOrdersFromLocalStorage() {
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (!stored) {
-    saveOrders(defaultOrders);
     return normalizeOrders(defaultOrders);
   }
 
   try {
     return normalizeOrders(JSON.parse(stored));
   } catch {
-    saveOrders(defaultOrders);
     return normalizeOrders(defaultOrders);
   }
 }
 
-function loadRestaurants() {
+function readRestaurantsFromLocalStorage() {
   const stored = window.localStorage.getItem(RESTAURANT_STORAGE_KEY);
   if (!stored) {
-    saveRestaurants(defaultRestaurants);
     return normalizeRestaurants(defaultRestaurants);
   }
 
   try {
     return normalizeRestaurants(JSON.parse(stored));
   } catch {
-    saveRestaurants(defaultRestaurants);
     return normalizeRestaurants(defaultRestaurants);
   }
 }
 
-function saveRestaurants(restaurants) {
+function loadOrders() {
+  return normalizeOrders(cachedOrders);
+}
+
+function loadRestaurants() {
+  return normalizeRestaurants(cachedRestaurants);
+}
+
+function persistOrdersToLocalStorage(orders) {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function persistRestaurantsToLocalStorage(restaurants) {
   window.localStorage.setItem(RESTAURANT_STORAGE_KEY, JSON.stringify(restaurants));
+}
+
+function applyOrdersSnapshot(orders) {
+  cachedOrders = normalizeOrders(orders);
+  persistOrdersToLocalStorage(cachedOrders);
+}
+
+function applyRestaurantsSnapshot(restaurants) {
+  cachedRestaurants = normalizeRestaurants(restaurants);
+  persistRestaurantsToLocalStorage(cachedRestaurants);
+}
+
+async function initializeDataStore() {
+  applyOrdersSnapshot(readOrdersFromLocalStorage());
+  applyRestaurantsSnapshot(readRestaurantsFromLocalStorage());
+
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled) {
+    broadcastOrdersChanged();
+    return { mode: dataBackendMode };
+  }
+
+  firebaseBackend = backend;
+  dataBackendMode = "firebase";
+
+  try {
+    const [remoteOrders, remoteRestaurants] = await Promise.all([
+      firebaseBackend.loadCollection(FIREBASE_ORDERS_COLLECTION),
+      firebaseBackend.loadCollection(FIREBASE_RESTAURANTS_COLLECTION),
+    ]);
+
+    if (remoteOrders.length) {
+      applyOrdersSnapshot(remoteOrders);
+    } else {
+      await firebaseBackend.replaceCollection(FIREBASE_ORDERS_COLLECTION, cachedOrders);
+    }
+
+    if (remoteRestaurants.length) {
+      applyRestaurantsSnapshot(remoteRestaurants);
+    } else {
+      await firebaseBackend.replaceCollection(FIREBASE_RESTAURANTS_COLLECTION, cachedRestaurants);
+    }
+
+    firebaseBackend.subscribeCollection(FIREBASE_ORDERS_COLLECTION, (orders) => {
+      applyOrdersSnapshot(orders.length ? orders : []);
+      broadcastOrdersChanged();
+    });
+
+    firebaseBackend.subscribeCollection(FIREBASE_RESTAURANTS_COLLECTION, (restaurants) => {
+      applyRestaurantsSnapshot(restaurants.length ? restaurants : []);
+      broadcastOrdersChanged();
+    });
+  } catch (error) {
+    console.error("No se pudo inicializar Firebase. Se mantiene localStorage.", error);
+    firebaseBackend = null;
+    dataBackendMode = "local";
+  }
+
+  broadcastOrdersChanged();
+  return { mode: dataBackendMode };
+}
+
+async function waitForFirebaseBackend() {
+  if (!window.__turnoFirebaseReadyPromise) return { enabled: false };
+
+  try {
+    return await window.__turnoFirebaseReadyPromise;
+  } catch (error) {
+    console.error("Error preparando Firebase.", error);
+    return { enabled: false, error };
+  }
+}
+
+function waitForDataReady() {
+  return dataReadyPromise;
+}
+
+function syncOrdersToBackend() {
+  if (!firebaseBackend?.enabled) return;
+  firebaseBackend.replaceCollection(FIREBASE_ORDERS_COLLECTION, cachedOrders).catch((error) => {
+    console.error("No se pudieron sincronizar los pedidos con Firebase.", error);
+  });
+}
+
+function syncRestaurantsToBackend() {
+  if (!firebaseBackend?.enabled) return;
+  firebaseBackend.replaceCollection(FIREBASE_RESTAURANTS_COLLECTION, cachedRestaurants).catch((error) => {
+    console.error("No se pudieron sincronizar los restaurantes con Firebase.", error);
+  });
+}
+
+function saveRestaurants(restaurants) {
+  applyRestaurantsSnapshot(restaurants);
+  syncRestaurantsToBackend();
   broadcastOrdersChanged();
 }
 
@@ -194,8 +303,10 @@ function deleteRestaurantAccount(restaurantId) {
   const nextOrders = loadOrders().filter((order) => order.restaurantId !== restaurantId);
   const currentSession = getCurrentRestaurantSession();
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextOrders));
-  window.localStorage.setItem(RESTAURANT_STORAGE_KEY, JSON.stringify(nextRestaurants));
+  applyOrdersSnapshot(nextOrders);
+  applyRestaurantsSnapshot(nextRestaurants);
+  syncOrdersToBackend();
+  syncRestaurantsToBackend();
 
   if (currentSession?.restaurantId === restaurantId) {
     clearCurrentRestaurantSession();
@@ -319,7 +430,8 @@ function createDefaultOrders() {
 }
 
 function saveOrders(orders) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  applyOrdersSnapshot(orders);
+  syncOrdersToBackend();
   broadcastOrdersChanged();
 }
 

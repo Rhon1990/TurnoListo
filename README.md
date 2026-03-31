@@ -18,7 +18,34 @@ La demo está separada en tres páginas:
 
 ## Cómo se conectan
 
-Ambas páginas comparten los pedidos usando `localStorage`, así que si las abres en el mismo navegador verás los cambios reflejados.
+Si no configuras Firebase, la demo usa `localStorage`, así que solo verás los cambios reflejados dentro del mismo navegador.
+
+Si configuras Firebase, `admin.html`, `restaurant.html` y `client.html` comparten los mismos datos en Firestore y ya funcionan entre dispositivos.
+
+## Configurar Firebase
+
+1. Crea un proyecto en Firebase y habilita `Cloud Firestore`.
+2. En la configuración web del proyecto copia las credenciales en [firebase-config.js](/Users/rdelgpad/Documents/personal/TurnoListo/firebase-config.js).
+3. Cambia `enabled: false` por `enabled: true`.
+4. Crea dos colecciones en Firestore o deja que la app las cree al arrancar:
+   `orders`
+   `restaurants`
+5. Usa reglas de prueba durante el arranque del proyecto. Por ejemplo:
+
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+```
+
+6. Abre `admin.html`, `restaurant.html` y `client.html` con esa configuración y comprueba que los cambios viajan entre navegador y móvil.
+
+La integración de Firebase usa el SDK web por CDN y sincroniza los pedidos y restaurantes en tiempo real con Firestore.
 
 ## Alta de restaurantes
 
@@ -64,3 +91,5 @@ Cuando se vence el tiempo de activación, el restaurante queda bloqueado hasta r
 - `restaurant.js`: lógica del restaurante
 - `client.js`: lógica del cliente
 - `styles.css`: estilos responsive
+- `firebase-config.js`: configuración del proyecto Firebase
+- `firebase-bridge.js`: conexión web con Firestore
