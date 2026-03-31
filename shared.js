@@ -83,12 +83,20 @@ async function initializeDataStore() {
 
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled) {
+    window.__turnoDataBackendMode = "local";
+    console.warn("TurnoListo funcionando en localStorage.", {
+      reason: backend?.reason || "firebase-disabled",
+      origin: window.location.origin,
+      protocol: window.location.protocol,
+    });
     broadcastOrdersChanged();
     return { mode: dataBackendMode };
   }
 
   firebaseBackend = backend;
   dataBackendMode = "firebase";
+  window.__turnoDataBackendMode = "firebase";
+  console.info("TurnoListo conectado a Firebase.");
 
   try {
     const [remoteOrders, remoteRestaurants] = await Promise.all([
@@ -121,6 +129,7 @@ async function initializeDataStore() {
     console.error("No se pudo inicializar Firebase. Se mantiene localStorage.", error);
     firebaseBackend = null;
     dataBackendMode = "local";
+    window.__turnoDataBackendMode = "local";
   }
 
   broadcastOrdersChanged();

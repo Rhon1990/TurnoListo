@@ -58,11 +58,22 @@ async function replaceCollection(db, collectionName, items) {
 
 window.__turnoFirebaseReadyPromise = (async () => {
   if (!hasFirebaseConfig(firebaseConfig)) {
+    console.warn("Firebase desactivado o incompleto.", {
+      enabled: firebaseConfig?.enabled,
+      hasApiKey: Boolean(firebaseConfig?.apiKey),
+      hasProjectId: Boolean(firebaseConfig?.projectId),
+      hasAppId: Boolean(firebaseConfig?.appId),
+    });
     return { enabled: false, reason: "missing-config" };
   }
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  console.info("Firebase inicializado correctamente.", {
+    projectId: firebaseConfig.projectId,
+    origin: window.location.origin,
+    protocol: window.location.protocol,
+  });
 
   return {
     enabled: true,
