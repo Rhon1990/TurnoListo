@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isPublicTrackingRatingUpdate() {
+      return request.auth == null
+        && resource != null
+        && resource.data.status == "delivered"
+        && request.resource.data.keys().hasOnly([
+          "id",
+          "restaurantId",
+          "sourceOrderId",
+          "orderNumber",
+          "customerName",
+          "pickupPoint",
+          "status",
+          "rating",
+          "createdAt",
+          "archivedAt",
+        ])
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.restaurantId == resource.data.restaurantId
+        && request.resource.data.sourceOrderId == resource.data.sourceOrderId
+        && request.resource.data.orderNumber == resource.data.orderNumber
+        && request.resource.data.customerName == resource.data.customerName
+        && request.resource.data.pickupPoint == resource.data.pickupPoint
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.archivedAt == resource.data.archivedAt
+        && request.resource.data.rating is map
+        && request.resource.data.rating.keys().hasOnly(["score", "comment", "createdAt"])
+        && request.resource.data.rating.score is int
+        && request.resource.data.rating.score >= 1
+        && request.resource.data.rating.score <= 5
+        && request.resource.data.rating.comment is string
+        && request.resource.data.rating.comment.size() <= 160
+        && request.resource.data.rating.createdAt is string
+        && (
+          !resource.data.keys().hasAny(["rating"])
+          || resource.data.rating == null
+          || (
+            resource.data.rating is map
+            && resource.data.rating.score == request.resource.data.rating.score
+            && resource.data.rating.comment == request.resource.data.rating.comment
+            && resource.data.rating.createdAt == request.resource.data.rating.createdAt
+          )
+        );
+    }
+
+    match /users/{userId} {
+      allow read: if isOwnUser(userId);
+      allow write: if false;
+    }
+
+    match /orders/{orderId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /restaurants/{restaurantId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /tracking/{trackingId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+      allow update: if isPublicTrackingRatingUpdate();
+    }
+  }
+}
