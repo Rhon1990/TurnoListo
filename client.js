@@ -41,6 +41,7 @@ onOrdersChanged(() => {
 window.setInterval(() => {
   if (document.visibilityState !== "visible") return;
   if (window.__turnoDataBackendMode !== "firebase") return;
+  if (!shouldAutoRefreshClient()) return;
   refreshOrdersFromBackend();
 }, CLIENT_REFRESH_INTERVAL_MS);
 
@@ -108,6 +109,12 @@ function renderClient() {
   triggerReadyCelebration(order.status);
   maybeSendNotification(order);
   lastRenderedStatus = order.status;
+}
+
+function shouldAutoRefreshClient() {
+  const order = getPublicOrderByPublicId(selectedOrderId);
+  if (!order) return true;
+  return !["delivered", "cancelled"].includes(order.status);
 }
 
 function maybeSendNotification(order) {
@@ -247,8 +254,11 @@ function renderCommentPrompt(order) {
   const currentScore = order.rating?.score || pendingLowRatingScore || 0;
   const hasSubmittedComment = Boolean(order.rating) && order.rating.score <= 2 && !pendingLowRatingScore;
   const needsComment = currentScore > 0 && currentScore <= 2;
+  const shouldPreserveDraft = Boolean(pendingLowRatingScore) && !hasSubmittedComment;
   feedbackComment.hidden = !needsComment;
-  commentInput.value = order.rating?.comment || "";
+  if (!shouldPreserveDraft) {
+    commentInput.value = order.rating?.comment || "";
+  }
   commentInput.disabled = hasSubmittedComment;
   commentSaveButton.disabled = hasSubmittedComment || !pendingLowRatingScore;
   commentSentMessage.hidden = !hasSubmittedComment;
