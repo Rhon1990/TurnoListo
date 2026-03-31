@@ -753,6 +753,18 @@ button:hover,
   display: block;
 }
 
+.callout--sound {
+  display: grid;
+  gap: 0.7rem;
+  background: rgba(12, 91, 117, 0.08);
+  border-color: rgba(12, 91, 117, 0.14);
+}
+
+.callout--sound .button-secondary {
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
 .feedback-card {
   display: grid;
   gap: 0.75rem;

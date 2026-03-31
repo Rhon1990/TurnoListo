@@ -14,6 +14,9 @@ const qrImage = document.querySelector("#clientQrImage");
 const qrValue = document.querySelector("#clientQrValue");
 const qrHint = document.querySelector("#clientQrHint");
 const readyBanner = document.querySelector("#clientReadyBanner");
+const soundBanner = document.querySelector("#clientSoundBanner");
+const soundStatus = document.querySelector("#clientSoundStatus");
+const enableSoundButton = document.querySelector("#clientEnableSoundButton");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
 const qrModal = document.querySelector("#clientQrModal");
@@ -34,8 +37,11 @@ let pendingLowRatingScore = null;
 let isSubmittingComment = false;
 let readyToneAudioContext = null;
 let readyToneEnabled = false;
+const SOUND_ENABLED_STORAGE_KEY = "turnolisto-client-ready-sound-enabled";
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
+
+readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "true";
 
 waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
@@ -71,9 +77,7 @@ qrBackdrop.addEventListener("click", closeQrModal);
 qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
-["pointerdown", "touchstart", "keydown", "click"].forEach((eventName) => {
-  window.addEventListener(eventName, warmUpReadyTone, { passive: true });
-});
+enableSoundButton.addEventListener("click", handleEnableSound);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -105,6 +109,7 @@ function renderClient() {
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
   readyBanner.hidden = order.status !== "ready";
+  soundBanner.hidden = order.status === "delivered";
   feedbackCard.hidden = order.status !== "delivered";
   clientTicket.classList.toggle("ticket--ready", order.status === "ready");
   clientTicket.classList.toggle("ticket--delivered", order.status === "delivered");
@@ -112,6 +117,7 @@ function renderClient() {
   showQrButton.textContent = order.status === "delivered" ? "QR desactivado" : "Ver mi QR";
   renderRating(order);
   renderCommentPrompt(order);
+  renderSoundBanner();
 
   triggerReadyCelebration(previousStatus, order.status);
   maybeSendNotification(order);
@@ -156,10 +162,12 @@ function renderMissingOrder() {
   qrValue.textContent = selectedOrderId;
   qrHint.textContent = "Este QR ya no está disponible.";
   readyBanner.hidden = true;
+  soundBanner.hidden = false;
   feedbackCard.hidden = true;
   clientTicket.classList.remove("ticket--ready");
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
+  renderSoundBanner();
 }
 
 function renderProgressSteps(status) {
@@ -215,7 +223,7 @@ function triggerReadyCelebration(previousStatus, nextStatus) {
   }, 3200);
 }
 
-function warmUpReadyTone() {
+async function warmUpReadyTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
   if (!readyToneAudioContext) {
@@ -223,16 +231,33 @@ function warmUpReadyTone() {
   }
 
   if (readyToneAudioContext.state === "suspended") {
-    readyToneAudioContext
-      .resume()
-      .then(() => {
-        readyToneEnabled = true;
-      })
-      .catch(() => {});
-    return;
+    try {
+      await readyToneAudioContext.resume();
+    } catch {
+      return;
+    }
   }
 
   readyToneEnabled = true;
+  window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "true");
+}
+
+async function handleEnableSound() {
+  await warmUpReadyTone();
+  renderSoundBanner();
+}
+
+function renderSoundBanner() {
+  if (readyToneEnabled) {
+    soundStatus.textContent = "Aviso activado. Sonará cuando tu pedido esté listo para recoger.";
+    enableSoundButton.textContent = "Sonido activado";
+    enableSoundButton.classList.add("is-success");
+    return;
+  }
+
+  soundStatus.textContent = "Pulsa para que suene cuando tu pedido esté listo para recoger.";
+  enableSoundButton.textContent = "Activar sonido";
+  enableSoundButton.classList.remove("is-success");
 }
 
 async function playReadyTone() {
