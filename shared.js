@@ -230,11 +230,7 @@ async function connectPrivateDataStoreToFirebase() {
       await firebaseBackend.replaceCollection(FIREBASE_ORDERS_COLLECTION, cachedOrders);
     }
 
-    if (remoteRestaurants.length) {
-      applyRestaurantsSnapshot(remoteRestaurants);
-    } else {
-      await firebaseBackend.replaceCollection(FIREBASE_RESTAURANTS_COLLECTION, cachedRestaurants);
-    }
+    applyRestaurantsSnapshot(remoteRestaurants);
 
     disconnectPrivateFirebaseSubscriptions();
 
@@ -335,10 +331,6 @@ function syncOrdersToBackend() {
 
 function syncRestaurantsToBackend() {
   if (!firebaseBackend?.enabled) return;
-  firebaseBackend.replaceCollection(FIREBASE_RESTAURANTS_COLLECTION, cachedRestaurants).catch((error) => {
-    console.error("No se pudieron sincronizar los restaurantes con Firebase.", error);
-    notifyFirebaseError(error, "No se pudieron guardar los restaurantes en Firebase.");
-  });
 }
 
 function syncTrackingToBackend() {
@@ -502,7 +494,12 @@ function deleteRestaurantAccount(restaurantId) {
   applyOrdersSnapshot(nextOrders);
   applyRestaurantsSnapshot(nextRestaurants);
   syncOrdersToBackend();
-  syncRestaurantsToBackend();
+  if (firebaseBackend?.enabled && typeof firebaseBackend.deleteDocument === "function") {
+    firebaseBackend.deleteDocument(FIREBASE_RESTAURANTS_COLLECTION, restaurantId).catch((error) => {
+      console.error("No se pudo eliminar el restaurante en Firebase.", error);
+      notifyFirebaseError(error, "No se pudo eliminar el restaurante en Firebase.");
+    });
+  }
 
   if (currentSession?.restaurantId === restaurantId) {
     clearCurrentRestaurantSession();
