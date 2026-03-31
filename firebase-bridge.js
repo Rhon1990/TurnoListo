@@ -1,8 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   getFirestore,
   onSnapshot,
@@ -68,21 +75,52 @@ window.__turnoFirebaseReadyPromise = (async () => {
   }
 
   const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = getFirestore(app);
+  const initialAuthState = await new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
   console.info("Firebase inicializado correctamente.", {
     projectId: firebaseConfig.projectId,
     origin: window.location.origin,
     protocol: window.location.protocol,
+    authenticated: Boolean(initialAuthState),
   });
 
   return {
     enabled: true,
+    isAuthenticated() {
+      return Boolean(auth.currentUser);
+    },
+    getCurrentUser() {
+      return auth.currentUser;
+    },
+    async signIn(username, password) {
+      return signInWithEmailAndPassword(auth, String(username || "").trim(), String(password || ""));
+    },
+    async signOut() {
+      await signOut(auth);
+    },
+    onAuthStateChanged(callback) {
+      return onAuthStateChanged(auth, callback);
+    },
     async loadCollection(collectionName) {
       const snapshot = await getDocs(collection(db, collectionName));
       return snapshot.docs.map((snapshotDoc) => ({
         ...snapshotDoc.data(),
         id: snapshotDoc.id,
       }));
+    },
+    async getDocument(collectionName, id) {
+      const snapshot = await getDoc(doc(db, collectionName, String(id)));
+      if (!snapshot.exists()) return null;
+      return {
+        ...snapshot.data(),
+        id: snapshot.id,
+      };
     },
     async replaceCollection(collectionName, items) {
       await replaceCollection(db, collectionName, items);
