@@ -168,14 +168,7 @@ async function connectPublicTrackingToFirebase() {
   try {
     const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION);
 
-    if (remoteTracking.length) {
-      applyTrackingSnapshot(remoteTracking);
-    } else if (backend.isAuthenticated()) {
-      await backend.replaceCollection(
-        FIREBASE_TRACKING_COLLECTION,
-        normalizePublicTracking(cachedOrders.map((order) => buildPublicTrackingRecord(order))),
-      );
-    }
+    applyTrackingSnapshot(remoteTracking);
 
     disconnectPublicFirebaseSubscriptions();
     trackingUnsubscribe = backend.subscribeCollection(FIREBASE_TRACKING_COLLECTION, (tracking) => {
@@ -224,11 +217,7 @@ async function connectPrivateDataStoreToFirebase() {
       firebaseBackend.loadCollection(FIREBASE_RESTAURANTS_COLLECTION),
     ]);
 
-    if (remoteOrders.length) {
-      applyOrdersSnapshot(remoteOrders);
-    } else {
-      await firebaseBackend.replaceCollection(FIREBASE_ORDERS_COLLECTION, cachedOrders);
-    }
+    applyOrdersSnapshot(remoteOrders);
 
     applyRestaurantsSnapshot(remoteRestaurants);
 
