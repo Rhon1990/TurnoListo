@@ -47,6 +47,47 @@ service cloud.firestore {
 
 La integración de Firebase usa el SDK web por CDN y sincroniza los pedidos y restaurantes en tiempo real con Firestore.
 
+## Automatizar alta de restaurantes
+
+La carpeta `functions/` incluye una Cloud Function callable llamada `createRestaurantAccount`.
+
+Esta funcion hace el alta completa:
+
+- crea el usuario en `Firebase Authentication`
+- crea `users/{uid}` con `role: "restaurant"`
+- crea `restaurants/{restaurantId}`
+
+### Despliegue
+
+1. Instala Firebase CLI si no la tienes.
+2. Inicia sesion:
+
+```bash
+firebase login
+```
+
+3. Instala dependencias de Functions:
+
+```bash
+cd functions
+npm install
+```
+
+4. Vuelve a la raiz del proyecto y despliega:
+
+```bash
+cd ..
+firebase deploy --only functions
+```
+
+### Requisitos
+
+- el admin debe existir en `Authentication`
+- `users/{adminUid}` debe tener `role: "admin"`
+- `rhon1990.github.io` debe estar en `Authentication > Configuracion > Dominios autorizados`
+
+Si la funcion no esta desplegada, `admin.html` mostrara un error indicando que la automatizacion no esta disponible.
+
 ## Alta de restaurantes
 
 Desde administración ahora puedes guardar:

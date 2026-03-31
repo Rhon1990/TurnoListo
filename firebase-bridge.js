@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
 import {
   collection,
   deleteDoc,
@@ -91,6 +92,7 @@ window.__turnoFirebaseReadyPromise = (async () => {
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const functions = getFunctions(app);
   const db = getFirestore(app);
   const initialAuthState = await new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -121,6 +123,11 @@ window.__turnoFirebaseReadyPromise = (async () => {
     },
     onAuthStateChanged(callback) {
       return onAuthStateChanged(auth, callback);
+    },
+    async createRestaurantAccount(accountData) {
+      const callable = httpsCallable(functions, "createRestaurantAccount");
+      const result = await callable(accountData);
+      return result.data;
     },
     async loadCollection(collectionName) {
       const snapshot = await getDocs(collection(db, collectionName));

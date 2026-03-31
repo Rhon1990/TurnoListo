@@ -172,12 +172,21 @@ async function handleAdminLogout() {
   }
 }
 
-function handleCreateRestaurant(event) {
+async function handleCreateRestaurant(event) {
   event.preventDefault();
   const formData = new FormData(adminCreateRestaurantForm);
+  const backend = await waitForFirebaseBackend();
+
+  if (!backend?.enabled || typeof backend.createRestaurantAccount !== "function") {
+    adminCreateFeedback.textContent = "La automatizacion del alta no esta disponible. Revisa Firebase Functions.";
+    adminCreateFeedback.className = "form-feedback form-feedback--error";
+    adminCreateFeedback.hidden = false;
+    showTurnoAlert("La automatizacion del alta no esta disponible. Revisa Firebase Functions.", "error");
+    return;
+  }
 
   try {
-    const restaurant = createRestaurantAccount({
+    const result = await backend.createRestaurantAccount({
       name: formData.get("name"),
       ownerName: formData.get("ownerName"),
       email: formData.get("email"),
@@ -188,24 +197,28 @@ function handleCreateRestaurant(event) {
       activationDays: formData.get("activationDays"),
       notes: formData.get("notes"),
     });
+    const restaurant = result?.restaurant;
 
     adminCreateRestaurantForm.reset();
     syncActivationDaysWithPlan();
-    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Ahora crea su usuario en Firebase Authentication y su documento users/{uid} con role=restaurant y restaurantId=${restaurant.id}.`;
+    await reconnectDataStoreToFirebase();
+    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Usuario Auth y perfil users/{uid} generados automaticamente.`;
     adminCreateFeedback.className = "form-feedback form-feedback--success";
     adminCreateFeedback.hidden = false;
+    showTurnoAlert(`Restaurante ${restaurant.name} creado correctamente.`, "success");
     openCredentialsEmail(restaurant);
     activeAdminSection = "restaurants";
     renderAdminWorkspace();
   } catch (error) {
-    if (error instanceof Error && error.message === "duplicate-restaurant-username") {
-      adminCreateFeedback.textContent = "Ese usuario ya existe para otro restaurante.";
-      adminCreateFeedback.className = "form-feedback form-feedback--error";
-      adminCreateFeedback.hidden = false;
-      return;
-    }
-
-    throw error;
+    console.error("No se pudo crear el restaurante automaticamente.", error);
+    const message =
+      error?.code === "functions/already-exists"
+        ? "Ese correo ya existe para otro restaurante o en Firebase Authentication."
+        : "No se pudo crear el restaurante. Revisa Firebase Functions, permisos y configuracion.";
+    adminCreateFeedback.textContent = message;
+    adminCreateFeedback.className = "form-feedback form-feedback--error";
+    adminCreateFeedback.hidden = false;
+    showTurnoAlert(message, "error");
   }
 }
 
