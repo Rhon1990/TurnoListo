@@ -444,10 +444,12 @@ function renderRestaurantDirectory(restaurants) {
       togglePassword.setAttribute("aria-label", isHidden ? "Ocultar clave" : "Mostrar clave");
     });
     link.className = "qr-link";
-    link.href = "./restaurant.html";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
+    link.href = "#";
     link.textContent = "Abrir acceso restaurante";
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.open("./restaurant.html", "_blank", "noopener,noreferrer");
+    });
     resend.type = "button";
     resend.className = "comment-button";
     resend.textContent = "Reenviar credenciales";
