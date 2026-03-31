@@ -2,6 +2,7 @@ const STORAGE_KEY = "turnolisto-orders-v6";
 const RESTAURANT_STORAGE_KEY = "turnolisto-restaurants-v1";
 const RESTAURANT_SESSION_KEY = "turnolisto-restaurant-session-v1";
 const SYNC_CHANNEL_NAME = "turnolisto-sync";
+const SYNC_EVENT_NAME = "turnolisto:orders-changed";
 const DEFAULT_RESTAURANT_ID = "rest-demo";
 const FIREBASE_ORDERS_COLLECTION = "orders";
 const FIREBASE_RESTAURANTS_COLLECTION = "restaurants";
@@ -964,6 +965,7 @@ function getSyncChannel() {
 }
 
 function onOrdersChanged(callback) {
+  window.addEventListener(SYNC_EVENT_NAME, callback);
   window.addEventListener("storage", callback);
   window.addEventListener("focus", callback);
   document.addEventListener("visibilitychange", () => {
@@ -977,6 +979,7 @@ function onOrdersChanged(callback) {
 }
 
 function broadcastOrdersChanged() {
+  window.dispatchEvent(new CustomEvent(SYNC_EVENT_NAME, { detail: { at: Date.now() } }));
   const channel = getSyncChannel();
   if (channel) {
     channel.postMessage({ type: "orders-updated", at: Date.now() });
