@@ -243,6 +243,13 @@ async function warmUpReadyTone() {
 }
 
 async function handleEnableSound() {
+  if (readyToneEnabled) {
+    readyToneEnabled = false;
+    window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "false");
+    renderSoundBanner();
+    return;
+  }
+
   await warmUpReadyTone();
   renderSoundBanner();
 }
@@ -250,7 +257,7 @@ async function handleEnableSound() {
 function renderSoundBanner() {
   if (readyToneEnabled) {
     soundStatus.textContent = "Aviso activado. Sonará cuando tu pedido esté listo para recoger.";
-    enableSoundButton.textContent = "Sonido activado";
+    enableSoundButton.textContent = "Desactivar sonido";
     enableSoundButton.classList.add("is-success");
     return;
   }
