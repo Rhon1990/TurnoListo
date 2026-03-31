@@ -1,11 +1,14 @@
 const STORAGE_KEY = "turnolisto-orders-v6";
 const RESTAURANT_STORAGE_KEY = "turnolisto-restaurants-v1";
+const TRACKING_STORAGE_KEY = "turnolisto-tracking-v1";
 const RESTAURANT_SESSION_KEY = "turnolisto-restaurant-session-v1";
 const SYNC_CHANNEL_NAME = "turnolisto-sync";
 const SYNC_EVENT_NAME = "turnolisto:orders-changed";
 const DEFAULT_RESTAURANT_ID = "rest-demo";
 const FIREBASE_ORDERS_COLLECTION = "orders";
 const FIREBASE_RESTAURANTS_COLLECTION = "restaurants";
+const FIREBASE_TRACKING_COLLECTION = "tracking";
+const FIREBASE_USERS_COLLECTION = "users";
 
 const ORDER_STATUSES = ["received", "preparing", "ready", "delivered", "cancelled"];
 const QUEUE_ACTIVE_STATUSES = ["received", "preparing"];
@@ -14,8 +17,13 @@ const defaultOrders = createDefaultOrders();
 const defaultRestaurants = createDefaultRestaurants();
 let cachedOrders = [];
 let cachedRestaurants = [];
+let cachedTracking = [];
 let firebaseBackend = null;
 let dataBackendMode = "local";
+let ordersUnsubscribe = null;
+let restaurantsUnsubscribe = null;
+let trackingUnsubscribe = null;
+let currentUserProfile = null;
 const dataReadyPromise = initializeDataStore();
 
 const statusMeta = {
@@ -52,12 +60,33 @@ function readRestaurantsFromLocalStorage() {
   }
 }
 
+function readTrackingFromLocalStorage() {
+  const stored = window.localStorage.getItem(TRACKING_STORAGE_KEY);
+  if (!stored) {
+    return normalizePublicTracking(defaultOrders.map((order) => buildPublicTrackingRecord(order)));
+  }
+
+  try {
+    return normalizePublicTracking(JSON.parse(stored));
+  } catch {
+    return normalizePublicTracking(defaultOrders.map((order) => buildPublicTrackingRecord(order)));
+  }
+}
+
 function loadOrders() {
-  return normalizeOrders(cachedOrders);
+  const trackingLookup = buildTrackingLookup(cachedTracking);
+  return normalizeOrders(cachedOrders).map((order) => ({
+    ...order,
+    rating: trackingLookup.get(getTrackingLookupKey(order))?.rating || order.rating || null,
+  }));
 }
 
 function loadRestaurants() {
   return normalizeRestaurants(cachedRestaurants);
+}
+
+function loadPublicOrders() {
+  return normalizePublicTracking(cachedTracking);
 }
 
 function persistOrdersToLocalStorage(orders) {
@@ -66,6 +95,10 @@ function persistOrdersToLocalStorage(orders) {
 
 function persistRestaurantsToLocalStorage(restaurants) {
   window.localStorage.setItem(RESTAURANT_STORAGE_KEY, JSON.stringify(restaurants));
+}
+
+function persistTrackingToLocalStorage(tracking) {
+  window.localStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(tracking));
 }
 
 function applyOrdersSnapshot(orders) {
@@ -78,25 +111,108 @@ function applyRestaurantsSnapshot(restaurants) {
   persistRestaurantsToLocalStorage(cachedRestaurants);
 }
 
+function applyTrackingSnapshot(tracking) {
+  cachedTracking = normalizePublicTracking(tracking);
+  persistTrackingToLocalStorage(cachedTracking);
+}
+
 async function initializeDataStore() {
   applyOrdersSnapshot(readOrdersFromLocalStorage());
   applyRestaurantsSnapshot(readRestaurantsFromLocalStorage());
+  applyTrackingSnapshot(readTrackingFromLocalStorage());
 
+  await connectPublicTrackingToFirebase();
+  await connectPrivateDataStoreToFirebase();
+  broadcastOrdersChanged();
+  return { mode: dataBackendMode };
+}
+
+function disconnectPrivateFirebaseSubscriptions() {
+  ordersUnsubscribe?.();
+  restaurantsUnsubscribe?.();
+  ordersUnsubscribe = null;
+  restaurantsUnsubscribe = null;
+}
+
+function disconnectPublicFirebaseSubscriptions() {
+  trackingUnsubscribe?.();
+  trackingUnsubscribe = null;
+}
+
+function updateDataBackendMode() {
+  if (!firebaseBackend?.enabled) {
+    dataBackendMode = "local";
+  } else if (firebaseBackend.isAuthenticated()) {
+    dataBackendMode = "firebase-private";
+  } else {
+    dataBackendMode = "firebase-public";
+  }
+
+  window.__turnoDataBackendMode = dataBackendMode;
+}
+
+async function connectPublicTrackingToFirebase() {
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled) {
-    window.__turnoDataBackendMode = "local";
+    disconnectPublicFirebaseSubscriptions();
+    firebaseBackend = null;
+    updateDataBackendMode();
+    return { mode: dataBackendMode };
+  }
+
+  firebaseBackend = backend;
+  updateDataBackendMode();
+
+  try {
+    const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION);
+
+    if (remoteTracking.length) {
+      applyTrackingSnapshot(remoteTracking);
+    } else if (backend.isAuthenticated()) {
+      await backend.replaceCollection(
+        FIREBASE_TRACKING_COLLECTION,
+        normalizePublicTracking(cachedOrders.map((order) => buildPublicTrackingRecord(order))),
+      );
+    }
+
+    disconnectPublicFirebaseSubscriptions();
+    trackingUnsubscribe = backend.subscribeCollection(FIREBASE_TRACKING_COLLECTION, (tracking) => {
+      applyTrackingSnapshot(tracking.length ? tracking : []);
+      broadcastOrdersChanged();
+    });
+  } catch (error) {
+    console.error("No se pudo inicializar el tracking publico desde Firebase.", error);
+    disconnectPublicFirebaseSubscriptions();
+  }
+
+  return { mode: dataBackendMode };
+}
+
+async function connectPrivateDataStoreToFirebase() {
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled) {
+    disconnectPrivateFirebaseSubscriptions();
+    firebaseBackend = null;
+    updateDataBackendMode();
     console.warn("TurnoListo funcionando en localStorage.", {
       reason: backend?.reason || "firebase-disabled",
       origin: window.location.origin,
       protocol: window.location.protocol,
     });
-    broadcastOrdersChanged();
     return { mode: dataBackendMode };
   }
 
+  if (!backend.isAuthenticated()) {
+    disconnectPrivateFirebaseSubscriptions();
+    firebaseBackend = backend;
+    currentUserProfile = null;
+    updateDataBackendMode();
+    console.info("Firebase disponible, pendiente de autenticacion para acceder a Firestore.");
+    return { mode: dataBackendMode, reason: "auth-required" };
+  }
+
   firebaseBackend = backend;
-  dataBackendMode = "firebase";
-  window.__turnoDataBackendMode = "firebase";
+  updateDataBackendMode();
   console.info("TurnoListo conectado a Firebase.");
 
   try {
@@ -117,23 +233,24 @@ async function initializeDataStore() {
       await firebaseBackend.replaceCollection(FIREBASE_RESTAURANTS_COLLECTION, cachedRestaurants);
     }
 
-    firebaseBackend.subscribeCollection(FIREBASE_ORDERS_COLLECTION, (orders) => {
+    disconnectPrivateFirebaseSubscriptions();
+
+    ordersUnsubscribe = firebaseBackend.subscribeCollection(FIREBASE_ORDERS_COLLECTION, (orders) => {
       applyOrdersSnapshot(orders.length ? orders : []);
       broadcastOrdersChanged();
     });
 
-    firebaseBackend.subscribeCollection(FIREBASE_RESTAURANTS_COLLECTION, (restaurants) => {
+    restaurantsUnsubscribe = firebaseBackend.subscribeCollection(FIREBASE_RESTAURANTS_COLLECTION, (restaurants) => {
       applyRestaurantsSnapshot(restaurants.length ? restaurants : []);
       broadcastOrdersChanged();
     });
   } catch (error) {
     console.error("No se pudo inicializar Firebase. Se mantiene localStorage.", error);
-    firebaseBackend = null;
-    dataBackendMode = "local";
-    window.__turnoDataBackendMode = "local";
+    disconnectPrivateFirebaseSubscriptions();
+    firebaseBackend = backend;
+    updateDataBackendMode();
   }
 
-  broadcastOrdersChanged();
   return { mode: dataBackendMode };
 }
 
@@ -160,6 +277,19 @@ function waitForDataReady() {
   return dataReadyPromise;
 }
 
+async function reconnectDataStoreToFirebase() {
+  await connectPublicTrackingToFirebase();
+  const result = await connectPrivateDataStoreToFirebase();
+  broadcastOrdersChanged();
+  return result;
+}
+
+async function reconnectPublicTrackingToFirebase() {
+  const result = await connectPublicTrackingToFirebase();
+  broadcastOrdersChanged();
+  return result;
+}
+
 async function refreshOrdersFromBackend() {
   if (!firebaseBackend?.enabled) return { enabled: false, reason: "firebase-disabled" };
 
@@ -170,6 +300,21 @@ async function refreshOrdersFromBackend() {
     return { enabled: true, refreshed: true };
   } catch (error) {
     console.error("No se pudieron refrescar los pedidos desde Firebase.", error);
+    return { enabled: true, refreshed: false, error };
+  }
+}
+
+async function refreshPublicTrackingFromBackend() {
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled) return { enabled: false, reason: "firebase-disabled" };
+
+  try {
+    const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION);
+    applyTrackingSnapshot(remoteTracking.length ? remoteTracking : []);
+    broadcastOrdersChanged();
+    return { enabled: true, refreshed: true };
+  } catch (error) {
+    console.error("No se pudo refrescar el tracking publico desde Firebase.", error);
     return { enabled: true, refreshed: false, error };
   }
 }
@@ -188,6 +333,16 @@ function syncRestaurantsToBackend() {
   });
 }
 
+function syncTrackingToBackend() {
+  if (!firebaseBackend?.enabled) return;
+
+  const trackingRecords = normalizePublicTracking(cachedOrders.map((order) => buildPublicTrackingRecord(order)));
+  applyTrackingSnapshot(trackingRecords);
+  firebaseBackend.replaceCollection(FIREBASE_TRACKING_COLLECTION, trackingRecords).catch((error) => {
+    console.error("No se pudo sincronizar el tracking publico con Firebase.", error);
+  });
+}
+
 function saveRestaurants(restaurants) {
   applyRestaurantsSnapshot(restaurants);
   syncRestaurantsToBackend();
@@ -202,7 +357,7 @@ function createDefaultRestaurants() {
       id: DEFAULT_RESTAURANT_ID,
       name: "Restaurante Demo",
       ownerName: "Laura Gómez",
-      email: "demo@turnolisto.local",
+      email: "demo@turnolisto.com",
       phone: "+34 600 123 456",
       city: "Madrid",
       address: "Calle Mayor 18",
@@ -210,7 +365,7 @@ function createDefaultRestaurants() {
       notes: "Cuenta demo para pruebas comerciales",
       activatedAt: new Date().toISOString(),
       activatedUntil,
-      username: "demo",
+      username: "demo@turnolisto.com",
       password: "demo123",
       createdAt: new Date().toISOString(),
     },
@@ -390,6 +545,31 @@ function authenticateRestaurant(username, password) {
   return restaurant;
 }
 
+async function loadCurrentUserProfileFromBackend() {
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.getDocument !== "function") {
+    currentUserProfile = null;
+    return null;
+  }
+
+  const user = backend.getCurrentUser?.();
+  if (!user?.uid) {
+    currentUserProfile = null;
+    return null;
+  }
+
+  currentUserProfile = await backend.getDocument(FIREBASE_USERS_COLLECTION, user.uid);
+  return currentUserProfile;
+}
+
+function getCurrentUserProfile() {
+  return currentUserProfile;
+}
+
+function clearCurrentUserProfile() {
+  currentUserProfile = null;
+}
+
 function createDefaultOrders() {
   const now = Date.now();
 
@@ -464,6 +644,7 @@ function createDefaultOrders() {
 function saveOrders(orders) {
   applyOrdersSnapshot(orders);
   syncOrdersToBackend();
+  syncTrackingToBackend();
   broadcastOrdersChanged();
 }
 
@@ -502,7 +683,7 @@ function getOrderByPublicId(value) {
 }
 
 function getPublicOrderById(id) {
-  return loadOrders().find((order) => {
+  return loadPublicOrders().find((order) => {
     if (order.id !== id) return false;
     if (!order.archivedAt) return true;
     return order.status === "delivered";
@@ -514,7 +695,7 @@ function getPublicOrderByPublicId(value) {
   if (!normalized) return null;
 
   return (
-    loadOrders().find((order) => {
+    loadPublicOrders().find((order) => {
       const matchesPublicId = normalizeSourceOrderId(order.sourceOrderId) === normalized;
       const matchesLegacyId = normalizeSourceOrderId(order.id) === normalized;
       if (!matchesPublicId && !matchesLegacyId) return false;
@@ -621,23 +802,39 @@ function updateOrderStatus(id, status) {
 }
 
 function submitOrderRating(id, score) {
-  return updateOrder(id, {
-    rating: {
-      score,
-      comment: "",
-      createdAt: new Date().toISOString(),
-    },
-  });
+  return updatePublicTrackingRating(id, score, "");
+}
+
+function updatePublicTrackingRating(id, score, comment = "") {
+  const trackingOrder = getPublicOrderById(id);
+  if (!trackingOrder) return null;
+
+  const nextTracking = loadPublicOrders().map((order) =>
+    order.id === id
+      ? {
+          ...order,
+          rating: {
+            score,
+            comment: comment.trim(),
+            createdAt: new Date().toISOString(),
+          },
+        }
+      : order,
+  );
+
+  applyTrackingSnapshot(nextTracking);
+  if (firebaseBackend?.enabled) {
+    const nextRecord = nextTracking.find((order) => order.id === id);
+    firebaseBackend
+      .setDocument(FIREBASE_TRACKING_COLLECTION, id, nextRecord)
+      .catch((error) => console.error("No se pudo guardar la valoracion publica del pedido.", error));
+  }
+  broadcastOrdersChanged();
+  return nextTracking.find((order) => order.id === id) || null;
 }
 
 function submitOrderRatingFeedback(id, score, comment) {
-  return updateOrder(id, {
-    rating: {
-      score,
-      comment: comment.trim(),
-      createdAt: new Date().toISOString(),
-    },
-  });
+  return updatePublicTrackingRating(id, score, comment);
 }
 
 function archiveOrder(id) {
@@ -667,10 +864,10 @@ function getArchivedOrders() {
 }
 
 function getQueueBefore(orderId) {
-  const currentOrder = getOrderById(orderId);
+  const currentOrder = getPublicOrderById(orderId);
   if (!currentOrder) return [];
 
-  const orders = loadOrders().filter(
+  const orders = loadPublicOrders().filter(
     (order) => !order.archivedAt && order.restaurantId === currentOrder.restaurantId,
   );
   const index = orders.findIndex((order) => order.id === orderId);
@@ -920,9 +1117,11 @@ function buildRestaurantCredentialsEmail(restaurant) {
     "Te compartimos los datos de acceso a tu panel de restaurante en TurnoListo:",
     "",
     `Restaurante: ${restaurant.name}`,
-    `Usuario: ${restaurant.username}`,
+    `Correo de acceso: ${restaurant.username}`,
     `Contrasena: ${restaurant.password}`,
     `Acceso activo hasta: ${formatAdminEmailDate(restaurant.activatedUntil)}`,
+    "",
+    "Importante: este correo debe existir en Firebase Authentication y su documento users/{uid} debe apuntar al restaurantId correcto.",
     "",
     "Enlace de acceso:",
     "./restaurant.html",
@@ -998,4 +1197,48 @@ function broadcastOrdersChanged() {
   if (channel) {
     channel.postMessage({ type: "orders-updated", at: Date.now() });
   }
+}
+
+function getTrackingLookupKey(value) {
+  const candidate = typeof value === "string" ? value : value?.sourceOrderId || value?.id;
+  return normalizeSourceOrderId(candidate);
+}
+
+function buildTrackingLookup(trackingRecords) {
+  return new Map(
+    normalizePublicTracking(trackingRecords).flatMap((tracking) => {
+      const keys = [getTrackingLookupKey(tracking.id), getTrackingLookupKey(tracking.sourceOrderId)].filter(Boolean);
+      return keys.map((key) => [key, tracking]);
+    }),
+  );
+}
+
+function buildPublicTrackingRecord(order) {
+  const existingTracking = buildTrackingLookup(cachedTracking).get(getTrackingLookupKey(order));
+
+  return {
+    id: order.id,
+    restaurantId: order.restaurantId,
+    sourceOrderId: order.sourceOrderId,
+    orderNumber: order.orderNumber,
+    customerName: order.customerName,
+    pickupPoint: order.pickupPoint,
+    status: order.status,
+    rating: existingTracking?.rating || order.rating || null,
+    createdAt: order.createdAt,
+    archivedAt: order.archivedAt,
+  };
+}
+
+function normalizePublicTracking(trackingRecords) {
+  return [...trackingRecords]
+    .map((tracking) => ({
+      sourceOrderId: "",
+      customerName: "",
+      pickupPoint: "Mostrador 1",
+      rating: null,
+      archivedAt: null,
+      ...tracking,
+    }))
+    .sort((left, right) => new Date(left.createdAt) - new Date(right.createdAt));
 }

@@ -2,6 +2,7 @@ const restaurantLoginView = document.querySelector("#restaurantLoginView");
 const restaurantWorkspace = document.querySelector("#restaurantWorkspace");
 const restaurantLoginForm = document.querySelector("#restaurantLoginForm");
 const restaurantLoginFeedback = document.querySelector("#restaurantLoginFeedback");
+const restaurantLoginUsername = document.querySelector("#restaurantLoginUsername");
 const restaurantLoginPassword = document.querySelector("#restaurantLoginPassword");
 const restaurantLoginTogglePassword = document.querySelector("#restaurantLoginTogglePassword");
 const restaurantSessionLabel = document.querySelector("#restaurantSessionLabel");
@@ -71,6 +72,7 @@ let pendingCancelOrderLabel = "";
 let activeSection = "orders";
 let lastDashboardStats = null;
 
+initializeRestaurantFirebaseAuth();
 waitForDataReady().then(bootRestaurantPage);
 window.setInterval(() => {
   if (getCurrentRestaurantSession()) {
@@ -137,6 +139,42 @@ function bootRestaurantPage() {
   }
 }
 
+function initializeRestaurantFirebaseAuth() {
+  waitForFirebaseBackend().then((backend) => {
+    if (!backend?.enabled || typeof backend.onAuthStateChanged !== "function") return;
+
+    backend.onAuthStateChanged(async (user) => {
+      if (!user?.email) {
+        clearCurrentUserProfile();
+        clearCurrentRestaurantSession();
+        syncRestaurantAccess();
+        return;
+      }
+
+      await reconnectDataStoreToFirebase();
+      const profile = await loadCurrentUserProfileFromBackend();
+      const restaurant =
+        profile?.role === "restaurant" && profile.restaurantId ? getRestaurantById(profile.restaurantId) : null;
+
+      if (!restaurant || !isRestaurantAccessActive(restaurant)) {
+        clearCurrentRestaurantSession();
+        restaurantLoginFeedback.textContent =
+          "Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.";
+        restaurantLoginFeedback.className = "form-feedback form-feedback--error";
+        restaurantLoginFeedback.hidden = false;
+        await backend.signOut();
+        return;
+      }
+
+      setCurrentRestaurantSession(restaurant);
+      restaurantLoginFeedback.hidden = true;
+      restaurantLoginFeedback.textContent = "";
+      syncRestaurantAccess();
+      renderRestaurant();
+    });
+  });
+}
+
 function syncRestaurantAccess() {
   const session = getCurrentRestaurantSession();
   const restaurant = session ? getRestaurantById(session.restaurantId) : null;
@@ -195,7 +233,7 @@ function renderRestaurant() {
   }
 }
 
-function handleRestaurantLogin(event) {
+async function handleRestaurantLogin(event) {
   event.preventDefault();
   const formData = new FormData(restaurantLoginForm);
   const username = String(formData.get("username") || "");
@@ -203,29 +241,45 @@ function handleRestaurantLogin(event) {
   const knownRestaurant = loadRestaurants().find(
     (item) => normalizeRestaurantUsername(item.username) === normalizeRestaurantUsername(username),
   );
-  const restaurant = authenticateRestaurant(username, password);
 
-  if (!restaurant) {
-    restaurantLoginFeedback.textContent =
-      knownRestaurant && knownRestaurant.password === password && !isRestaurantAccessActive(knownRestaurant)
-        ? "El acceso está vencido. Debe renovarse desde administración."
-        : "Usuario o contraseña incorrectos.";
+  if (knownRestaurant && !isRestaurantAccessActive(knownRestaurant)) {
+    restaurantLoginFeedback.textContent = "El acceso está vencido. Debe renovarse desde administración.";
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
     return;
   }
 
-  setCurrentRestaurantSession(restaurant);
-  restaurantLoginForm.reset();
-  restaurantLoginFeedback.hidden = true;
-  restaurantLoginFeedback.textContent = "";
-  syncRestaurantAccess();
-  renderRestaurant();
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.signIn !== "function") {
+    restaurantLoginFeedback.textContent = "Firebase Authentication no está disponible en esta configuración.";
+    restaurantLoginFeedback.className = "form-feedback form-feedback--error";
+    restaurantLoginFeedback.hidden = false;
+    return;
+  }
+
+  try {
+    await backend.signIn(username, password);
+    restaurantLoginForm.reset();
+    restaurantLoginUsername.focus();
+  } catch (error) {
+    console.error("No se pudo iniciar sesion con Firebase Authentication.", error);
+    restaurantLoginFeedback.textContent =
+      knownRestaurant
+        ? "No se pudo iniciar sesion. Verifica que este correo exista en Firebase Authentication y que la clave coincida."
+        : "Usuario o contrasena incorrectos.";
+    restaurantLoginFeedback.className = "form-feedback form-feedback--error";
+    restaurantLoginFeedback.hidden = false;
+  }
 }
 
-function handleRestaurantLogout() {
+async function handleRestaurantLogout() {
+  const backend = await waitForFirebaseBackend();
   clearCurrentRestaurantSession();
   syncRestaurantAccess();
+
+  if (backend?.enabled && typeof backend.signOut === "function") {
+    await backend.signOut();
+  }
 }
 
 function togglePasswordVisibility(input, button) {

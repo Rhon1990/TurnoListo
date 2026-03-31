@@ -1,12 +1,10 @@
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
-const ADMIN_SESSION_KEY = "turnolisto-admin-session-v1";
 const adminParams = new URLSearchParams(window.location.search);
 
 const adminLoginView = document.querySelector("#adminLoginView");
 const adminWorkspace = document.querySelector("#adminWorkspace");
 const adminLoginForm = document.querySelector("#adminLoginForm");
 const adminLoginFeedback = document.querySelector("#adminLoginFeedback");
+const adminLoginUsername = adminLoginForm.querySelector('[name="username"]');
 const adminLoginPassword = document.querySelector("#adminLoginPassword");
 const adminLoginTogglePassword = document.querySelector("#adminLoginTogglePassword");
 const adminLogoutButton = document.querySelector("#adminLogoutButton");
@@ -49,6 +47,7 @@ const PLAN_DURATIONS = {
   Anual: 365,
 };
 
+initializeAdminFirebaseAuth();
 waitForDataReady().then(bootAdminPage);
 onOrdersChanged(() => {
   waitForDataReady().then(renderAdminWorkspace);
@@ -85,27 +84,25 @@ function bootAdminPage() {
   }
 }
 
-function tryAutoLoginFromUrl() {
-  const username = String(adminParams.get("username") || "").trim();
+async function tryAutoLoginFromUrl() {
+  const username = String(adminParams.get("email") || adminParams.get("username") || "").trim();
   const password = String(adminParams.get("password") || "").trim();
 
   if (!username && !password) return;
 
-  const usernameInput = adminLoginForm.querySelector('[name="username"]');
-  const passwordInput = adminLoginForm.querySelector('[name="password"]');
-  usernameInput.value = username;
-  passwordInput.value = password;
+  adminLoginUsername.value = username;
+  adminLoginPassword.value = password;
 
-  if (!authenticateAdminCredentials(username, password)) {
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.signIn !== "function") return;
+
+  try {
+    await backend.signIn(username, password);
+  } catch {
     adminLoginFeedback.textContent = "Las credenciales recibidas por URL no son válidas.";
     adminLoginFeedback.className = "form-feedback form-feedback--error";
     adminLoginFeedback.hidden = false;
-    return;
   }
-
-  window.localStorage.setItem(ADMIN_SESSION_KEY, "active");
-  adminLoginFeedback.hidden = true;
-  adminLoginFeedback.textContent = "";
 }
 
 function syncActivationDaysWithPlan() {
@@ -114,7 +111,7 @@ function syncActivationDaysWithPlan() {
 }
 
 function isAdminAuthenticated() {
-  return window.localStorage.getItem(ADMIN_SESSION_KEY) === "active";
+  return getCurrentUserProfile()?.role === "admin";
 }
 
 function syncAdminAccess() {
@@ -137,34 +134,41 @@ function syncAdminSections() {
   });
 }
 
-function handleAdminLogin(event) {
+async function handleAdminLogin(event) {
   event.preventDefault();
   const formData = new FormData(adminLoginForm);
   const username = String(formData.get("username") || "").trim();
   const password = String(formData.get("password") || "").trim();
 
-  if (!authenticateAdminCredentials(username, password)) {
-    adminLoginFeedback.textContent = "Credenciales de administrador incorrectas.";
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.signIn !== "function") {
+    adminLoginFeedback.textContent = "Firebase Authentication no está disponible en esta configuración.";
     adminLoginFeedback.className = "form-feedback form-feedback--error";
     adminLoginFeedback.hidden = false;
     return;
   }
 
-  window.localStorage.setItem(ADMIN_SESSION_KEY, "active");
-  adminLoginForm.reset();
-  adminLoginFeedback.hidden = true;
-  adminLoginFeedback.textContent = "";
-  syncAdminAccess();
-  renderAdminWorkspace();
+  try {
+    await backend.signIn(username, password);
+    adminLoginForm.reset();
+    adminLoginFeedback.hidden = true;
+    adminLoginFeedback.textContent = "";
+  } catch (error) {
+    console.error("No se pudo iniciar sesion como administrador.", error);
+    adminLoginFeedback.textContent = "Credenciales incorrectas o la cuenta no tiene un perfil admin en users/{uid}.";
+    adminLoginFeedback.className = "form-feedback form-feedback--error";
+    adminLoginFeedback.hidden = false;
+  }
 }
 
-function authenticateAdminCredentials(username, password) {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
-}
-
-function handleAdminLogout() {
-  window.localStorage.removeItem(ADMIN_SESSION_KEY);
+async function handleAdminLogout() {
+  const backend = await waitForFirebaseBackend();
+  clearCurrentUserProfile();
   syncAdminAccess();
+
+  if (backend?.enabled && typeof backend.signOut === "function") {
+    await backend.signOut();
+  }
 }
 
 function handleCreateRestaurant(event) {
@@ -186,7 +190,7 @@ function handleCreateRestaurant(event) {
 
     adminCreateRestaurantForm.reset();
     syncActivationDaysWithPlan();
-    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Credenciales generadas automáticamente.`;
+    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Ahora crea su usuario en Firebase Authentication y su documento users/{uid} con role=restaurant y restaurantId=${restaurant.id}.`;
     adminCreateFeedback.className = "form-feedback form-feedback--success";
     adminCreateFeedback.hidden = false;
     openCredentialsEmail(restaurant);
@@ -202,6 +206,37 @@ function handleCreateRestaurant(event) {
 
     throw error;
   }
+}
+
+function initializeAdminFirebaseAuth() {
+  waitForFirebaseBackend().then((backend) => {
+    if (!backend?.enabled || typeof backend.onAuthStateChanged !== "function") return;
+
+    backend.onAuthStateChanged(async (user) => {
+      if (!user?.uid) {
+        clearCurrentUserProfile();
+        syncAdminAccess();
+        return;
+      }
+
+      await reconnectDataStoreToFirebase();
+      const profile = await loadCurrentUserProfileFromBackend();
+
+      if (profile?.role !== "admin") {
+        clearCurrentUserProfile();
+        adminLoginFeedback.textContent = "La cuenta autenticada no tiene role=admin en users/{uid}.";
+        adminLoginFeedback.className = "form-feedback form-feedback--error";
+        adminLoginFeedback.hidden = false;
+        await backend.signOut();
+        return;
+      }
+
+      adminLoginFeedback.hidden = true;
+      adminLoginFeedback.textContent = "";
+      syncAdminAccess();
+      renderAdminWorkspace();
+    });
+  });
 }
 
 function renderAdminWorkspace() {
@@ -371,7 +406,7 @@ function renderRestaurantDirectory(restaurants) {
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
     grid.className = "admin-card__grid";
     title.textContent = restaurant.name;
-    login.textContent = `Usuario: ${restaurant.username}`;
+    login.textContent = `Correo auth: ${restaurant.username}`;
     owner.textContent = `Responsable: ${restaurant.ownerName || "Sin definir"}`;
     contact.textContent = `Contacto: ${restaurant.email || "Sin correo"} · ${restaurant.phone || "Sin móvil"}`;
     address.textContent = `Dirección: ${restaurant.address || "Sin dirección"} · ${restaurant.city || "Sin ciudad"}`;

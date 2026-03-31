@@ -41,14 +41,14 @@ onOrdersChanged(() => {
 });
 window.setInterval(() => {
   if (document.visibilityState !== "visible") return;
-  if (window.__turnoDataBackendMode !== "firebase") return;
+  if (!String(window.__turnoDataBackendMode || "").startsWith("firebase")) return;
   if (!shouldAutoRefreshClient()) return;
-  refreshOrdersFromBackend();
+  refreshPublicTrackingFromBackend();
 }, CLIENT_REFRESH_INTERVAL_MS);
 
 loadButton.addEventListener("click", () => {
   const nextId = orderInput.value.trim().toUpperCase();
-  if (!getOrderByPublicId(nextId)) {
+  if (!getPublicOrderByPublicId(nextId)) {
     orderInput.setCustomValidity("Ese QR no existe en la demo.");
     orderInput.reportValidity();
     return;
