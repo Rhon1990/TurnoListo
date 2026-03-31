@@ -109,7 +109,7 @@ function renderClient() {
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
   readyBanner.hidden = order.status !== "ready";
-  soundBanner.hidden = false;
+  soundBanner.hidden = ["delivered", "cancelled"].includes(order.status);
   feedbackCard.hidden = order.status !== "delivered";
   clientTicket.classList.toggle("ticket--ready", order.status === "ready");
   clientTicket.classList.toggle("ticket--delivered", order.status === "delivered");
