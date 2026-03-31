@@ -242,16 +242,7 @@ async function playReadyTone() {
     readyToneAudioContext = new AudioContextClass();
   }
 
-  if (readyToneAudioContext.state === "suspended") {
-    try {
-      await readyToneAudioContext.resume();
-      readyToneEnabled = true;
-    } catch {
-      return;
-    }
-  }
-
-  if (!readyToneEnabled) return;
+  if (!readyToneEnabled || readyToneAudioContext.state !== "running") return;
 
   const now = readyToneAudioContext.currentTime;
   const masterGain = readyToneAudioContext.createGain();
