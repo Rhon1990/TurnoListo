@@ -39,6 +39,21 @@ function sanitizeForFirestore(value) {
   return value;
 }
 
+function notifyFirebaseBridgeError(error, fallbackMessage) {
+  if (typeof window.showTurnoAlert === "function") {
+    const code = error?.code || "";
+    let message = fallbackMessage;
+
+    if (code === "permission-denied") {
+      message = "Acceso denegado por Firestore. Revisa permisos, roles o reglas publicadas.";
+    } else if (code === "auth/unauthorized-domain") {
+      message = "Este dominio no esta autorizado en Firebase Authentication.";
+    }
+
+    window.showTurnoAlert(message, "error");
+  }
+}
+
 async function replaceCollection(db, collectionName, items) {
   const snapshot = await getDocs(collection(db, collectionName));
   const docsToDelete = snapshot.docs.filter((snapshotDoc) => !items.some((item) => String(item.id) === snapshotDoc.id));
@@ -132,17 +147,25 @@ window.__turnoFirebaseReadyPromise = (async () => {
       await deleteDoc(doc(db, collectionName, String(id)));
     },
     subscribeCollection(collectionName, callback) {
-      return onSnapshot(collection(db, collectionName), (snapshot) => {
-        callback(
-          snapshot.docs.map((snapshotDoc) => ({
-            ...snapshotDoc.data(),
-            id: snapshotDoc.id,
-          })),
-        );
-      });
+      return onSnapshot(
+        collection(db, collectionName),
+        (snapshot) => {
+          callback(
+            snapshot.docs.map((snapshotDoc) => ({
+              ...snapshotDoc.data(),
+              id: snapshotDoc.id,
+            })),
+          );
+        },
+        (error) => {
+          console.error(`No se pudo escuchar la coleccion ${collectionName}.`, error);
+          notifyFirebaseBridgeError(error, `No se pudo escuchar la coleccion ${collectionName}.`);
+        },
+      );
     },
   };
 })().catch((error) => {
   console.error("Firebase no pudo inicializarse.", error);
+  notifyFirebaseBridgeError(error, "Firebase no pudo inicializarse.");
   return { enabled: false, error };
 });
