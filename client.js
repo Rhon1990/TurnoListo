@@ -31,6 +31,7 @@ let selectedOrderId = initialOrderId;
 let lastRenderedStatus = null;
 let currentOrder = null;
 let pendingLowRatingScore = null;
+let isSubmittingComment = false;
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
 
@@ -260,16 +261,25 @@ function renderCommentPrompt(order) {
     commentInput.value = order.rating?.comment || "";
   }
   commentInput.disabled = hasSubmittedComment;
-  commentSaveButton.disabled = hasSubmittedComment || !pendingLowRatingScore;
+  commentSaveButton.disabled = hasSubmittedComment || !pendingLowRatingScore || isSubmittingComment;
+  commentSaveButton.textContent = hasSubmittedComment
+    ? "Comentario enviado"
+    : isSubmittingComment
+      ? "Enviando..."
+      : "Enviar comentario";
+  commentSaveButton.classList.toggle("is-success", hasSubmittedComment);
   commentSentMessage.hidden = !hasSubmittedComment;
 }
 
 function handleCommentSave() {
-  if (!currentOrder || !pendingLowRatingScore || pendingLowRatingScore > 2) {
+  if (!currentOrder || !pendingLowRatingScore || pendingLowRatingScore > 2 || isSubmittingComment) {
     return;
   }
 
+  isSubmittingComment = true;
+  renderCommentPrompt(currentOrder);
   submitOrderRatingFeedback(currentOrder.id, pendingLowRatingScore, commentInput.value);
+  isSubmittingComment = false;
   pendingLowRatingScore = null;
   renderClient();
 }
