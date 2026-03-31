@@ -445,6 +445,8 @@ function renderRestaurantDirectory(restaurants) {
     });
     link.className = "qr-link";
     link.href = "./restaurant.html";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
     link.textContent = "Abrir acceso restaurante";
     resend.type = "button";
     resend.className = "comment-button";

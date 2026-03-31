@@ -261,7 +261,7 @@ async function handleRestaurantLogin(event) {
   }
 
   try {
-    await backend.signIn(username, password);
+    await backend.signIn(username, password, { persistence: "session" });
     restaurantLoginForm.reset();
     restaurantLoginUsername.focus();
   } catch (error) {

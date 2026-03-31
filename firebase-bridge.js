@@ -1,7 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import {
+  browserLocalPersistence,
+  browserSessionPersistence,
   getAuth,
   onAuthStateChanged,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
@@ -115,7 +118,9 @@ window.__turnoFirebaseReadyPromise = (async () => {
     getCurrentUser() {
       return auth.currentUser;
     },
-    async signIn(username, password) {
+    async signIn(username, password, options = {}) {
+      const persistence = options?.persistence === "session" ? browserSessionPersistence : browserLocalPersistence;
+      await setPersistence(auth, persistence);
       return signInWithEmailAndPassword(auth, String(username || "").trim(), String(password || ""));
     },
     async signOut() {
