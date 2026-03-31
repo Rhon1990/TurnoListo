@@ -33,6 +33,7 @@ let currentOrder = null;
 let pendingLowRatingScore = null;
 let isSubmittingComment = false;
 let readyToneAudioContext = null;
+let readyToneEnabled = false;
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
 
@@ -70,8 +71,9 @@ qrBackdrop.addEventListener("click", closeQrModal);
 qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
-window.addEventListener("pointerdown", warmUpReadyTone, { once: true });
-window.addEventListener("keydown", warmUpReadyTone, { once: true });
+["pointerdown", "touchstart", "keydown", "click"].forEach((eventName) => {
+  window.addEventListener(eventName, warmUpReadyTone, { passive: true });
+});
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -220,11 +222,19 @@ function warmUpReadyTone() {
   }
 
   if (readyToneAudioContext.state === "suspended") {
-    readyToneAudioContext.resume().catch(() => {});
+    readyToneAudioContext
+      .resume()
+      .then(() => {
+        readyToneEnabled = true;
+      })
+      .catch(() => {});
+    return;
   }
+
+  readyToneEnabled = true;
 }
 
-function playReadyTone() {
+async function playReadyTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
   if (!readyToneAudioContext) {
@@ -232,26 +242,33 @@ function playReadyTone() {
   }
 
   if (readyToneAudioContext.state === "suspended") {
-    readyToneAudioContext.resume().catch(() => {});
+    try {
+      await readyToneAudioContext.resume();
+      readyToneEnabled = true;
+    } catch {
+      return;
+    }
   }
+
+  if (!readyToneEnabled) return;
 
   const now = readyToneAudioContext.currentTime;
   const masterGain = readyToneAudioContext.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
-  masterGain.gain.exponentialRampToValueAtTime(0.045, now + 0.04);
-  masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.35);
+  masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.04);
+  masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
   masterGain.connect(readyToneAudioContext.destination);
 
-  [587.33, 783.99].forEach((frequency, index) => {
+  [659.25, 880.0, 987.77].forEach((frequency, index) => {
     const oscillator = readyToneAudioContext.createOscillator();
     const gain = readyToneAudioContext.createGain();
-    const startAt = now + index * 0.16;
-    const endAt = startAt + 0.95;
+    const startAt = now + index * 0.18;
+    const endAt = startAt + 0.82;
 
-    oscillator.type = "sine";
+    oscillator.type = "triangle";
     oscillator.frequency.setValueAtTime(frequency, startAt);
     gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.14 : 0.11, startAt + 0.05);
+    gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.18 : 0.14, startAt + 0.06);
     gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
     oscillator.connect(gain);
