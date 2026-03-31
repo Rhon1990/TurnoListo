@@ -85,6 +85,7 @@ function renderClient() {
   }
 
   currentOrder = order;
+  const previousStatus = lastRenderedStatus;
   const queue = getQueueBefore(order.id);
   const meta = statusMeta[order.status];
   const publicOrderId = order.sourceOrderId || order.id;
@@ -112,7 +113,7 @@ function renderClient() {
   renderRating(order);
   renderCommentPrompt(order);
 
-  triggerReadyCelebration(order.status);
+  triggerReadyCelebration(previousStatus, order.status);
   maybeSendNotification(order);
   lastRenderedStatus = order.status;
 }
@@ -192,13 +193,13 @@ function buildNotificationBody(order) {
   return `${order.orderNumber} ahora está en estado ${statusMeta[order.status].label.toLowerCase()}.`;
 }
 
-function triggerReadyCelebration(status) {
-  if (status !== "ready") {
+function triggerReadyCelebration(previousStatus, nextStatus) {
+  if (nextStatus !== "ready") {
     document.body.classList.remove("celebration-active");
     return;
   }
 
-  if (lastRenderedStatus === "ready") {
+  if (!previousStatus || previousStatus === nextStatus) {
     return;
   }
 
