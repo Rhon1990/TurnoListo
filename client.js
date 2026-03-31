@@ -109,7 +109,7 @@ function renderClient() {
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
   readyBanner.hidden = order.status !== "ready";
-  soundBanner.hidden = order.status === "delivered";
+  soundBanner.hidden = false;
   feedbackCard.hidden = order.status !== "delivered";
   clientTicket.classList.toggle("ticket--ready", order.status === "ready");
   clientTicket.classList.toggle("ticket--delivered", order.status === "delivered");
@@ -255,16 +255,22 @@ async function handleEnableSound() {
 }
 
 function renderSoundBanner() {
+  const soundLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
+
   if (readyToneEnabled) {
     soundStatus.textContent = "Aviso activado. Sonará cuando tu pedido esté listo para recoger.";
     enableSoundButton.textContent = "Desactivar sonido";
     enableSoundButton.classList.add("is-success");
+    enableSoundButton.disabled = soundLocked;
     return;
   }
 
-  soundStatus.textContent = "Pulsa para que suene cuando tu pedido esté listo para recoger.";
+  soundStatus.textContent = soundLocked
+    ? "El aviso ya no se puede cambiar porque el pedido ha llegado a su estado final de recogida."
+    : "Pulsa para que suene cuando tu pedido esté listo para recoger.";
   enableSoundButton.textContent = "Activar sonido";
   enableSoundButton.classList.remove("is-success");
+  enableSoundButton.disabled = soundLocked;
 }
 
 async function playReadyTone() {
