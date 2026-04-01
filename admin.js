@@ -487,13 +487,17 @@ function renderRestaurantDirectory(restaurants) {
     const orders = document.createElement("p");
     const notes = document.createElement("p");
     const login = document.createElement("p");
+    const logoField = document.createElement("label");
+    const logoFieldLabel = document.createElement("span");
+    const logoHint = document.createElement("span");
+    const logoPreview = document.createElement("div");
+    const logoPreviewImage = document.createElement("img");
     const passwordWrap = document.createElement("div");
     const passwordLabel = document.createElement("span");
     const passwordValue = document.createElement("strong");
     const togglePassword = document.createElement("button");
     const actions = document.createElement("div");
     const link = document.createElement("a");
-    const updateLogo = document.createElement("button");
     const logoInput = document.createElement("input");
     const resend = document.createElement("button");
     const remove = document.createElement("button");
@@ -514,6 +518,9 @@ function renderRestaurantDirectory(restaurants) {
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
     grid.className = "admin-card__grid";
     brandFallback.className = "admin-card__brand-fallback";
+    logoField.className = "field field--wide admin-card__logo-field";
+    logoHint.className = "field__hint";
+    logoPreview.className = "logo-upload-preview admin-card__logo-preview";
     title.textContent = restaurant.name;
     login.textContent = `Correo auth: ${restaurant.username}`;
     owner.textContent = `Responsable: ${restaurant.ownerName || "Sin definir"}`;
@@ -524,6 +531,8 @@ function renderRestaurantDirectory(restaurants) {
     orders.textContent =
       `Pedidos: ${restaurant.orderCount} · Activos: ${restaurant.activeOrderCount} · Entregados: ${restaurant.deliveredCount}`;
     notes.textContent = restaurant.notes ? `Notas: ${restaurant.notes}` : "Notas: sin observaciones";
+    logoFieldLabel.textContent = "Logo del restaurante";
+    logoHint.textContent = "Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.";
     passwordLabel.textContent = "Clave:";
     passwordValue.textContent = "••••••••••••";
     passwordValue.dataset.password = restaurant.password;
@@ -544,21 +553,13 @@ function renderRestaurantDirectory(restaurants) {
       event.preventDefault();
       window.open("./restaurant.html", "_blank", "noopener,noreferrer");
     });
-    updateLogo.type = "button";
-    updateLogo.className = "comment-button";
-    updateLogo.textContent = restaurant.logoUrl ? "Actualizar logo" : "Agregar logo";
-    updateLogo.addEventListener("click", () => {
-      logoInput.click();
-    });
     logoInput.type = "file";
     logoInput.accept = "image/*";
-    logoInput.hidden = true;
     logoInput.addEventListener("change", async () => {
       const file = logoInput.files?.[0] || null;
       if (!file) return;
 
-      updateLogo.disabled = true;
-      updateLogo.textContent = "Procesando...";
+      logoInput.disabled = true;
 
       try {
         const logoUrl = await optimizeRestaurantLogo(file);
@@ -578,8 +579,7 @@ function renderRestaurantDirectory(restaurants) {
         showTurnoAlert(message, "error");
       } finally {
         logoInput.value = "";
-        updateLogo.disabled = false;
-        updateLogo.textContent = restaurant.logoUrl ? "Actualizar logo" : "Agregar logo";
+        logoInput.disabled = false;
       }
     });
     resend.type = "button";
@@ -599,17 +599,22 @@ function renderRestaurantDirectory(restaurants) {
       brandLogo.src = restaurant.logoUrl;
       brandLogo.alt = `Logo de ${restaurant.name}`;
       brandLogoWrap.append(brandLogo);
+      logoPreviewImage.src = restaurant.logoUrl;
+      logoPreviewImage.alt = `Vista previa del logo de ${restaurant.name}`;
+      logoPreview.append(logoPreviewImage);
     } else {
       brandFallback.textContent = String(restaurant.name || "?").trim().charAt(0).toUpperCase() || "R";
       brandLogoWrap.append(brandFallback);
+      logoPreview.hidden = true;
     }
     brandText.append(title, meta);
     brand.append(brandLogoWrap, brandText);
     meta.append(status);
+    logoField.append(logoFieldLabel, logoInput, logoHint);
     passwordWrap.append(passwordLabel, passwordValue, togglePassword);
-    actions.append(link, updateLogo, resend, remove);
-    grid.append(owner, contact, address, activation, orders, login, notes, passwordWrap);
-    card.append(top, grid, actions, logoInput);
+    actions.append(link, resend, remove);
+    grid.append(owner, contact, address, activation, orders, login, notes, logoField, logoPreview, passwordWrap);
+    card.append(top, grid, actions);
     top.append(brand);
     adminRestaurantList.append(card);
   });

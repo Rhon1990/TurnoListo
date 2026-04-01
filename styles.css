@@ -1221,6 +1221,23 @@ button:hover,
   min-width: 0;
 }
 
+.admin-card__logo-field {
+  margin-top: 0.15rem;
+}
+
+.admin-card__logo-field input[type="file"] {
+  width: 100%;
+  min-height: 54px;
+  padding: 0.7rem 0.8rem;
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.92);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.admin-card__logo-preview {
+  margin-top: -0.1rem;
+}
+
 .admin-card__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
