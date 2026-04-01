@@ -164,7 +164,8 @@ function renderClient() {
   const queue = getQueueBefore(order.id);
   const meta = statusMeta[order.status];
   const publicOrderId = order.sourceOrderId || order.id;
-  const restaurant = getRestaurantById(order.restaurantId);
+  const sourceOrder = getOrderById(order.id) || getOrderByPublicId(publicOrderId);
+  const restaurant = getRestaurantById(order.restaurantId || sourceOrder?.restaurantId);
 
   selectedOrderId = publicOrderId;
   syncOrderInputValue(publicOrderId);
