@@ -39,6 +39,7 @@ let pendingLowRatingScore = null;
 let isSubmittingComment = false;
 let readyToneAudioContext = null;
 let readyToneEnabled = false;
+let readyTonePrimed = false;
 let pushNotificationsEnabled = false;
 let pushNotificationToken = "";
 let pushRegistrationOrderId = "";
@@ -66,7 +67,7 @@ alertsDismissed =
     eventName,
     () => {
       if (!readyToneEnabled) return;
-      warmUpReadyTone();
+      warmUpReadyTone().then(() => renderAlertsBanner());
     },
     { passive: true },
   );
@@ -267,6 +268,7 @@ async function warmUpReadyTone() {
   }
 
   readyToneEnabled = true;
+  readyTonePrimed = true;
   window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "true");
 }
 
@@ -334,6 +336,10 @@ function renderAlertsBanner() {
   const shouldHideBanner = alertsDismissed || ["delivered", "cancelled"].includes(currentOrder?.status || "");
   alertsBanner.hidden = shouldHideBanner;
   alertsConfirmation.hidden = !(alertsActive && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
+  alertsConfirmation.textContent =
+    alertsActive && !readyTonePrimed
+      ? "Tienes las notificaciones activadas. Toca una vez la pantalla para activar el sonido."
+      : "Tienes las notificaciones activadas.";
 
   if (alertsBanner.hidden) {
     enableAlertsButton.classList.remove("is-pending");
@@ -379,6 +385,7 @@ async function playReadyTone() {
   }
 
   if (!readyToneEnabled || readyToneAudioContext.state !== "running") return;
+  readyTonePrimed = true;
 
   const now = readyToneAudioContext.currentTime;
   const masterGain = readyToneAudioContext.createGain();
