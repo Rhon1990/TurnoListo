@@ -613,7 +613,7 @@ function renderRestaurantDirectory(restaurants) {
     logoField.append(logoFieldLabel, logoInput, logoHint);
     passwordWrap.append(passwordLabel, passwordValue, togglePassword);
     actions.append(link, resend, remove);
-    grid.append(owner, contact, address, activation, orders, login, notes, logoField, logoPreview, passwordWrap);
+    grid.append(owner, contact, address, activation, orders, notes, logoField, logoPreview, login, passwordWrap);
     card.append(top, grid, actions);
     top.append(brand);
     adminRestaurantList.append(card);
