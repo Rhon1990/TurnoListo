@@ -225,16 +225,10 @@ body.celebration-active::after {
   overflow: hidden;
 }
 
-.client-page-brand-shell {
-  width: min(1180px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding-top: 1.15rem;
-}
-
 .client-page-brand {
   display: flex;
   justify-content: flex-start;
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.85rem;
   width: 100%;
 }
 
@@ -658,9 +652,9 @@ button:hover,
 }
 
 .client-page-brand__logo-wrap {
-  width: 82px;
-  height: 82px;
-  padding: 0.65rem;
+  width: 74px;
+  height: 74px;
+  padding: 0.58rem;
 }
 
 .ticket--ready {
