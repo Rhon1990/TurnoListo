@@ -153,6 +153,10 @@ function updateDataBackendMode() {
   window.__turnoDataBackendMode = dataBackendMode;
 }
 
+function getRequiredPrivateRole() {
+  return String(window.TURNO_LISTO_PRIVATE_ROLE || "").trim();
+}
+
 async function connectPublicTrackingToFirebase() {
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled) {
@@ -212,6 +216,24 @@ async function connectPrivateDataStoreToFirebase() {
   console.info("TurnoListo conectado a Firebase.");
 
   try {
+    const user = firebaseBackend.getCurrentUser?.();
+    const requiredRole = getRequiredPrivateRole();
+
+    if (user?.uid) {
+      currentUserProfile = await firebaseBackend.getDocument(FIREBASE_USERS_COLLECTION, user.uid);
+    } else {
+      currentUserProfile = null;
+    }
+
+    if (requiredRole && currentUserProfile?.role !== requiredRole) {
+      disconnectPrivateFirebaseSubscriptions();
+      console.info("Sesion autenticada sin acceso privado para esta vista.", {
+        requiredRole,
+        currentRole: currentUserProfile?.role || null,
+      });
+      return { mode: dataBackendMode, reason: "role-mismatch", requiredRole, currentRole: currentUserProfile?.role || null };
+    }
+
     const [remoteOrders, remoteRestaurants] = await Promise.all([
       firebaseBackend.loadCollection(FIREBASE_ORDERS_COLLECTION),
       firebaseBackend.loadCollection(FIREBASE_RESTAURANTS_COLLECTION),
