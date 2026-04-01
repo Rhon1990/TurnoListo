@@ -3,6 +3,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   getAuth,
+  initializeAuth,
   onAuthStateChanged,
   setPersistence,
   signInWithEmailAndPassword,
@@ -26,6 +27,11 @@ const firebaseConfig = window.TURNO_LISTO_FIREBASE_CONFIG || {};
 
 function hasFirebaseConfig(config) {
   return Boolean(config?.enabled && config?.apiKey && config?.projectId && config?.appId);
+}
+
+function getPreferredAuthPersistence() {
+  const requiredRole = String(window.TURNO_LISTO_PRIVATE_ROLE || "").trim();
+  return requiredRole === "restaurant" ? browserSessionPersistence : browserLocalPersistence;
 }
 
 function sanitizeForFirestore(value) {
@@ -95,7 +101,14 @@ window.__turnoFirebaseReadyPromise = (async () => {
   }
 
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+  let auth;
+  try {
+    auth = initializeAuth(app, {
+      persistence: getPreferredAuthPersistence(),
+    });
+  } catch {
+    auth = getAuth(app);
+  }
   const functions = getFunctions(app);
   const db = getFirestore(app);
   const messagingSupported = await isMessagingSupported().catch(() => false);
