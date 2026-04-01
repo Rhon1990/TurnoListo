@@ -225,6 +225,13 @@ body.celebration-active::after {
   overflow: hidden;
 }
 
+.client-page-brand {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0 auto 0.9rem;
+  width: min(100%, 680px);
+}
+
 .logo-upload-preview {
   width: 128px;
   height: 128px;
@@ -642,6 +649,12 @@ button:hover,
   height: 74px;
   padding: 0.6rem;
   box-shadow: 0 10px 24px rgba(105, 66, 28, 0.08);
+}
+
+.client-page-brand__logo-wrap {
+  width: 82px;
+  height: 82px;
+  padding: 0.65rem;
 }
 
 .ticket--ready {

@@ -14,6 +14,11 @@
   </head>
   <body class="client-view">
     <div class="app-shell">
+      <div class="client-page-brand" id="clientBrand" hidden>
+        <div class="ticket-brand__logo-wrap client-page-brand__logo-wrap">
+          <img class="ticket-brand__logo" id="clientBrandLogo" alt="Logo del restaurante" />
+        </div>
+      </div>
       <main class="grid grid--single">
         <section class="panel panel--client glass-card">
           <div class="stats stats--client" id="clientStats">
@@ -24,11 +29,6 @@
           </div>
 
           <article class="ticket ticket--client" id="clientTicket">
-            <div class="ticket-brand" id="clientBrand" hidden>
-              <div class="ticket-brand__logo-wrap">
-                <img class="ticket-brand__logo" id="clientBrandLogo" alt="Logo del restaurante" />
-              </div>
-            </div>
             <div class="ticket__top">
               <div>
                 <h3 id="clientOrderNumber">#2048</h3>
