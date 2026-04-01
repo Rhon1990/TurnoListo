@@ -16,6 +16,13 @@
     <div class="app-shell">
       <main class="grid grid--single">
         <section class="panel panel--client glass-card">
+          <div class="stats stats--client" id="clientStats">
+            <div class="stat">
+              <span class="stat__label">Pedidos antes que tú</span>
+              <strong class="stat__value" id="clientQueueCount">0</strong>
+            </div>
+          </div>
+
           <article class="ticket ticket--client" id="clientTicket">
             <div class="ticket__top">
               <div>
@@ -80,13 +87,6 @@
               <p class="feedback-card__value" id="clientRatingValue"></p>
             </section>
           </article>
-
-          <div class="stats stats--client" id="clientStats">
-            <div class="stat">
-              <span class="stat__label">Pedidos antes que tú</span>
-              <strong class="stat__value" id="clientQueueCount">0</strong>
-            </div>
-          </div>
 
           <div class="scan-box scan-box--client scan-box--client-compact">
             <div class="scan-box__header">
