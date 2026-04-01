@@ -16,24 +16,6 @@
     <div class="app-shell">
       <main class="grid grid--single">
         <section class="panel panel--client glass-card">
-          <div class="scan-box scan-box--client">
-            <label for="clientOrderInput">Código del QR</label>
-            <div class="scan-box__row">
-              <input id="clientOrderInput" type="text" placeholder="Ej. POS-801" />
-              <button id="clientLoadButton" type="button">Leer QR</button>
-            </div>
-            <button class="ghost-button ghost-button--full" id="clientShowQrButton" type="button">
-              Ver mi QR
-            </button>
-          </div>
-
-          <div class="stats stats--client" id="clientStats">
-            <div class="stat">
-              <span class="stat__label">Pedidos antes que tú</span>
-              <strong class="stat__value" id="clientQueueCount">0</strong>
-            </div>
-          </div>
-
           <article class="ticket ticket--client" id="clientTicket">
             <div class="ticket__top">
               <div>
@@ -98,6 +80,30 @@
               <p class="feedback-card__value" id="clientRatingValue"></p>
             </section>
           </article>
+
+          <div class="stats stats--client" id="clientStats">
+            <div class="stat">
+              <span class="stat__label">Pedidos antes que tú</span>
+              <strong class="stat__value" id="clientQueueCount">0</strong>
+            </div>
+          </div>
+
+          <div class="scan-box scan-box--client scan-box--client-compact">
+            <div class="scan-box__header">
+              <div>
+                <p class="ticket__label">Consultar otro pedido</p>
+                <label for="clientOrderInput">Código del QR</label>
+              </div>
+              <button class="ghost-button scan-box__qr-button" id="clientShowQrButton" type="button">
+                Ver mi QR
+              </button>
+            </div>
+            <div class="scan-box__row scan-box__row--compact">
+              <input id="clientOrderInput" type="text" placeholder="Ej. POS-801" />
+              <button id="clientLoadButton" type="button">Actualizar</button>
+            </div>
+            <p class="scan-box__hint">Solo úsalo si quieres cambiar a otro pedido.</p>
+          </div>
         </section>
       </main>
     </div>
