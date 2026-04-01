@@ -33,6 +33,7 @@ const commentSaveButton = document.querySelector("#clientCommentSave");
 const commentSentMessage = document.querySelector("#clientCommentSentMessage");
 
 let selectedOrderId = initialOrderId;
+let orderInputDirty = false;
 let lastRenderedStatus = null;
 let currentOrder = null;
 let pendingLowRatingScore = null;
@@ -97,8 +98,37 @@ loadButton.addEventListener("click", () => {
 
   orderInput.setCustomValidity("");
   selectedOrderId = nextId;
+  orderInputDirty = false;
+  orderInput.value = nextId;
   lastRenderedStatus = null;
   renderClient();
+});
+orderInput.addEventListener("focus", () => {
+  orderInputDirty = true;
+});
+orderInput.addEventListener("input", () => {
+  orderInputDirty = true;
+  orderInput.setCustomValidity("");
+});
+orderInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    loadButton.click();
+    return;
+  }
+
+  if (event.key === "Escape") {
+    orderInputDirty = false;
+    syncOrderInputValue(selectedOrderId);
+    orderInput.blur();
+  }
+});
+orderInput.addEventListener("blur", () => {
+  const normalizedValue = orderInput.value.trim().toUpperCase();
+  if (!normalizedValue || normalizedValue === selectedOrderId) {
+    orderInputDirty = false;
+    syncOrderInputValue(selectedOrderId);
+  }
 });
 
 showQrButton.addEventListener("click", () => {
@@ -128,7 +158,7 @@ function renderClient() {
   const publicOrderId = order.sourceOrderId || order.id;
 
   selectedOrderId = publicOrderId;
-  orderInput.value = publicOrderId;
+  syncOrderInputValue(publicOrderId);
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = order.customerName;
   statusPill.textContent = meta.label;
@@ -200,6 +230,17 @@ function renderMissingOrder() {
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
   renderAlertsBanner();
+}
+
+function syncOrderInputValue(value) {
+  const normalizedValue = String(value || "").trim().toUpperCase();
+  if (orderInputDirty && document.activeElement === orderInput) {
+    return;
+  }
+
+  if (orderInput.value !== normalizedValue) {
+    orderInput.value = normalizedValue;
+  }
 }
 
 function renderProgressSteps(status) {
