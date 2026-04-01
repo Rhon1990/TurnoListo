@@ -55,7 +55,11 @@ readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "t
 pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
 pushNotificationToken = String(window.localStorage.getItem(PUSH_TOKEN_STORAGE_KEY) || "");
 pushRegistrationOrderId = String(window.localStorage.getItem(PUSH_ORDER_STORAGE_KEY) || "");
-alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
+alertsDismissed =
+  readyToneEnabled &&
+  pushNotificationsEnabled &&
+  typeof Notification !== "undefined" &&
+  Notification.permission === "granted";
 
 waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
@@ -313,9 +317,12 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
 
 function renderAlertsBanner() {
   const alertLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
+  const hasGrantedNotificationPermission = typeof Notification !== "undefined" && Notification.permission === "granted";
+  const alertsActive = readyToneEnabled && pushNotificationsEnabled && hasGrantedNotificationPermission;
+  alertsDismissed = alertsActive;
   const shouldHideBanner = alertsDismissed || ["delivered", "cancelled"].includes(currentOrder?.status || "");
   alertsBanner.hidden = shouldHideBanner;
-  alertsConfirmation.hidden = !(alertsDismissed && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
+  alertsConfirmation.hidden = !(alertsActive && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
 
   if (alertsBanner.hidden) {
     enableAlertsButton.classList.remove("is-pending");
@@ -329,7 +336,7 @@ function renderAlertsBanner() {
     return;
   }
 
-  if (alertsDismissed || (readyToneEnabled && pushNotificationsEnabled)) {
+  if (alertsActive) {
     alertsTitle.textContent = "Avisos activados.";
     alertsStatus.textContent = alertLocked
       ? "Este pedido ya quedó configurado para avisarte."
