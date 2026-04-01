@@ -29,6 +29,18 @@ function hashToken(token) {
   return crypto.createHash("sha256").update(String(token || "")).digest("hex");
 }
 
+function normalizeLogoUrl(value) {
+  const logoUrl = String(value || "").trim();
+  if (!logoUrl) return "";
+  if (!logoUrl.startsWith("data:image/")) {
+    throw new HttpsError("invalid-argument", "El logo debe ser una imagen valida.");
+  }
+  if (logoUrl.length > 350000) {
+    throw new HttpsError("invalid-argument", "El logo es demasiado grande. Usa una imagen mas ligera.");
+  }
+  return logoUrl;
+}
+
 function generateRestaurantPassword(length = 14) {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const lower = "abcdefghijkmnopqrstuvwxyz";
@@ -80,6 +92,7 @@ exports.createRestaurantAccount = onCall(async (request) => {
   const phone = trimValue(data.phone);
   const city = trimValue(data.city);
   const address = trimValue(data.address);
+  const logoUrl = normalizeLogoUrl(data.logoUrl);
   const planName = trimValue(data.planName) || "Mensual";
   const notes = trimValue(data.notes);
   const activationDays = Math.max(1, Number.parseInt(String(data.activationDays || "30"), 10) || 30);
@@ -123,6 +136,7 @@ exports.createRestaurantAccount = onCall(async (request) => {
     phone,
     city,
     address,
+    logoUrl,
     planName,
     notes,
     activatedAt,

@@ -124,6 +124,14 @@ body.celebration-active::after {
   line-height: 1.5;
 }
 
+.field__hint {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .glass-card {
   background: var(--card);
   border: 1px solid rgba(255, 255, 255, 0.4);
@@ -144,6 +152,49 @@ body.celebration-active::after {
   padding: 1.4rem;
   max-width: 360px;
   justify-self: start;
+}
+
+.hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(29, 26, 22, 0.07);
+  box-shadow: 0 12px 28px rgba(105, 66, 28, 0.08);
+}
+
+.hero-brand__logo-wrap,
+.ticket-brand__logo-wrap,
+.logo-upload-preview {
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(29, 26, 22, 0.07);
+}
+
+.hero-brand__logo-wrap {
+  width: 72px;
+  height: 72px;
+  padding: 0.55rem;
+}
+
+.hero-brand__logo,
+.ticket-brand__logo,
+.logo-upload-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hero-brand__name {
+  margin: 0;
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+  line-height: 0.95;
 }
 
 .hero__metric {
@@ -172,6 +223,13 @@ body.celebration-active::after {
   padding: 1rem;
   background: rgba(255, 251, 246, 0.78);
   overflow: hidden;
+}
+
+.logo-upload-preview {
+  width: 128px;
+  height: 128px;
+  padding: 0.85rem;
+  margin-top: -0.15rem;
 }
 
 .summary-strip {
@@ -571,6 +629,19 @@ button:hover,
     linear-gradient(180deg, rgba(255, 250, 244, 0.98), rgba(248, 238, 223, 0.9));
   box-shadow: 0 22px 55px rgba(105, 66, 28, 0.12);
   overflow: hidden;
+}
+
+.ticket-brand {
+  display: inline-grid;
+  justify-items: start;
+  margin-bottom: 1rem;
+}
+
+.ticket-brand__logo-wrap {
+  width: 74px;
+  height: 74px;
+  padding: 0.6rem;
+  box-shadow: 0 10px 24px rgba(105, 66, 28, 0.08);
 }
 
 .ticket--ready {
@@ -1584,6 +1655,10 @@ button:hover,
   .dashboard-bar {
     grid-template-columns: 1fr;
   }
+
+  .hero-brand {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1619,6 +1694,17 @@ button:hover,
   .progress-step::before {
     width: 8px;
     height: 8px;
+  }
+
+  .hero-brand__logo-wrap,
+  .ticket-brand__logo-wrap {
+    width: 62px;
+    height: 62px;
+  }
+
+  .logo-upload-preview {
+    width: 108px;
+    height: 108px;
   }
 }
 

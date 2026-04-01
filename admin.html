@@ -182,6 +182,14 @@
                 <span>Dirección</span>
                 <input name="address" type="text" placeholder="Dirección del restaurante" />
               </label>
+              <label class="field field--wide">
+                <span>Logo del restaurante</span>
+                <input id="adminRestaurantLogoInput" name="logo" type="file" accept="image/*" />
+                <span class="field__hint">Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.</span>
+              </label>
+              <div class="logo-upload-preview" id="adminRestaurantLogoPreview" hidden>
+                <img id="adminRestaurantLogoPreviewImage" alt="Vista previa del logo del restaurante" />
+              </div>
               <label class="field">
                 <span>Plan</span>
                 <select id="adminPlanSelect" name="planName">

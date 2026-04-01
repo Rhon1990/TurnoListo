@@ -10,6 +10,9 @@ const adminLoginTogglePassword = document.querySelector("#adminLoginTogglePasswo
 const adminLogoutButton = document.querySelector("#adminLogoutButton");
 const adminCreateRestaurantForm = document.querySelector("#adminCreateRestaurantForm");
 const adminCreateFeedback = document.querySelector("#adminCreateFeedback");
+const adminRestaurantLogoInput = document.querySelector("#adminRestaurantLogoInput");
+const adminRestaurantLogoPreview = document.querySelector("#adminRestaurantLogoPreview");
+const adminRestaurantLogoPreviewImage = document.querySelector("#adminRestaurantLogoPreviewImage");
 const adminPlanSelect = document.querySelector("#adminPlanSelect");
 const adminActivationDays = document.querySelector("#adminActivationDays");
 const adminRestaurantList = document.querySelector("#adminRestaurantList");
@@ -39,6 +42,7 @@ const adminDeleteMeta = document.querySelector("#adminDeleteMeta");
 let activeAdminSection = "dashboard";
 let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
+let selectedRestaurantLogoUrl = "";
 const PLAN_DURATIONS = {
   Quincenal: 15,
   Mensual: 30,
@@ -59,6 +63,7 @@ adminLoginTogglePassword.addEventListener("click", (event) => {
 });
 adminLogoutButton.addEventListener("click", handleAdminLogout);
 adminCreateRestaurantForm.addEventListener("submit", handleCreateRestaurant);
+adminRestaurantLogoInput.addEventListener("change", handleRestaurantLogoSelection);
 adminPlanSelect.addEventListener("change", syncActivationDaysWithPlan);
 adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
@@ -193,6 +198,7 @@ async function handleCreateRestaurant(event) {
       phone: formData.get("phone"),
       city: formData.get("city"),
       address: formData.get("address"),
+      logoUrl: selectedRestaurantLogoUrl,
       planName: formData.get("planName"),
       activationDays: formData.get("activationDays"),
       notes: formData.get("notes"),
@@ -200,6 +206,7 @@ async function handleCreateRestaurant(event) {
     const restaurant = result?.restaurant;
 
     adminCreateRestaurantForm.reset();
+    resetRestaurantLogoPreview();
     syncActivationDaysWithPlan();
     await reconnectDataStoreToFirebase();
     adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Usuario Auth y perfil users/{uid} generados automaticamente.`;
@@ -220,6 +227,80 @@ async function handleCreateRestaurant(event) {
     adminCreateFeedback.hidden = false;
     showTurnoAlert(message, "error");
   }
+}
+
+async function handleRestaurantLogoSelection(event) {
+  const file = event.target.files?.[0] || null;
+  if (!file) {
+    resetRestaurantLogoPreview();
+    return;
+  }
+
+  try {
+    selectedRestaurantLogoUrl = await optimizeRestaurantLogo(file);
+    adminRestaurantLogoPreviewImage.src = selectedRestaurantLogoUrl;
+    adminRestaurantLogoPreview.hidden = false;
+    adminCreateFeedback.hidden = true;
+    adminCreateFeedback.textContent = "";
+  } catch (error) {
+    console.error("No se pudo preparar el logo del restaurante.", error);
+    resetRestaurantLogoPreview();
+    adminCreateFeedback.textContent =
+      error instanceof Error ? error.message : "No se pudo procesar el logo. Usa una imagen JPG, PNG o WebP mas ligera.";
+    adminCreateFeedback.className = "form-feedback form-feedback--error";
+    adminCreateFeedback.hidden = false;
+    showTurnoAlert(adminCreateFeedback.textContent, "error");
+  }
+}
+
+function resetRestaurantLogoPreview() {
+  selectedRestaurantLogoUrl = "";
+  adminRestaurantLogoInput.value = "";
+  adminRestaurantLogoPreviewImage.removeAttribute("src");
+  adminRestaurantLogoPreview.hidden = true;
+}
+
+async function optimizeRestaurantLogo(file) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Selecciona una imagen valida para el logo.");
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("El logo pesa demasiado. Usa una imagen de menos de 5 MB.");
+  }
+
+  const image = await loadImageFile(file);
+  const canvas = document.createElement("canvas");
+  const maxSide = 220;
+  const scale = Math.min(maxSide / image.width, maxSide / image.height, 1);
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.clearRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const optimized = canvas.toDataURL("image/webp", 0.88);
+  if (optimized.length > 350000) {
+    throw new Error("El logo sigue siendo grande. Usa una imagen mas simple o recortada.");
+  }
+  return optimized;
+}
+
+function loadImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("No se pudo abrir la imagen."));
+      image.onload = () => resolve(image);
+      image.src = String(reader.result || "");
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function initializeAdminFirebaseAuth() {

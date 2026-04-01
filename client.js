@@ -10,6 +10,8 @@ const progressFill = document.querySelector("#clientProgress");
 const progressSteps = document.querySelectorAll("#clientProgressSteps [data-step]");
 const statsBlock = document.querySelector("#clientStats");
 const queueCount = document.querySelector("#clientQueueCount");
+const clientBrand = document.querySelector("#clientBrand");
+const clientBrandLogo = document.querySelector("#clientBrandLogo");
 const qrImage = document.querySelector("#clientQrImage");
 const qrValue = document.querySelector("#clientQrValue");
 const qrHint = document.querySelector("#clientQrHint");
@@ -162,9 +164,11 @@ function renderClient() {
   const queue = getQueueBefore(order.id);
   const meta = statusMeta[order.status];
   const publicOrderId = order.sourceOrderId || order.id;
+  const restaurant = getRestaurantById(order.restaurantId);
 
   selectedOrderId = publicOrderId;
   syncOrderInputValue(publicOrderId);
+  renderClientBrand(restaurant);
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = order.customerName;
   statusPill.textContent = meta.label;
@@ -220,6 +224,7 @@ function maybeSendNotification(order) {
 function renderMissingOrder() {
   ticketOrderId.textContent = "Pedido no disponible";
   ticketCustomer.textContent = "Este seguimiento ya no está activo o fue archivado.";
+  renderClientBrand(null);
   statusPill.textContent = "No disponible";
   statusPill.style.background = "rgba(29, 26, 22, 0.08)";
   statusPill.style.color = "#6e6258";
@@ -236,6 +241,18 @@ function renderMissingOrder() {
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
   renderAlertsBanner();
+}
+
+function renderClientBrand(restaurant) {
+  const logoUrl = String(restaurant?.logoUrl || "").trim();
+  clientBrand.hidden = !logoUrl;
+
+  if (!logoUrl) {
+    clientBrandLogo.removeAttribute("src");
+    return;
+  }
+
+  clientBrandLogo.src = logoUrl;
 }
 
 function syncOrderInputValue(value) {

@@ -5,6 +5,10 @@ const restaurantLoginFeedback = document.querySelector("#restaurantLoginFeedback
 const restaurantLoginUsername = document.querySelector("#restaurantLoginUsername");
 const restaurantLoginPassword = document.querySelector("#restaurantLoginPassword");
 const restaurantLoginTogglePassword = document.querySelector("#restaurantLoginTogglePassword");
+const restaurantBrand = document.querySelector("#restaurantBrand");
+const restaurantBrandLogo = document.querySelector("#restaurantBrandLogo");
+const restaurantBrandName = document.querySelector("#restaurantBrandName");
+const restaurantHeroEyebrow = document.querySelector("#restaurantHeroEyebrow");
 const restaurantSessionLabel = document.querySelector("#restaurantSessionLabel");
 const restaurantLogoutButton = document.querySelector("#restaurantLogoutButton");
 const restaurantList = document.querySelector("#restaurantOrders");
@@ -197,7 +201,11 @@ function syncRestaurantAccess() {
 
   if (restaurant) {
     restaurantSessionLabel.textContent = restaurant.name;
+    renderRestaurantBrand(restaurant);
+    return;
   }
+
+  renderRestaurantBrand(null);
 }
 
 function renderRestaurant() {
@@ -206,6 +214,9 @@ function renderRestaurant() {
     syncRestaurantAccess();
     return;
   }
+
+  const restaurant = getRestaurantById(session.restaurantId);
+  renderRestaurantBrand(restaurant);
 
   const orders = [...getOperationalOrders()].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
   const archivedOrders = getArchivedOrders();
@@ -239,6 +250,22 @@ function renderRestaurant() {
   if (!filteredArchivedOrders.length) {
     archivedList.append(buildEmptyState("No hay pedidos archivados que coincidan con esos filtros."));
   }
+}
+
+function renderRestaurantBrand(restaurant) {
+  const logoUrl = String(restaurant?.logoUrl || "").trim();
+  const hasLogo = Boolean(logoUrl);
+
+  restaurantBrand.hidden = !hasLogo;
+  restaurantHeroEyebrow.hidden = hasLogo;
+  restaurantBrandName.textContent = restaurant?.name || "";
+
+  if (!hasLogo) {
+    restaurantBrandLogo.removeAttribute("src");
+    return;
+  }
+
+  restaurantBrandLogo.src = logoUrl;
 }
 
 async function handleRestaurantLogin(event) {
