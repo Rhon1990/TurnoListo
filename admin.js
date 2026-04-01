@@ -470,6 +470,12 @@ function renderRestaurantDirectory(restaurants) {
 
   restaurants.forEach((restaurant) => {
     const card = document.createElement("article");
+    const top = document.createElement("div");
+    const brand = document.createElement("div");
+    const brandLogoWrap = document.createElement("div");
+    const brandLogo = document.createElement("img");
+    const brandFallback = document.createElement("span");
+    const brandText = document.createElement("div");
     const title = document.createElement("h3");
     const meta = document.createElement("div");
     const status = document.createElement("span");
@@ -487,10 +493,16 @@ function renderRestaurantDirectory(restaurants) {
     const togglePassword = document.createElement("button");
     const actions = document.createElement("div");
     const link = document.createElement("a");
+    const updateLogo = document.createElement("button");
+    const logoInput = document.createElement("input");
     const resend = document.createElement("button");
     const remove = document.createElement("button");
 
     card.className = "admin-card";
+    top.className = "admin-card__top";
+    brand.className = "admin-card__brand";
+    brandLogoWrap.className = "admin-card__brand-logo";
+    brandText.className = "admin-card__brand-text";
     meta.className = "admin-card__meta";
     passwordWrap.className = "admin-card__password";
     passwordLabel.className = "admin-card__password-label";
@@ -501,6 +513,7 @@ function renderRestaurantDirectory(restaurants) {
     status.style.background = restaurant.status === "active" ? "rgba(31, 122, 99, 0.12)" : "rgba(127, 29, 29, 0.12)";
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
     grid.className = "admin-card__grid";
+    brandFallback.className = "admin-card__brand-fallback";
     title.textContent = restaurant.name;
     login.textContent = `Correo auth: ${restaurant.username}`;
     owner.textContent = `Responsable: ${restaurant.ownerName || "Sin definir"}`;
@@ -531,6 +544,44 @@ function renderRestaurantDirectory(restaurants) {
       event.preventDefault();
       window.open("./restaurant.html", "_blank", "noopener,noreferrer");
     });
+    updateLogo.type = "button";
+    updateLogo.className = "comment-button";
+    updateLogo.textContent = restaurant.logoUrl ? "Actualizar logo" : "Agregar logo";
+    updateLogo.addEventListener("click", () => {
+      logoInput.click();
+    });
+    logoInput.type = "file";
+    logoInput.accept = "image/*";
+    logoInput.hidden = true;
+    logoInput.addEventListener("change", async () => {
+      const file = logoInput.files?.[0] || null;
+      if (!file) return;
+
+      updateLogo.disabled = true;
+      updateLogo.textContent = "Procesando...";
+
+      try {
+        const logoUrl = await optimizeRestaurantLogo(file);
+        updateRestaurantAccount(restaurant.id, { logoUrl });
+        adminCreateFeedback.textContent = `Logo actualizado para ${restaurant.name}.`;
+        adminCreateFeedback.className = "form-feedback form-feedback--success";
+        adminCreateFeedback.hidden = false;
+        showTurnoAlert(`Logo actualizado para ${restaurant.name}.`, "success");
+        renderAdminWorkspace();
+      } catch (error) {
+        console.error("No se pudo actualizar el logo del restaurante.", error);
+        const message =
+          error instanceof Error ? error.message : "No se pudo actualizar el logo del restaurante.";
+        adminCreateFeedback.textContent = message;
+        adminCreateFeedback.className = "form-feedback form-feedback--error";
+        adminCreateFeedback.hidden = false;
+        showTurnoAlert(message, "error");
+      } finally {
+        logoInput.value = "";
+        updateLogo.disabled = false;
+        updateLogo.textContent = restaurant.logoUrl ? "Actualizar logo" : "Agregar logo";
+      }
+    });
     resend.type = "button";
     resend.className = "comment-button";
     resend.textContent = "Reenviar credenciales";
@@ -544,11 +595,22 @@ function renderRestaurantDirectory(restaurants) {
       openDeleteModal(restaurant);
     });
 
+    if (restaurant.logoUrl) {
+      brandLogo.src = restaurant.logoUrl;
+      brandLogo.alt = `Logo de ${restaurant.name}`;
+      brandLogoWrap.append(brandLogo);
+    } else {
+      brandFallback.textContent = String(restaurant.name || "?").trim().charAt(0).toUpperCase() || "R";
+      brandLogoWrap.append(brandFallback);
+    }
+    brandText.append(title, meta);
+    brand.append(brandLogoWrap, brandText);
     meta.append(status);
     passwordWrap.append(passwordLabel, passwordValue, togglePassword);
-    actions.append(link, resend, remove);
+    actions.append(link, updateLogo, resend, remove);
     grid.append(owner, contact, address, activation, orders, login, notes, passwordWrap);
-    card.append(title, meta, grid, actions);
+    card.append(top, grid, actions, logoInput);
+    top.append(brand);
     adminRestaurantList.append(card);
   });
 }

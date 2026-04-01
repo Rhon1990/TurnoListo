@@ -499,6 +499,33 @@ function createRestaurantAccount(accountData) {
   return restaurant;
 }
 
+function updateRestaurantAccount(restaurantId, updates) {
+  const currentRestaurant = getRestaurantById(restaurantId);
+  if (!currentRestaurant) return null;
+
+  const nextRestaurant = {
+    ...currentRestaurant,
+    ...updates,
+    logoUrl: Object.prototype.hasOwnProperty.call(updates || {}, "logoUrl")
+      ? String(updates.logoUrl || "").trim()
+      : String(currentRestaurant.logoUrl || "").trim(),
+  };
+
+  const nextRestaurants = loadRestaurants().map((restaurant) => (restaurant.id === restaurantId ? nextRestaurant : restaurant));
+  saveRestaurants(nextRestaurants);
+
+  if (firebaseBackend?.enabled) {
+    firebaseBackend
+      .setDocument(FIREBASE_RESTAURANTS_COLLECTION, restaurantId, nextRestaurant)
+      .catch((error) => {
+        console.error("No se pudo actualizar el restaurante en Firebase.", error);
+        notifyFirebaseError(error, "No se pudo actualizar la informacion del restaurante.");
+      });
+  }
+
+  return nextRestaurant;
+}
+
 function deleteRestaurantAccount(restaurantId) {
   const nextRestaurants = loadRestaurants().filter((restaurant) => restaurant.id !== restaurantId);
   const nextOrders = loadOrders().filter((order) => order.restaurantId !== restaurantId);
