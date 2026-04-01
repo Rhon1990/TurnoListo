@@ -97,11 +97,17 @@ loadButton.addEventListener("click", () => {
   }
 
   orderInput.setCustomValidity("");
-  selectedOrderId = nextId;
   orderInputDirty = false;
   orderInput.value = nextId;
-  lastRenderedStatus = null;
-  renderClient();
+  if (nextId === selectedOrderId) {
+    lastRenderedStatus = null;
+    renderClient();
+    return;
+  }
+
+  const targetUrl = buildClientUrl(nextId);
+  window.open(targetUrl, "_blank", "noopener,noreferrer");
+  syncOrderInputValue(selectedOrderId);
 });
 orderInput.addEventListener("focus", () => {
   orderInputDirty = true;
