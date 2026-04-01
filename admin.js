@@ -282,11 +282,17 @@ async function optimizeRestaurantLogo(file) {
   context.clearRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
 
-  const optimized = canvas.toDataURL("image/webp", 0.88);
-  if (optimized.length > 350000) {
-    throw new Error("El logo sigue siendo grande. Usa una imagen mas simple o recortada.");
+  const optimizedPng = canvas.toDataURL("image/png");
+  if (optimizedPng.length <= 350000) {
+    return optimizedPng;
   }
-  return optimized;
+
+  const optimizedJpeg = canvas.toDataURL("image/jpeg", 0.9);
+  if (optimizedJpeg.length <= 350000) {
+    return optimizedJpeg;
+  }
+
+  throw new Error("El logo sigue siendo grande. Usa una imagen mas simple o recortada.");
 }
 
 function loadImageFile(file) {
