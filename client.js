@@ -14,12 +14,10 @@ const qrImage = document.querySelector("#clientQrImage");
 const qrValue = document.querySelector("#clientQrValue");
 const qrHint = document.querySelector("#clientQrHint");
 const readyBanner = document.querySelector("#clientReadyBanner");
-const soundBanner = document.querySelector("#clientSoundBanner");
-const soundStatus = document.querySelector("#clientSoundStatus");
-const enableSoundButton = document.querySelector("#clientEnableSoundButton");
-const pushBanner = document.querySelector("#clientPushBanner");
-const pushStatus = document.querySelector("#clientPushStatus");
-const enablePushButton = document.querySelector("#clientEnablePushButton");
+const alertsBanner = document.querySelector("#clientAlertsBanner");
+const alertsTitle = document.querySelector("#clientAlertsTitle");
+const alertsStatus = document.querySelector("#clientAlertsStatus");
+const enableAlertsButton = document.querySelector("#clientEnableAlertsButton");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
 const qrModal = document.querySelector("#clientQrModal");
@@ -44,6 +42,7 @@ let pushNotificationsEnabled = false;
 let pushNotificationToken = "";
 let pushRegistrationOrderId = "";
 let pushNotificationBusy = false;
+let alertsDismissed = false;
 const SOUND_ENABLED_STORAGE_KEY = "turnolisto-client-ready-sound-enabled";
 const PUSH_ENABLED_STORAGE_KEY = "turnolisto-client-push-enabled";
 const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
@@ -55,6 +54,7 @@ readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "t
 pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
 pushNotificationToken = String(window.localStorage.getItem(PUSH_TOKEN_STORAGE_KEY) || "");
 pushRegistrationOrderId = String(window.localStorage.getItem(PUSH_ORDER_STORAGE_KEY) || "");
+alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
 
 waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
@@ -90,8 +90,7 @@ qrBackdrop.addEventListener("click", closeQrModal);
 qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
-enableSoundButton.addEventListener("click", handleEnableSound);
-enablePushButton.addEventListener("click", handleEnablePushNotifications);
+enableAlertsButton.addEventListener("click", handleEnableAlerts);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -123,8 +122,6 @@ function renderClient() {
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
   readyBanner.hidden = order.status !== "ready";
-  soundBanner.hidden = ["delivered", "cancelled"].includes(order.status);
-  pushBanner.hidden = ["delivered", "cancelled"].includes(order.status);
   feedbackCard.hidden = order.status !== "delivered";
   clientTicket.classList.toggle("ticket--ready", order.status === "ready");
   clientTicket.classList.toggle("ticket--delivered", order.status === "delivered");
@@ -132,8 +129,7 @@ function renderClient() {
   showQrButton.textContent = order.status === "delivered" ? "QR desactivado" : "Ver mi QR";
   renderRating(order);
   renderCommentPrompt(order);
-  renderSoundBanner();
-  renderPushBanner();
+  renderAlertsBanner();
   syncPushRegistrationForCurrentOrder();
 
   triggerReadyCelebration(previousStatus, order.status);
@@ -179,14 +175,11 @@ function renderMissingOrder() {
   qrValue.textContent = selectedOrderId;
   qrHint.textContent = "Este QR ya no está disponible.";
   readyBanner.hidden = true;
-  soundBanner.hidden = false;
-  pushBanner.hidden = false;
   feedbackCard.hidden = true;
   clientTicket.classList.remove("ticket--ready");
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
-  renderSoundBanner();
-  renderPushBanner();
+  renderAlertsBanner();
 }
 
 function renderProgressSteps(status) {
@@ -261,68 +254,18 @@ async function warmUpReadyTone() {
   window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "true");
 }
 
-async function handleEnableSound() {
-  if (readyToneEnabled) {
-    readyToneEnabled = false;
-    window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "false");
-    renderSoundBanner();
-    return;
-  }
-
-  await warmUpReadyTone();
-  renderSoundBanner();
-}
-
-function renderSoundBanner() {
-  const soundLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
-
-  if (readyToneEnabled) {
-    soundStatus.textContent = "Aviso activado. Sonará cuando tu pedido esté listo para recoger.";
-    enableSoundButton.textContent = "Desactivar sonido";
-    enableSoundButton.classList.add("is-success");
-    enableSoundButton.disabled = soundLocked;
-    return;
-  }
-
-  soundStatus.textContent = soundLocked
-    ? "El aviso ya no se puede cambiar porque el pedido ha llegado a su estado final de recogida."
-    : "Pulsa para que suene cuando tu pedido esté listo para recoger.";
-  enableSoundButton.textContent = "Activar sonido";
-  enableSoundButton.classList.remove("is-success");
-  enableSoundButton.disabled = soundLocked;
-}
-
-async function handleEnablePushNotifications() {
+async function handleEnableAlerts() {
   if (pushNotificationBusy) return;
   pushNotificationBusy = true;
-  renderPushBanner();
+  renderAlertsBanner();
 
   try {
-    const backend = await waitForFirebaseBackend();
-    if (!backend?.enabled || typeof backend.enableClientPushNotifications !== "function") {
-      pushStatus.textContent = "Las notificaciones push no están disponibles con esta configuración.";
-      return;
-    }
-
-    if (pushNotificationsEnabled) {
-      if (pushNotificationToken && typeof backend.disableClientPushNotifications === "function") {
-        await backend.disableClientPushNotifications(pushNotificationToken);
-      }
-
-      pushNotificationsEnabled = false;
-      pushNotificationToken = "";
-      pushRegistrationOrderId = "";
-      window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "false");
-      window.localStorage.removeItem(PUSH_TOKEN_STORAGE_KEY);
-      window.localStorage.removeItem(PUSH_ORDER_STORAGE_KEY);
-      renderPushBanner();
-      return;
-    }
-
+    await warmUpReadyTone();
     await syncPushRegistrationForCurrentOrder({ force: true });
+    alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
   } finally {
     pushNotificationBusy = false;
-    renderPushBanner();
+    renderAlertsBanner();
   }
 }
 
@@ -344,15 +287,16 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
   if (!result?.enabled) {
     pushNotificationsEnabled = false;
     window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "false");
+    alertsDismissed = false;
 
     if (result?.reason === "missing-vapid-key") {
-      pushStatus.textContent = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
+      alertsStatus.textContent = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
     } else if (result?.reason === "permission-denied") {
-      pushStatus.textContent = "Has bloqueado las notificaciones del navegador para este dispositivo.";
+      alertsStatus.textContent = "Has bloqueado las notificaciones del navegador. Actívalas en los permisos del sitio.";
     } else if (result?.reason === "permission-dismissed") {
-      pushStatus.textContent = "No se activaron las notificaciones. Puedes volver a intentarlo.";
+      alertsStatus.textContent = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
     } else {
-      pushStatus.textContent = "No se pudo activar la notificación en segundo plano en este dispositivo.";
+      alertsStatus.textContent = "No se pudo activar la notificación en segundo plano en este dispositivo.";
     }
     return;
   }
@@ -363,33 +307,42 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
   window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "true");
   window.localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, pushNotificationToken);
   window.localStorage.setItem(PUSH_ORDER_STORAGE_KEY, pushRegistrationOrderId);
+  alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
 }
 
-function renderPushBanner() {
-  const pushLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
+function renderAlertsBanner() {
+  const alertLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
+
+  alertsBanner.hidden = (alertsDismissed && !alertLocked) || ["delivered", "cancelled"].includes(currentOrder?.status || "");
+
+  if (alertsBanner.hidden) return;
 
   if (pushNotificationBusy) {
-    enablePushButton.disabled = true;
-    enablePushButton.textContent = "Guardando...";
+    enableAlertsButton.disabled = true;
+    enableAlertsButton.textContent = "Activando...";
     return;
   }
 
-  if (pushNotificationsEnabled) {
-    pushStatus.textContent = pushLocked
-      ? "Las notificaciones en segundo plano ya quedaron configuradas para este pedido."
-      : "Avisos en segundo plano activados. Recibirás una notificación cuando el pedido esté listo.";
-    enablePushButton.textContent = pushLocked ? "Notificaciones activadas" : "Desactivar notificaciones";
-    enablePushButton.classList.add("is-success");
-    enablePushButton.disabled = pushLocked;
+  if (alertsDismissed || (readyToneEnabled && pushNotificationsEnabled)) {
+    alertsTitle.textContent = "Avisos activados.";
+    alertsStatus.textContent = alertLocked
+      ? "Este pedido ya quedó configurado para avisarte."
+      : "Recibirás sonido si tienes la página abierta y notificación si el móvil está bloqueado.";
+    enableAlertsButton.textContent = "Avisos activados";
+    enableAlertsButton.disabled = true;
+    enableAlertsButton.classList.add("is-success");
     return;
   }
 
-  pushStatus.textContent = pushLocked
-    ? "Las notificaciones ya no se pueden cambiar porque el pedido ha llegado a su estado final de recogida."
-    : "Recibe una notificación aunque bloquees el móvil o dejes la web en segundo plano.";
-  enablePushButton.textContent = "Activar notificaciones";
-  enablePushButton.classList.remove("is-success");
-  enablePushButton.disabled = pushLocked;
+  alertsTitle.textContent = "Activa los avisos del pedido.";
+  if (Notification.permission === "denied") {
+    alertsStatus.textContent = "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.";
+  } else {
+    alertsStatus.textContent = "Recibirás sonido si tienes la app abierta y notificación si el móvil está bloqueado.";
+  }
+  enableAlertsButton.textContent = "Activar avisos";
+  enableAlertsButton.disabled = alertLocked;
+  enableAlertsButton.classList.remove("is-success");
 }
 
 async function playReadyTone() {
