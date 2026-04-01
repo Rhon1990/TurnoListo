@@ -17,6 +17,9 @@ const readyBanner = document.querySelector("#clientReadyBanner");
 const soundBanner = document.querySelector("#clientSoundBanner");
 const soundStatus = document.querySelector("#clientSoundStatus");
 const enableSoundButton = document.querySelector("#clientEnableSoundButton");
+const pushBanner = document.querySelector("#clientPushBanner");
+const pushStatus = document.querySelector("#clientPushStatus");
+const enablePushButton = document.querySelector("#clientEnablePushButton");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
 const qrModal = document.querySelector("#clientQrModal");
@@ -37,11 +40,21 @@ let pendingLowRatingScore = null;
 let isSubmittingComment = false;
 let readyToneAudioContext = null;
 let readyToneEnabled = false;
+let pushNotificationsEnabled = false;
+let pushNotificationToken = "";
+let pushRegistrationOrderId = "";
+let pushNotificationBusy = false;
 const SOUND_ENABLED_STORAGE_KEY = "turnolisto-client-ready-sound-enabled";
+const PUSH_ENABLED_STORAGE_KEY = "turnolisto-client-push-enabled";
+const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
+const PUSH_ORDER_STORAGE_KEY = "turnolisto-client-push-order";
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
 
 readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "true";
+pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
+pushNotificationToken = String(window.localStorage.getItem(PUSH_TOKEN_STORAGE_KEY) || "");
+pushRegistrationOrderId = String(window.localStorage.getItem(PUSH_ORDER_STORAGE_KEY) || "");
 
 waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
@@ -78,6 +91,7 @@ qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 enableSoundButton.addEventListener("click", handleEnableSound);
+enablePushButton.addEventListener("click", handleEnablePushNotifications);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -110,6 +124,7 @@ function renderClient() {
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
   readyBanner.hidden = order.status !== "ready";
   soundBanner.hidden = ["delivered", "cancelled"].includes(order.status);
+  pushBanner.hidden = ["delivered", "cancelled"].includes(order.status);
   feedbackCard.hidden = order.status !== "delivered";
   clientTicket.classList.toggle("ticket--ready", order.status === "ready");
   clientTicket.classList.toggle("ticket--delivered", order.status === "delivered");
@@ -118,6 +133,8 @@ function renderClient() {
   renderRating(order);
   renderCommentPrompt(order);
   renderSoundBanner();
+  renderPushBanner();
+  syncPushRegistrationForCurrentOrder();
 
   triggerReadyCelebration(previousStatus, order.status);
   maybeSendNotification(order);
@@ -163,11 +180,13 @@ function renderMissingOrder() {
   qrHint.textContent = "Este QR ya no está disponible.";
   readyBanner.hidden = true;
   soundBanner.hidden = false;
+  pushBanner.hidden = false;
   feedbackCard.hidden = true;
   clientTicket.classList.remove("ticket--ready");
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
   renderSoundBanner();
+  renderPushBanner();
 }
 
 function renderProgressSteps(status) {
@@ -271,6 +290,106 @@ function renderSoundBanner() {
   enableSoundButton.textContent = "Activar sonido";
   enableSoundButton.classList.remove("is-success");
   enableSoundButton.disabled = soundLocked;
+}
+
+async function handleEnablePushNotifications() {
+  if (pushNotificationBusy) return;
+  pushNotificationBusy = true;
+  renderPushBanner();
+
+  try {
+    const backend = await waitForFirebaseBackend();
+    if (!backend?.enabled || typeof backend.enableClientPushNotifications !== "function") {
+      pushStatus.textContent = "Las notificaciones push no están disponibles con esta configuración.";
+      return;
+    }
+
+    if (pushNotificationsEnabled) {
+      if (pushNotificationToken && typeof backend.disableClientPushNotifications === "function") {
+        await backend.disableClientPushNotifications(pushNotificationToken);
+      }
+
+      pushNotificationsEnabled = false;
+      pushNotificationToken = "";
+      pushRegistrationOrderId = "";
+      window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "false");
+      window.localStorage.removeItem(PUSH_TOKEN_STORAGE_KEY);
+      window.localStorage.removeItem(PUSH_ORDER_STORAGE_KEY);
+      renderPushBanner();
+      return;
+    }
+
+    await syncPushRegistrationForCurrentOrder({ force: true });
+  } finally {
+    pushNotificationBusy = false;
+    renderPushBanner();
+  }
+}
+
+async function syncPushRegistrationForCurrentOrder(options = {}) {
+  if (!pushNotificationsEnabled && !options.force) return;
+  if (!currentOrder || ["delivered", "cancelled"].includes(currentOrder.status)) return;
+
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.enableClientPushNotifications !== "function") return;
+  if (!options.force && pushRegistrationOrderId === currentOrder.id && pushNotificationToken) return;
+
+  const result = await backend.enableClientPushNotifications({
+    orderId: currentOrder.id,
+    orderPublicId: currentOrder.sourceOrderId || currentOrder.id,
+    orderNumber: currentOrder.orderNumber,
+    clientUrl: buildClientUrl(currentOrder.sourceOrderId || currentOrder.id),
+  });
+
+  if (!result?.enabled) {
+    pushNotificationsEnabled = false;
+    window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "false");
+
+    if (result?.reason === "missing-vapid-key") {
+      pushStatus.textContent = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
+    } else if (result?.reason === "permission-denied") {
+      pushStatus.textContent = "Has bloqueado las notificaciones del navegador para este dispositivo.";
+    } else if (result?.reason === "permission-dismissed") {
+      pushStatus.textContent = "No se activaron las notificaciones. Puedes volver a intentarlo.";
+    } else {
+      pushStatus.textContent = "No se pudo activar la notificación en segundo plano en este dispositivo.";
+    }
+    return;
+  }
+
+  pushNotificationsEnabled = true;
+  pushNotificationToken = String(result.token || "");
+  pushRegistrationOrderId = currentOrder.id;
+  window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "true");
+  window.localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, pushNotificationToken);
+  window.localStorage.setItem(PUSH_ORDER_STORAGE_KEY, pushRegistrationOrderId);
+}
+
+function renderPushBanner() {
+  const pushLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
+
+  if (pushNotificationBusy) {
+    enablePushButton.disabled = true;
+    enablePushButton.textContent = "Guardando...";
+    return;
+  }
+
+  if (pushNotificationsEnabled) {
+    pushStatus.textContent = pushLocked
+      ? "Las notificaciones en segundo plano ya quedaron configuradas para este pedido."
+      : "Avisos en segundo plano activados. Recibirás una notificación cuando el pedido esté listo.";
+    enablePushButton.textContent = pushLocked ? "Notificaciones activadas" : "Desactivar notificaciones";
+    enablePushButton.classList.add("is-success");
+    enablePushButton.disabled = pushLocked;
+    return;
+  }
+
+  pushStatus.textContent = pushLocked
+    ? "Las notificaciones ya no se pueden cambiar porque el pedido ha llegado a su estado final de recogida."
+    : "Recibe una notificación aunque bloquees el móvil o dejes la web en segundo plano.";
+  enablePushButton.textContent = "Activar notificaciones";
+  enablePushButton.classList.remove("is-success");
+  enablePushButton.disabled = pushLocked;
 }
 
 async function playReadyTone() {

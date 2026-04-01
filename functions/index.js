@@ -1,10 +1,14 @@
+const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { HttpsError, onCall } = require("firebase-functions/https");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 
 admin.initializeApp();
 
 const firestore = admin.firestore();
 const auth = admin.auth();
+const messaging = admin.messaging();
+const CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION = "clientPushSubscriptions";
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -12,6 +16,10 @@ function normalizeEmail(value) {
 
 function trimValue(value) {
   return String(value || "").trim();
+}
+
+function hashToken(token) {
+  return crypto.createHash("sha256").update(String(token || "")).digest("hex");
 }
 
 function generateRestaurantPassword(length = 14) {
@@ -140,5 +148,126 @@ exports.createRestaurantAccount = onCall(async (request) => {
       uid: userRecord.uid,
       email: userRecord.email,
     },
+  };
+});
+
+exports.registerClientPushSubscription = onCall(async (request) => {
+  const data = request.data || {};
+  const token = trimValue(data.token);
+  const orderId = trimValue(data.orderId);
+
+  if (!token || !orderId) {
+    throw new HttpsError("invalid-argument", "Faltan el token push o el pedido a notificar.");
+  }
+
+  const orderSnapshot = await firestore.collection("orders").doc(orderId).get();
+  if (!orderSnapshot.exists) {
+    throw new HttpsError("not-found", "No se ha encontrado el pedido para registrar la notificacion.");
+  }
+
+  const order = orderSnapshot.data() || {};
+  const clientUrl = trimValue(data.clientUrl) || "";
+  const orderPublicId = trimValue(data.orderPublicId) || trimValue(order.sourceOrderId) || orderId;
+  const orderNumber = trimValue(data.orderNumber) || trimValue(order.orderNumber) || orderPublicId;
+  const subscriptionId = hashToken(token);
+  const nowIso = new Date().toISOString();
+
+  await firestore.collection(CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION).doc(subscriptionId).set({
+    token,
+    orderId,
+    orderPublicId,
+    orderNumber,
+    clientUrl,
+    updatedAt: nowIso,
+    createdAt: nowIso,
+  }, { merge: true });
+
+  return {
+    ok: true,
+    orderId,
+  };
+});
+
+exports.unregisterClientPushSubscription = onCall(async (request) => {
+  const token = trimValue(request.data?.token);
+  if (!token) {
+    throw new HttpsError("invalid-argument", "Falta el token push a eliminar.");
+  }
+
+  await firestore.collection(CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION).doc(hashToken(token)).delete();
+  return { ok: true };
+});
+
+exports.notifyClientOrderReady = onDocumentUpdated("orders/{orderId}", async (event) => {
+  const before = event.data?.before?.data() || null;
+  const after = event.data?.after?.data() || null;
+
+  if (!before || !after || before.status === after.status || after.status !== "ready") {
+    return null;
+  }
+
+  const subscriptionsSnapshot = await firestore
+    .collection(CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION)
+    .where("orderId", "==", event.params.orderId)
+    .get();
+
+  if (subscriptionsSnapshot.empty) {
+    return null;
+  }
+
+  const subscriptions = subscriptionsSnapshot.docs.map((docSnapshot) => ({
+    id: docSnapshot.id,
+    ...docSnapshot.data(),
+  }));
+
+  const body = `${after.orderNumber || after.sourceOrderId || "Tu pedido"} ya puede recogerse en ${after.pickupPoint || "el punto de recogida"}.`;
+  const messages = subscriptions
+    .filter((subscription) => trimValue(subscription.token))
+    .map((subscription) => ({
+      token: subscription.token,
+      data: {
+        title: "Tu pedido ya está listo para recoger",
+        body,
+        orderId: event.params.orderId,
+        orderPublicId: trimValue(after.sourceOrderId) || event.params.orderId,
+        link: trimValue(subscription.clientUrl),
+      },
+      webpush: {
+        headers: {
+          Urgency: "high",
+        },
+        fcmOptions: {
+          link: trimValue(subscription.clientUrl) || undefined,
+        },
+      },
+    }));
+
+  if (!messages.length) {
+    return null;
+  }
+
+  const response = await messaging.sendEach(messages);
+  const docsToDelete = [];
+
+  response.responses.forEach((messageResponse, index) => {
+    if (messageResponse.success) return;
+
+    const errorCode = messageResponse.error?.code || "";
+    if (errorCode === "messaging/registration-token-not-registered" || errorCode === "messaging/invalid-registration-token") {
+      docsToDelete.push(subscriptions[index].id);
+    }
+  });
+
+  if (docsToDelete.length) {
+    const batch = firestore.batch();
+    docsToDelete.forEach((docId) => {
+      batch.delete(firestore.collection(CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION).doc(docId));
+    });
+    await batch.commit();
+  }
+
+  return {
+    successCount: response.successCount,
+    failureCount: response.failureCount,
   };
 });

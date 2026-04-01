@@ -765,6 +765,18 @@ button:hover,
   margin-top: 0.15rem;
 }
 
+.callout--push {
+  display: grid;
+  gap: 0.7rem;
+  background: rgba(143, 53, 19, 0.09);
+  border-color: rgba(143, 53, 19, 0.15);
+}
+
+.callout--push .button-secondary {
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
 .feedback-card {
   display: grid;
   gap: 0.75rem;

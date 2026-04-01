@@ -9,6 +9,7 @@ import {
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js";
+import { getMessaging, getToken, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging.js";
 import {
   collection,
   deleteDoc,
@@ -97,6 +98,8 @@ window.__turnoFirebaseReadyPromise = (async () => {
   const auth = getAuth(app);
   const functions = getFunctions(app);
   const db = getFirestore(app);
+  const messagingSupported = await isMessagingSupported().catch(() => false);
+  const messaging = messagingSupported ? getMessaging(app) : null;
   const initialAuthState = await new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       unsubscribe();
@@ -133,6 +136,51 @@ window.__turnoFirebaseReadyPromise = (async () => {
       const callable = httpsCallable(functions, "createRestaurantAccount");
       const result = await callable(accountData);
       return result.data;
+    },
+    async enableClientPushNotifications(subscriptionData) {
+      if (!messagingSupported || !messaging || !("Notification" in window) || !("serviceWorker" in navigator)) {
+        return { enabled: false, reason: "unsupported" };
+      }
+
+      const vapidKey = String(firebaseConfig.messagingVapidKey || "").trim();
+      if (!vapidKey || vapidKey.startsWith("REPLACE_WITH_")) {
+        return { enabled: false, reason: "missing-vapid-key" };
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        return { enabled: false, reason: permission === "denied" ? "permission-denied" : "permission-dismissed" };
+      }
+
+      const serviceWorkerRegistration = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
+      const token = await getToken(messaging, {
+        vapidKey,
+        serviceWorkerRegistration,
+      });
+
+      if (!token) {
+        return { enabled: false, reason: "missing-token" };
+      }
+
+      const callable = httpsCallable(functions, "registerClientPushSubscription");
+      await callable({
+        ...subscriptionData,
+        token,
+      });
+
+      return {
+        enabled: true,
+        token,
+        permission,
+      };
+    },
+    async disableClientPushNotifications(token) {
+      const normalizedToken = String(token || "").trim();
+      if (!normalizedToken) return { disabled: false, reason: "missing-token" };
+
+      const callable = httpsCallable(functions, "unregisterClientPushSubscription");
+      await callable({ token: normalizedToken });
+      return { disabled: true };
     },
     async loadCollection(collectionName) {
       const snapshot = await getDocs(collection(db, collectionName));
