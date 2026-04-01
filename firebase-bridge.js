@@ -166,6 +166,7 @@ window.__turnoFirebaseReadyPromise = (async () => {
       }
 
       const serviceWorkerRegistration = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
+      await navigator.serviceWorker.ready.catch(() => serviceWorkerRegistration);
       const token = await getToken(messaging, {
         vapidKey,
         serviceWorkerRegistration,

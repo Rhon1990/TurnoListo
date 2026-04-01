@@ -279,7 +279,11 @@ async function handleEnableAlerts() {
 
   try {
     await warmUpReadyTone();
-    await syncPushRegistrationForCurrentOrder({ force: true });
+    let activationResult = await syncPushRegistrationForCurrentOrder({ force: true });
+    if (!activationResult?.enabled && typeof Notification !== "undefined" && Notification.permission === "granted") {
+      await new Promise((resolve) => window.setTimeout(resolve, 350));
+      activationResult = await syncPushRegistrationForCurrentOrder({ force: true, retryAfterGrant: true });
+    }
     alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
   } finally {
     pushNotificationBusy = false;
@@ -288,12 +292,18 @@ async function handleEnableAlerts() {
 }
 
 async function syncPushRegistrationForCurrentOrder(options = {}) {
-  if (!pushNotificationsEnabled && !options.force) return;
-  if (!currentOrder || ["delivered", "cancelled"].includes(currentOrder.status)) return;
+  if (!pushNotificationsEnabled && !options.force) return { enabled: false, reason: "not-requested" };
+  if (!currentOrder || ["delivered", "cancelled"].includes(currentOrder.status)) {
+    return { enabled: false, reason: "inactive-order" };
+  }
 
   const backend = await waitForFirebaseBackend();
-  if (!backend?.enabled || typeof backend.enableClientPushNotifications !== "function") return;
-  if (!options.force && pushRegistrationOrderId === currentOrder.id && pushNotificationToken) return;
+  if (!backend?.enabled || typeof backend.enableClientPushNotifications !== "function") {
+    return { enabled: false, reason: "backend-unavailable" };
+  }
+  if (!options.force && pushRegistrationOrderId === currentOrder.id && pushNotificationToken) {
+    return { enabled: true, token: pushNotificationToken, reused: true };
+  }
 
   const result = await backend.enableClientPushNotifications({
     orderId: currentOrder.id,
@@ -313,10 +323,12 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
       alertsStatus.textContent = "Has bloqueado las notificaciones del navegador. Actívalas en los permisos del sitio.";
     } else if (result?.reason === "permission-dismissed") {
       alertsStatus.textContent = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
+    } else if (result?.reason === "missing-token" && options.retryAfterGrant) {
+      alertsStatus.textContent = "Estamos terminando de activar las notificaciones en este navegador. Intenta de nuevo en unos segundos si no se completa.";
     } else {
       alertsStatus.textContent = "No se pudo activar la notificación en segundo plano en este dispositivo.";
     }
-    return;
+    return { enabled: false, reason: result?.reason || "unknown" };
   }
 
   pushNotificationsEnabled = true;
@@ -326,6 +338,7 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
   window.localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, pushNotificationToken);
   window.localStorage.setItem(PUSH_ORDER_STORAGE_KEY, pushRegistrationOrderId);
   alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
+  return { enabled: true, token: pushNotificationToken };
 }
 
 function renderAlertsBanner() {
