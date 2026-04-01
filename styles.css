@@ -673,7 +673,7 @@ button:hover,
 
 .stats--client {
   grid-template-columns: 1fr;
-  margin-top: 0.95rem;
+  margin-bottom: 1rem;
 }
 
 .stat {
@@ -687,7 +687,7 @@ button:hover,
   display: grid;
   justify-items: center;
   text-align: center;
-  padding: 1rem 1.1rem;
+  padding: 1rem 1.1rem 1.15rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(250, 242, 231, 0.82));
 }
 
