@@ -258,6 +258,11 @@ function triggerReadyCelebration(previousStatus, nextStatus) {
   }, 3200);
 }
 
+function syncReadyTonePrimedState() {
+  readyTonePrimed = Boolean(readyToneAudioContext && readyToneAudioContext.state === "running");
+  return readyTonePrimed;
+}
+
 async function warmUpReadyTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return false;
@@ -275,7 +280,7 @@ async function warmUpReadyTone() {
   }
 
   readyToneEnabled = true;
-  readyTonePrimed = readyToneAudioContext.state === "running";
+  syncReadyTonePrimedState();
   window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "true");
   return readyTonePrimed;
 }
@@ -292,6 +297,7 @@ async function handleEnableAlerts() {
       await new Promise((resolve) => window.setTimeout(resolve, 350));
       activationResult = await syncPushRegistrationForCurrentOrder({ force: true, retryAfterGrant: true });
     }
+    syncReadyTonePrimedState();
     alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
   } finally {
     pushNotificationBusy = false;
@@ -406,8 +412,12 @@ async function playReadyTone() {
     readyToneAudioContext = new AudioContextClass();
   }
 
-  if (!readyToneEnabled || readyToneAudioContext.state !== "running") return;
-  readyTonePrimed = true;
+  if (!readyToneEnabled || readyToneAudioContext.state !== "running") {
+    syncReadyTonePrimedState();
+    renderAlertsBanner();
+    return;
+  }
+  syncReadyTonePrimedState();
   stopReadyTonePlayback();
 
   const now = readyToneAudioContext.currentTime;
