@@ -428,9 +428,9 @@ async function playReadyTone() {
   stopReadyTonePlayback();
 
   const now = readyToneAudioContext.currentTime;
-  const cycleDuration = 1.85;
+  const cycleDuration = 1.16;
   const totalCycles = 3;
-  const finalStopAt = now + cycleDuration * totalCycles;
+  const finalStopAt = now + cycleDuration * totalCycles + 0.28;
   const masterGain = readyToneAudioContext.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
   masterGain.gain.exponentialRampToValueAtTime(0.12, now + 0.04);
@@ -444,13 +444,13 @@ async function playReadyTone() {
     [659.25, 880.0, 987.77].forEach((frequency, index) => {
       const oscillator = readyToneAudioContext.createOscillator();
       const gain = readyToneAudioContext.createGain();
-      const startAt = cycleStart + index * 0.18;
-      const endAt = startAt + 0.82;
+      const startAt = cycleStart + index * 0.17;
+      const endAt = startAt + 0.76;
 
       oscillator.type = "triangle";
       oscillator.frequency.setValueAtTime(frequency, startAt);
       gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.24 : 0.18, startAt + 0.06);
+      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.22 : 0.17, startAt + 0.05);
       gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
       oscillator.connect(gain);
