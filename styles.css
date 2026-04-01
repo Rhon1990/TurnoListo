@@ -1244,6 +1244,12 @@ button:hover,
   gap: 0.45rem 1rem;
 }
 
+.admin-card__account-stack {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+}
+
 .admin-card__password {
   display: flex;
   align-items: center;

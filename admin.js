@@ -486,6 +486,7 @@ function renderRestaurantDirectory(restaurants) {
     const activation = document.createElement("p");
     const orders = document.createElement("p");
     const notes = document.createElement("p");
+    const accountStack = document.createElement("div");
     const login = document.createElement("p");
     const logoField = document.createElement("label");
     const logoFieldLabel = document.createElement("span");
@@ -518,6 +519,7 @@ function renderRestaurantDirectory(restaurants) {
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
     grid.className = "admin-card__grid";
     brandFallback.className = "admin-card__brand-fallback";
+    accountStack.className = "admin-card__account-stack";
     logoField.className = "field field--wide admin-card__logo-field";
     logoHint.className = "field__hint";
     logoPreview.className = "logo-upload-preview admin-card__logo-preview";
@@ -613,7 +615,8 @@ function renderRestaurantDirectory(restaurants) {
     logoField.append(logoFieldLabel, logoInput, logoHint);
     passwordWrap.append(passwordLabel, passwordValue, togglePassword);
     actions.append(link, resend, remove);
-    grid.append(owner, contact, address, activation, orders, notes, logoField, logoPreview, login, passwordWrap);
+    accountStack.append(logoField, logoPreview, login, passwordWrap);
+    grid.append(owner, contact, address, activation, orders, notes, accountStack);
     card.append(top, grid, actions);
     top.append(brand);
     adminRestaurantList.append(card);
