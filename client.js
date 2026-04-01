@@ -417,6 +417,7 @@ async function playReadyTone() {
   const masterGain = readyToneAudioContext.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
   masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.04);
+  masterGain.gain.setValueAtTime(0.08, finalStopAt - 0.18);
   masterGain.gain.exponentialRampToValueAtTime(0.0001, finalStopAt);
   masterGain.connect(readyToneAudioContext.destination);
   readyToneNodes = [masterGain];
