@@ -44,6 +44,7 @@ let readyTonePrimed = false;
 let readyTonePlaying = false;
 let readyToneStopTimer = 0;
 let readyToneNodes = [];
+let readyStateAlertPlayed = false;
 let pushNotificationsEnabled = false;
 let pushNotificationToken = "";
 let pushRegistrationOrderId = "";
@@ -239,15 +240,17 @@ function buildNotificationBody(order) {
 
 function triggerReadyCelebration(previousStatus, nextStatus) {
   if (nextStatus !== "ready") {
+    readyStateAlertPlayed = false;
     stopReadyTonePlayback();
     document.body.classList.remove("celebration-active");
     return;
   }
 
-  if (!previousStatus || previousStatus === nextStatus) {
+  if (!previousStatus || previousStatus === nextStatus || readyStateAlertPlayed) {
     return;
   }
 
+  readyStateAlertPlayed = true;
   playReadyTone();
   document.body.classList.remove("celebration-active");
 
