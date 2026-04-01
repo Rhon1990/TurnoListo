@@ -42,7 +42,7 @@ let readyToneEnabled = false;
 let readyTonePrimed = false;
 let readyToneStopTimer = 0;
 let readyToneNodes = [];
-let readyStateAlertPlayed = false;
+let lastReadyAlertMarker = "";
 let pushNotificationsEnabled = false;
 let pushNotificationToken = "";
 let pushRegistrationOrderId = "";
@@ -234,18 +234,25 @@ function buildNotificationBody(order) {
 }
 
 function triggerReadyCelebration(previousStatus, nextStatus) {
+  const nextReadyMarker = nextStatus === "ready" ? String(currentOrder?.statusStartedAt || currentOrder?.updatedAt || "") : "";
+
   if (nextStatus !== "ready") {
-    readyStateAlertPlayed = false;
+    lastReadyAlertMarker = "";
     stopReadyTonePlayback();
     document.body.classList.remove("celebration-active");
     return;
   }
 
-  if (!previousStatus || previousStatus === nextStatus || readyStateAlertPlayed) {
+  if (!previousStatus) {
+    lastReadyAlertMarker = nextReadyMarker;
     return;
   }
 
-  readyStateAlertPlayed = true;
+  if (previousStatus === nextStatus && nextReadyMarker && nextReadyMarker === lastReadyAlertMarker) {
+    return;
+  }
+
+  lastReadyAlertMarker = nextReadyMarker;
   playReadyTone();
   document.body.classList.remove("celebration-active");
 
@@ -426,8 +433,8 @@ async function playReadyTone() {
   const finalStopAt = now + cycleDuration * totalCycles;
   const masterGain = readyToneAudioContext.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
-  masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.04);
-  masterGain.gain.setValueAtTime(0.08, finalStopAt - 0.18);
+  masterGain.gain.exponentialRampToValueAtTime(0.12, now + 0.04);
+  masterGain.gain.setValueAtTime(0.12, finalStopAt - 0.18);
   masterGain.gain.exponentialRampToValueAtTime(0.0001, finalStopAt);
   masterGain.connect(readyToneAudioContext.destination);
   readyToneNodes = [masterGain];
@@ -443,7 +450,7 @@ async function playReadyTone() {
       oscillator.type = "triangle";
       oscillator.frequency.setValueAtTime(frequency, startAt);
       gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.18 : 0.14, startAt + 0.06);
+      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.24 : 0.18, startAt + 0.06);
       gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
       oscillator.connect(gain);
