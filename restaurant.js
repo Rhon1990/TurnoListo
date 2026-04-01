@@ -159,11 +159,18 @@ function initializeRestaurantFirebaseAuth() {
       if (!restaurant || !isRestaurantAccessActive(restaurant)) {
         clearCurrentRestaurantSession();
         restaurantLoginFeedback.textContent =
-          "Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.";
+          profile?.role && profile.role !== "restaurant"
+            ? "Esta ventana ha heredado una sesion que no es de restaurante. Inicia sesion aqui con la cuenta del local."
+            : "Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.";
         restaurantLoginFeedback.className = "form-feedback form-feedback--error";
         restaurantLoginFeedback.hidden = false;
-        showTurnoAlert("Tu cuenta no tiene acceso valido al restaurante asignado.", "error");
-        await backend.signOut();
+        showTurnoAlert(
+          profile?.role && profile.role !== "restaurant"
+            ? "Esta ventana necesita una sesion propia del restaurante y no cerrara la sesion del admin."
+            : "Tu cuenta no tiene acceso valido al restaurante asignado.",
+          "error",
+        );
+        syncRestaurantAccess();
         return;
       }
 
