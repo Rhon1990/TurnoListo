@@ -428,9 +428,10 @@ async function playReadyTone() {
   stopReadyTonePlayback();
 
   const now = readyToneAudioContext.currentTime;
-  const cycleDuration = 1.16;
-  const totalCycles = 3;
-  const finalStopAt = now + cycleDuration * totalCycles + 0.28;
+  const noteFrequencies = [659.25, 880.0, 987.77, 880.0, 659.25, 880.0, 987.77, 1046.5, 987.77];
+  const noteSpacing = 0.24;
+  const noteDuration = 0.58;
+  const finalStopAt = now + noteSpacing * (noteFrequencies.length - 1) + noteDuration + 0.2;
   const masterGain = readyToneAudioContext.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
   masterGain.gain.exponentialRampToValueAtTime(0.12, now + 0.04);
@@ -439,32 +440,31 @@ async function playReadyTone() {
   masterGain.connect(readyToneAudioContext.destination);
   readyToneNodes = [masterGain];
 
-  for (let cycleIndex = 0; cycleIndex < totalCycles; cycleIndex += 1) {
-    const cycleStart = now + cycleIndex * cycleDuration;
-    [659.25, 880.0, 987.77].forEach((frequency, index) => {
-      const oscillator = readyToneAudioContext.createOscillator();
-      const gain = readyToneAudioContext.createGain();
-      const startAt = cycleStart + index * 0.17;
-      const endAt = startAt + 0.76;
+  noteFrequencies.forEach((frequency, index) => {
+    const oscillator = readyToneAudioContext.createOscillator();
+    const gain = readyToneAudioContext.createGain();
+    const startAt = now + index * noteSpacing;
+    const peakAt = startAt + 0.04;
+    const endAt = startAt + noteDuration;
 
-      oscillator.type = "triangle";
-      oscillator.frequency.setValueAtTime(frequency, startAt);
-      gain.gain.setValueAtTime(0.0001, startAt);
-      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.22 : 0.17, startAt + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(index % 3 === 0 ? 0.2 : 0.16, peakAt);
+    gain.gain.exponentialRampToValueAtTime(0.03, startAt + noteDuration * 0.72);
+    gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
-      oscillator.connect(gain);
-      gain.connect(masterGain);
-      oscillator.start(startAt);
-      oscillator.stop(endAt);
-      readyToneNodes.push(oscillator, gain);
-    });
-  }
+    oscillator.connect(gain);
+    gain.connect(masterGain);
+    oscillator.start(startAt);
+    oscillator.stop(endAt);
+    readyToneNodes.push(oscillator, gain);
+  });
 
   readyToneStopTimer = window.setTimeout(() => {
     readyToneNodes = [];
     readyToneStopTimer = 0;
-  }, totalCycles * cycleDuration * 1000 + 120);
+  }, (finalStopAt - now) * 1000 + 120);
 }
 
 function stopReadyTonePlayback() {
