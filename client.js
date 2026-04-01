@@ -254,7 +254,7 @@ function triggerReadyCelebration(previousStatus, nextStatus) {
 
 async function warmUpReadyTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
+  if (!AudioContextClass) return false;
   if (!readyToneAudioContext) {
     readyToneAudioContext = new AudioContextClass();
   }
@@ -263,13 +263,15 @@ async function warmUpReadyTone() {
     try {
       await readyToneAudioContext.resume();
     } catch {
-      return;
+      readyTonePrimed = false;
+      return false;
     }
   }
 
   readyToneEnabled = true;
-  readyTonePrimed = true;
+  readyTonePrimed = readyToneAudioContext.state === "running";
   window.localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, "true");
+  return readyTonePrimed;
 }
 
 async function handleEnableAlerts() {
@@ -344,13 +346,14 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
 function renderAlertsBanner() {
   const alertLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
   const hasGrantedNotificationPermission = typeof Notification !== "undefined" && Notification.permission === "granted";
-  const alertsActive = readyToneEnabled && pushNotificationsEnabled && hasGrantedNotificationPermission;
+  const notificationsActive = pushNotificationsEnabled && hasGrantedNotificationPermission;
+  const alertsActive = readyToneEnabled && notificationsActive;
   alertsDismissed = alertsActive;
   const shouldHideBanner = alertsDismissed || ["delivered", "cancelled"].includes(currentOrder?.status || "");
   alertsBanner.hidden = shouldHideBanner;
-  alertsConfirmation.hidden = !(alertsActive && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
+  alertsConfirmation.hidden = !(notificationsActive && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
   alertsConfirmation.textContent =
-    alertsActive && !readyTonePrimed
+    notificationsActive && !readyTonePrimed
       ? "Tienes las notificaciones activadas. Toca una vez la pantalla para activar el sonido."
       : "Tienes las notificaciones activadas.";
 
