@@ -765,6 +765,13 @@ button:hover,
   margin-top: 0.15rem;
 }
 
+.client-alerts-confirmation {
+  margin: 1rem 0 0;
+  text-align: center;
+  color: #1f7a63;
+  font-weight: 700;
+}
+
 .feedback-card {
   display: grid;
   gap: 0.75rem;
@@ -1196,6 +1203,12 @@ button:hover,
   background: #1f7a63;
   color: #fff7f1;
   border-color: #1f7a63;
+}
+
+.button-secondary.is-pending {
+  background: #0c5b75;
+  color: #fff7f1;
+  border-color: #0c5b75;
 }
 
 .button-secondary:disabled {

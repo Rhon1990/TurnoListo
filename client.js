@@ -18,6 +18,7 @@ const alertsBanner = document.querySelector("#clientAlertsBanner");
 const alertsTitle = document.querySelector("#clientAlertsTitle");
 const alertsStatus = document.querySelector("#clientAlertsStatus");
 const enableAlertsButton = document.querySelector("#clientEnableAlertsButton");
+const alertsConfirmation = document.querySelector("#clientAlertsConfirmation");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
 const qrModal = document.querySelector("#clientQrModal");
@@ -312,14 +313,19 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
 
 function renderAlertsBanner() {
   const alertLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
+  const shouldHideBanner = alertsDismissed || ["delivered", "cancelled"].includes(currentOrder?.status || "");
+  alertsBanner.hidden = shouldHideBanner;
+  alertsConfirmation.hidden = !(alertsDismissed && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
 
-  alertsBanner.hidden = (alertsDismissed && !alertLocked) || ["delivered", "cancelled"].includes(currentOrder?.status || "");
-
-  if (alertsBanner.hidden) return;
+  if (alertsBanner.hidden) {
+    enableAlertsButton.classList.remove("is-pending");
+    return;
+  }
 
   if (pushNotificationBusy) {
     enableAlertsButton.disabled = true;
     enableAlertsButton.textContent = "Activando...";
+    enableAlertsButton.classList.add("is-pending");
     return;
   }
 
@@ -330,6 +336,7 @@ function renderAlertsBanner() {
       : "Recibirás sonido si tienes la página abierta y notificación si el móvil está bloqueado.";
     enableAlertsButton.textContent = "Avisos activados";
     enableAlertsButton.disabled = true;
+    enableAlertsButton.classList.remove("is-pending");
     enableAlertsButton.classList.add("is-success");
     return;
   }
@@ -342,6 +349,7 @@ function renderAlertsBanner() {
   }
   enableAlertsButton.textContent = "Activar avisos";
   enableAlertsButton.disabled = alertLocked;
+  enableAlertsButton.classList.remove("is-pending");
   enableAlertsButton.classList.remove("is-success");
 }
 
