@@ -242,6 +242,7 @@ async function connectPrivateDataStoreToFirebase() {
     applyOrdersSnapshot(remoteOrders);
 
     applyRestaurantsSnapshot(remoteRestaurants);
+    syncTrackingToBackend();
 
     disconnectPrivateFirebaseSubscriptions();
 
@@ -513,6 +514,7 @@ function updateRestaurantAccount(restaurantId, updates) {
 
   const nextRestaurants = loadRestaurants().map((restaurant) => (restaurant.id === restaurantId ? nextRestaurant : restaurant));
   saveRestaurants(nextRestaurants);
+  syncTrackingToBackend();
 
   if (firebaseBackend?.enabled) {
     firebaseBackend
@@ -1264,10 +1266,12 @@ function buildTrackingLookup(trackingRecords) {
 
 function buildPublicTrackingRecord(order) {
   const existingTracking = buildTrackingLookup(cachedTracking).get(getTrackingLookupKey(order));
+  const restaurant = getRestaurantById(order.restaurantId);
 
   return {
     id: order.id,
     restaurantId: order.restaurantId,
+    restaurantLogoUrl: String(restaurant?.logoUrl || existingTracking?.restaurantLogoUrl || "").trim(),
     sourceOrderId: order.sourceOrderId,
     orderNumber: order.orderNumber,
     customerName: order.customerName,
@@ -1282,6 +1286,7 @@ function buildPublicTrackingRecord(order) {
 function normalizePublicTracking(trackingRecords) {
   return [...trackingRecords]
     .map((tracking) => ({
+      restaurantLogoUrl: "",
       sourceOrderId: "",
       customerName: "",
       pickupPoint: "Mostrador 1",

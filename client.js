@@ -166,10 +166,14 @@ function renderClient() {
   const publicOrderId = order.sourceOrderId || order.id;
   const sourceOrder = getOrderById(order.id) || getOrderByPublicId(publicOrderId);
   const restaurant = getRestaurantById(order.restaurantId || sourceOrder?.restaurantId);
+  const publicRestaurantBrand = {
+    ...restaurant,
+    logoUrl: String(order.restaurantLogoUrl || restaurant?.logoUrl || "").trim(),
+  };
 
   selectedOrderId = publicOrderId;
   syncOrderInputValue(publicOrderId);
-  renderClientBrand(restaurant);
+  renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = order.customerName;
   statusPill.textContent = meta.label;
