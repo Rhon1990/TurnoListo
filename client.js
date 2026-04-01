@@ -61,6 +61,17 @@ alertsDismissed =
   typeof Notification !== "undefined" &&
   Notification.permission === "granted";
 
+["pointerdown", "touchstart", "keydown", "click"].forEach((eventName) => {
+  window.addEventListener(
+    eventName,
+    () => {
+      if (!readyToneEnabled) return;
+      warmUpReadyTone();
+    },
+    { passive: true },
+  );
+});
+
 waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
   waitForDataReady().then(renderClient);
