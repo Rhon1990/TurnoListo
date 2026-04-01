@@ -19,7 +19,6 @@ const alertsTitle = document.querySelector("#clientAlertsTitle");
 const alertsStatus = document.querySelector("#clientAlertsStatus");
 const enableAlertsButton = document.querySelector("#clientEnableAlertsButton");
 const alertsConfirmation = document.querySelector("#clientAlertsConfirmation");
-const stopAudioButton = document.querySelector("#clientStopAudioButton");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
 const qrModal = document.querySelector("#clientQrModal");
@@ -41,7 +40,6 @@ let isSubmittingComment = false;
 let readyToneAudioContext = null;
 let readyToneEnabled = false;
 let readyTonePrimed = false;
-let readyTonePlaying = false;
 let readyToneStopTimer = 0;
 let readyToneNodes = [];
 let readyStateAlertPlayed = false;
@@ -113,7 +111,6 @@ qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 enableAlertsButton.addEventListener("click", handleEnableAlerts);
-stopAudioButton.addEventListener("click", stopReadyTonePlayback);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -153,7 +150,6 @@ function renderClient() {
   renderRating(order);
   renderCommentPrompt(order);
   renderAlertsBanner();
-  renderStopAudioButton();
   syncPushRegistrationForCurrentOrder();
 
   triggerReadyCelebration(previousStatus, order.status);
@@ -204,7 +200,6 @@ function renderMissingOrder() {
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
   renderAlertsBanner();
-  renderStopAudioButton();
 }
 
 function renderProgressSteps(status) {
@@ -404,10 +399,6 @@ function renderAlertsBanner() {
   enableAlertsButton.classList.remove("is-success");
 }
 
-function renderStopAudioButton() {
-  stopAudioButton.hidden = !(readyTonePlaying && currentOrder?.status === "ready");
-}
-
 async function playReadyTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
@@ -420,40 +411,42 @@ async function playReadyTone() {
   stopReadyTonePlayback();
 
   const now = readyToneAudioContext.currentTime;
+  const cycleDuration = 1.85;
+  const totalCycles = 3;
+  const finalStopAt = now + cycleDuration * totalCycles;
   const masterGain = readyToneAudioContext.createGain();
   masterGain.gain.setValueAtTime(0.0001, now);
   masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.04);
-  masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+  masterGain.gain.exponentialRampToValueAtTime(0.0001, finalStopAt);
   masterGain.connect(readyToneAudioContext.destination);
   readyToneNodes = [masterGain];
-  readyTonePlaying = true;
-  renderStopAudioButton();
 
-  [659.25, 880.0, 987.77].forEach((frequency, index) => {
-    const oscillator = readyToneAudioContext.createOscillator();
-    const gain = readyToneAudioContext.createGain();
-    const startAt = now + index * 0.18;
-    const endAt = startAt + 0.82;
+  for (let cycleIndex = 0; cycleIndex < totalCycles; cycleIndex += 1) {
+    const cycleStart = now + cycleIndex * cycleDuration;
+    [659.25, 880.0, 987.77].forEach((frequency, index) => {
+      const oscillator = readyToneAudioContext.createOscillator();
+      const gain = readyToneAudioContext.createGain();
+      const startAt = cycleStart + index * 0.18;
+      const endAt = startAt + 0.82;
 
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(frequency, startAt);
-    gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.18 : 0.14, startAt + 0.06);
-    gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(frequency, startAt);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(index === 0 ? 0.18 : 0.14, startAt + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
 
-    oscillator.connect(gain);
-    gain.connect(masterGain);
-    oscillator.start(startAt);
-    oscillator.stop(endAt);
-    readyToneNodes.push(oscillator, gain);
-  });
+      oscillator.connect(gain);
+      gain.connect(masterGain);
+      oscillator.start(startAt);
+      oscillator.stop(endAt);
+      readyToneNodes.push(oscillator, gain);
+    });
+  }
 
   readyToneStopTimer = window.setTimeout(() => {
-    readyTonePlaying = false;
     readyToneNodes = [];
     readyToneStopTimer = 0;
-    renderStopAudioButton();
-  }, 1700);
+  }, totalCycles * cycleDuration * 1000 + 120);
 }
 
 function stopReadyTonePlayback() {
@@ -477,8 +470,6 @@ function stopReadyTonePlayback() {
   });
 
   readyToneNodes = [];
-  readyTonePlaying = false;
-  renderStopAudioButton();
 }
 
 function closeQrModal() {
