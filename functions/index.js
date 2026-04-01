@@ -18,6 +18,13 @@ function trimValue(value) {
   return String(value || "").trim();
 }
 
+function formatPickupPointForPush(value) {
+  const pickupPoint = trimValue(value);
+  if (!pickupPoint) return "el mostrador";
+  if (/^mostrador\s*1$/i.test(pickupPoint)) return "Mostrador";
+  return pickupPoint;
+}
+
 function hashToken(token) {
   return crypto.createHash("sha256").update(String(token || "")).digest("hex");
 }
@@ -220,7 +227,7 @@ exports.notifyClientOrderReady = onDocumentUpdated("orders/{orderId}", async (ev
     ...docSnapshot.data(),
   }));
 
-  const body = `${after.orderNumber || after.sourceOrderId || "Tu pedido"} ya puede recogerse en ${after.pickupPoint || "el punto de recogida"}.`;
+  const body = `${after.orderNumber || after.sourceOrderId || "Tu pedido"} ya puede recogerse en ${formatPickupPointForPush(after.pickupPoint)}.`;
   const messages = subscriptions
     .filter((subscription) => trimValue(subscription.token))
     .map((subscription) => ({
