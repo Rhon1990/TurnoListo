@@ -19,6 +19,7 @@ const alertsTitle = document.querySelector("#clientAlertsTitle");
 const alertsStatus = document.querySelector("#clientAlertsStatus");
 const enableAlertsButton = document.querySelector("#clientEnableAlertsButton");
 const alertsConfirmation = document.querySelector("#clientAlertsConfirmation");
+const stopAudioButton = document.querySelector("#clientStopAudioButton");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
 const qrModal = document.querySelector("#clientQrModal");
@@ -40,6 +41,9 @@ let isSubmittingComment = false;
 let readyToneAudioContext = null;
 let readyToneEnabled = false;
 let readyTonePrimed = false;
+let readyTonePlaying = false;
+let readyToneStopTimer = 0;
+let readyToneNodes = [];
 let pushNotificationsEnabled = false;
 let pushNotificationToken = "";
 let pushRegistrationOrderId = "";
@@ -108,6 +112,7 @@ qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 enableAlertsButton.addEventListener("click", handleEnableAlerts);
+stopAudioButton.addEventListener("click", stopReadyTonePlayback);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -147,6 +152,7 @@ function renderClient() {
   renderRating(order);
   renderCommentPrompt(order);
   renderAlertsBanner();
+  renderStopAudioButton();
   syncPushRegistrationForCurrentOrder();
 
   triggerReadyCelebration(previousStatus, order.status);
@@ -197,6 +203,7 @@ function renderMissingOrder() {
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
   renderAlertsBanner();
+  renderStopAudioButton();
 }
 
 function renderProgressSteps(status) {
@@ -232,6 +239,7 @@ function buildNotificationBody(order) {
 
 function triggerReadyCelebration(previousStatus, nextStatus) {
   if (nextStatus !== "ready") {
+    stopReadyTonePlayback();
     document.body.classList.remove("celebration-active");
     return;
   }
@@ -393,6 +401,10 @@ function renderAlertsBanner() {
   enableAlertsButton.classList.remove("is-success");
 }
 
+function renderStopAudioButton() {
+  stopAudioButton.hidden = !(readyTonePlaying && currentOrder?.status === "ready");
+}
+
 async function playReadyTone() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
@@ -402,6 +414,7 @@ async function playReadyTone() {
 
   if (!readyToneEnabled || readyToneAudioContext.state !== "running") return;
   readyTonePrimed = true;
+  stopReadyTonePlayback();
 
   const now = readyToneAudioContext.currentTime;
   const masterGain = readyToneAudioContext.createGain();
@@ -409,6 +422,9 @@ async function playReadyTone() {
   masterGain.gain.exponentialRampToValueAtTime(0.08, now + 0.04);
   masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
   masterGain.connect(readyToneAudioContext.destination);
+  readyToneNodes = [masterGain];
+  readyTonePlaying = true;
+  renderStopAudioButton();
 
   [659.25, 880.0, 987.77].forEach((frequency, index) => {
     const oscillator = readyToneAudioContext.createOscillator();
@@ -426,7 +442,40 @@ async function playReadyTone() {
     gain.connect(masterGain);
     oscillator.start(startAt);
     oscillator.stop(endAt);
+    readyToneNodes.push(oscillator, gain);
   });
+
+  readyToneStopTimer = window.setTimeout(() => {
+    readyTonePlaying = false;
+    readyToneNodes = [];
+    readyToneStopTimer = 0;
+    renderStopAudioButton();
+  }, 1700);
+}
+
+function stopReadyTonePlayback() {
+  if (readyToneStopTimer) {
+    window.clearTimeout(readyToneStopTimer);
+    readyToneStopTimer = 0;
+  }
+
+  readyToneNodes.forEach((node) => {
+    try {
+      if (typeof node.stop === "function") {
+        node.stop();
+      }
+    } catch {}
+
+    try {
+      if (typeof node.disconnect === "function") {
+        node.disconnect();
+      }
+    } catch {}
+  });
+
+  readyToneNodes = [];
+  readyTonePlaying = false;
+  renderStopAudioButton();
 }
 
 function closeQrModal() {
