@@ -20,6 +20,7 @@ const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
+const restaurantModeHint = document.querySelector("#restaurantModeHint");
 const activeSearchInput = document.querySelector("#activeSearchInput");
 const activeStatusFilter = document.querySelector("#activeStatusFilter");
 const activePriorityFilter = document.querySelector("#activePriorityFilter");
@@ -299,6 +300,9 @@ function syncRestaurantDisplayMode() {
   restaurantWorkspace.classList.toggle("restaurant-workspace--counter", isCounterMode);
   restaurantModeStandard.classList.toggle("is-active", !isCounterMode);
   restaurantModeCounter.classList.toggle("is-active", isCounterMode);
+  restaurantModeHint.textContent = isCounterMode
+    ? "Modo hora pico: mantiene todos los pedidos visibles, pero prioriza visualmente lo urgente y acelera el cambio de estados."
+    : "Modo completo: muestra la vista completa para revisar, buscar y editar pedidos.";
 }
 
 function renderRestaurantBrand(restaurant) {
