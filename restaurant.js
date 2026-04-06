@@ -18,6 +18,7 @@ const archivedCount = document.querySelector("#restaurantArchivedCount");
 const archivedList = document.querySelector("#restaurantArchivedOrders");
 const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
+const restaurantModeStrip = document.querySelector(".mode-strip");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
 const restaurantModeTooltip = document.querySelector("#restaurantModeTooltip");
@@ -319,10 +320,11 @@ function showRestaurantModeTooltip(button) {
   if (!hint) return;
 
   const rect = button.getBoundingClientRect();
+  const stripRect = restaurantModeStrip.getBoundingClientRect();
   restaurantModeTooltip.textContent = hint;
   restaurantModeTooltip.hidden = false;
-  restaurantModeTooltip.style.left = `${rect.left + rect.width / 2}px`;
-  restaurantModeTooltip.style.top = `${rect.bottom + 10}px`;
+  restaurantModeTooltip.style.left = `${rect.left - stripRect.left + rect.width / 2}px`;
+  restaurantModeTooltip.style.top = `${restaurantModeStrip.offsetHeight + 10}px`;
 }
 
 function hideRestaurantModeTooltip() {
