@@ -27,13 +27,15 @@
               <span class="stat__label">Pedidos antes que tú</span>
               <strong class="stat__value" id="clientQueueCount">0</strong>
             </div>
-            <div class="stat">
-              <span class="stat__label">Tiempo estimado</span>
-              <strong class="stat__value" id="clientEtaValue">--</strong>
-            </div>
-            <div class="stat">
-              <span class="stat__label">Recogida</span>
-              <strong class="stat__value" id="clientPickupPoint">--</strong>
+            <div class="client-meta-strip" id="clientMetaStrip" hidden>
+              <span class="client-meta-item" id="clientEtaStat" hidden>
+                <span class="client-meta-item__label">Tiempo estimado</span>
+                <strong class="client-meta-item__value" id="clientEtaValue">--</strong>
+              </span>
+              <span class="client-meta-item" id="clientPickupPointStat" hidden>
+                <span class="client-meta-item__label">Recogida</span>
+                <strong class="client-meta-item__value" id="clientPickupPoint">--</strong>
+              </span>
             </div>
           </div>
 
