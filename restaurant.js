@@ -831,8 +831,6 @@ function buildOrderCard(order, isArchived) {
 
 function buildQuickStatusButtons(order, container, disabled, isCounterMode = false) {
   ORDER_STATUSES.forEach((status) => {
-    if (isCounterMode && !["received", "preparing", "ready"].includes(status)) return;
-
     const button = document.createElement("button");
     const label = document.createElement("span");
     const duration = document.createElement("span");
@@ -876,7 +874,7 @@ function buildField(label, name, value, disabled, wide = false, type = "text") {
 }
 
 function formatOrderEtaSummary(order) {
-  if (order.status === "ready") return "Listo esperando";
+  if (order.status === "ready") return "Listo para recoger";
   if (order.status === "delivered") return "Entregado";
   if (order.status === "cancelled") return "Cancelado / desistio";
 
