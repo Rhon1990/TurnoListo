@@ -19,7 +19,9 @@ import {
   getDocs,
   getFirestore,
   onSnapshot,
+  query,
   setDoc,
+  where,
   writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
@@ -89,6 +91,18 @@ async function replaceCollection(db, collectionName, items) {
   }
 }
 
+function buildCollectionReference(db, collectionName, filters = []) {
+  const normalizedFilters = Array.isArray(filters) ? filters.filter(Boolean) : [];
+  if (!normalizedFilters.length) {
+    return collection(db, collectionName);
+  }
+
+  return query(
+    collection(db, collectionName),
+    ...normalizedFilters.map((filter) => where(filter.field, filter.op || "==", filter.value)),
+  );
+}
+
 window.__turnoFirebaseReadyPromise = (async () => {
   if (!hasFirebaseConfig(firebaseConfig)) {
     console.warn("Firebase desactivado o incompleto.", {
@@ -150,6 +164,11 @@ window.__turnoFirebaseReadyPromise = (async () => {
       const result = await callable(accountData);
       return result.data;
     },
+    async createRestaurantAccessLink(payload) {
+      const callable = httpsCallable(functions, "createRestaurantAccessLink");
+      const result = await callable(payload);
+      return result.data;
+    },
     async enableClientPushNotifications(subscriptionData) {
       if (!messagingSupported || !messaging || !("Notification" in window) || !("serviceWorker" in navigator)) {
         return { enabled: false, reason: "unsupported" };
@@ -196,8 +215,8 @@ window.__turnoFirebaseReadyPromise = (async () => {
       await callable({ token: normalizedToken });
       return { disabled: true };
     },
-    async loadCollection(collectionName) {
-      const snapshot = await getDocs(collection(db, collectionName));
+    async loadCollection(collectionName, options = {}) {
+      const snapshot = await getDocs(buildCollectionReference(db, collectionName, options.filters));
       return snapshot.docs.map((snapshotDoc) => ({
         ...snapshotDoc.data(),
         id: snapshotDoc.id,
@@ -220,9 +239,9 @@ window.__turnoFirebaseReadyPromise = (async () => {
     async deleteDocument(collectionName, id) {
       await deleteDoc(doc(db, collectionName, String(id)));
     },
-    subscribeCollection(collectionName, callback) {
+    subscribeCollection(collectionName, callback, options = {}) {
       return onSnapshot(
-        collection(db, collectionName),
+        buildCollectionReference(db, collectionName, options.filters),
         (snapshot) => {
           callback(
             snapshot.docs.map((snapshotDoc) => ({

@@ -18,9 +18,18 @@ const archivedCount = document.querySelector("#restaurantArchivedCount");
 const archivedList = document.querySelector("#restaurantArchivedOrders");
 const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
+const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
+const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
 const activeSearchInput = document.querySelector("#activeSearchInput");
 const activeStatusFilter = document.querySelector("#activeStatusFilter");
 const activePriorityFilter = document.querySelector("#activePriorityFilter");
+const activeSortOrder = document.querySelector("#activeSortOrder");
+const focusChipCritical = document.querySelector("#focusChipCritical");
+const focusChipDueSoon = document.querySelector("#focusChipDueSoon");
+const focusChipReady = document.querySelector("#focusChipReady");
+const focusChipCriticalValue = document.querySelector("#focusChipCriticalValue");
+const focusChipDueSoonValue = document.querySelector("#focusChipDueSoonValue");
+const focusChipReadyValue = document.querySelector("#focusChipReadyValue");
 const archivedSearchInput = document.querySelector("#archivedSearchInput");
 const archivedStatusFilter = document.querySelector("#archivedStatusFilter");
 const archivedRatingFilter = document.querySelector("#archivedRatingFilter");
@@ -75,6 +84,7 @@ let pendingCancelOrderId = null;
 let pendingCancelOrderLabel = "";
 let activeSection = "orders";
 let lastDashboardStats = null;
+let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-display-mode") || "standard";
 
 initializeRestaurantFirebaseAuth();
 waitForDataReady().then(bootRestaurantPage);
@@ -87,6 +97,8 @@ onOrdersChanged(() => {
   waitForDataReady().then(renderRestaurant);
 });
 quickCreateForm.addEventListener("submit", handleCreateOrder);
+restaurantModeStandard.addEventListener("click", () => setRestaurantDisplayMode("standard"));
+restaurantModeCounter.addEventListener("click", () => setRestaurantDisplayMode("counter"));
 restaurantLoginForm.addEventListener("submit", handleRestaurantLogin);
 restaurantLoginTogglePassword.addEventListener("click", (event) => {
   event.preventDefault();
@@ -97,6 +109,7 @@ restaurantLogoutButton.addEventListener("click", handleRestaurantLogout);
   activeSearchInput,
   activeStatusFilter,
   activePriorityFilter,
+  activeSortOrder,
   archivedSearchInput,
   archivedStatusFilter,
   archivedRatingFilter,
@@ -135,6 +148,9 @@ dashboardSignalLowRating.addEventListener("click", () =>
 dashboardSignalCancellation.addEventListener("click", () =>
   goToHistoryView({ status: "cancelled", rating: "all", search: "" }),
 );
+focusChipCritical.addEventListener("click", () => goToOrdersView({ status: "all", priority: "critical", search: "" }));
+focusChipDueSoon.addEventListener("click", () => goToOrdersView({ status: "all", priority: "due-soon", search: "" }));
+focusChipReady.addEventListener("click", () => goToOrdersView({ status: "ready", priority: "ready-waiting", search: "" }));
 
 function bootRestaurantPage() {
   syncRestaurantAccess();
@@ -220,7 +236,9 @@ function renderRestaurant() {
 
   const orders = [...getOperationalOrders()].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
   const archivedOrders = getArchivedOrders();
-  const filteredOrders = orders.filter((order) => matchesActiveFilters(order));
+  const filteredOrders = orders
+    .filter((order) => matchesActiveFilters(order))
+    .sort(compareActiveOrders);
   const filteredArchivedOrders = archivedOrders.filter((order) => matchesArchivedFilters(order));
   const dashboard = getDashboardStats();
   lastDashboardStats = dashboard;
@@ -230,6 +248,8 @@ function renderRestaurant() {
   activeCount.textContent = getActiveOrderCount();
   readyCount.textContent = `${orders.filter((order) => order.status === "ready").length} listos`;
   archivedCount.textContent = `${archivedOrders.length} archivados`;
+  syncRestaurantDisplayMode();
+  renderFocusStrip(orders);
   syncSectionView();
   renderDashboard(dashboard);
 
@@ -250,6 +270,25 @@ function renderRestaurant() {
   if (!filteredArchivedOrders.length) {
     archivedList.append(buildEmptyState("No hay pedidos archivados que coincidan con esos filtros."));
   }
+}
+
+function setRestaurantDisplayMode(mode) {
+  restaurantDisplayMode = mode === "counter" ? "counter" : "standard";
+  window.localStorage.setItem("turnolisto-restaurant-display-mode", restaurantDisplayMode);
+
+  if (restaurantDisplayMode === "counter") {
+    activeSection = "orders";
+    activeSortOrder.value = "urgency";
+  }
+
+  renderRestaurant();
+}
+
+function syncRestaurantDisplayMode() {
+  const isCounterMode = restaurantDisplayMode === "counter";
+  restaurantWorkspace.classList.toggle("restaurant-workspace--counter", isCounterMode);
+  restaurantModeStandard.classList.toggle("is-active", !isCounterMode);
+  restaurantModeCounter.classList.toggle("is-active", isCounterMode);
 }
 
 function renderRestaurantBrand(restaurant) {
@@ -488,11 +527,26 @@ function buildImprovementInsights(stats) {
   return insights.slice(0, 3);
 }
 
+function renderFocusStrip(orders) {
+  const criticalOrders = orders.filter((order) => getOrderUrgencyLevel(order) === "critical").length;
+  const dueSoonOrders = orders.filter((order) => getOrderUrgencyLevel(order) === "due-soon").length;
+  const readyWaitingOrders = orders.filter((order) => order.status === "ready").length;
+
+  focusChipCriticalValue.textContent = criticalOrders;
+  focusChipDueSoonValue.textContent = dueSoonOrders;
+  focusChipReadyValue.textContent = readyWaitingOrders;
+
+  focusChipCritical.classList.toggle("is-active", activePriorityFilter.value === "critical");
+  focusChipDueSoon.classList.toggle("is-active", activePriorityFilter.value === "due-soon");
+  focusChipReady.classList.toggle("is-active", activePriorityFilter.value === "ready-waiting");
+}
+
 function matchesActiveFilters(order) {
   const search = String(activeSearchInput.value || "").trim().toLowerCase();
   const status = activeStatusFilter.value || "all";
   const priority = activePriorityFilter.value || "all";
   const orderTone = getElapsedOrderTone(order);
+  const urgencyLevel = getOrderUrgencyLevel(order);
 
   if (search) {
     const haystack = [
@@ -512,9 +566,59 @@ function matchesActiveFilters(order) {
   if (status !== "all" && order.status !== status) return false;
   if (priority === "delayed" && !["warning", "danger"].includes(orderTone)) return false;
   if (priority === "critical" && orderTone !== "danger") return false;
+  if (priority === "due-soon" && urgencyLevel !== "due-soon") return false;
+  if (priority === "ready-waiting" && order.status !== "ready") return false;
   if (priority === "normal" && orderTone !== "safe") return false;
 
+  if (restaurantDisplayMode === "counter" && !["critical", "due-soon", "ready-waiting"].includes(urgencyLevel)) {
+    return false;
+  }
+
   return true;
+}
+
+function compareActiveOrders(left, right) {
+  const sortOrder = activeSortOrder.value || "urgency";
+  if (sortOrder === "newest") {
+    return new Date(right.createdAt) - new Date(left.createdAt);
+  }
+
+  if (sortOrder === "oldest") {
+    return new Date(left.createdAt) - new Date(right.createdAt);
+  }
+
+  const urgencyDiff = getOrderUrgencyRank(left) - getOrderUrgencyRank(right);
+  if (urgencyDiff !== 0) return urgencyDiff;
+
+  const etaLeft = getRemainingEstimatedMinutes(left);
+  const etaRight = getRemainingEstimatedMinutes(right);
+  const safeLeft = etaLeft === null ? Number.POSITIVE_INFINITY : etaLeft;
+  const safeRight = etaRight === null ? Number.POSITIVE_INFINITY : etaRight;
+  if (safeLeft !== safeRight) return safeLeft - safeRight;
+
+  return new Date(left.createdAt) - new Date(right.createdAt);
+}
+
+function getOrderUrgencyLevel(order) {
+  if (order.status === "ready") return "ready-waiting";
+  if (!["received", "preparing"].includes(order.status)) return "inactive";
+
+  const remainingMinutes = getRemainingEstimatedMinutes(order);
+  if (remainingMinutes === null) {
+    return getElapsedOrderTone(order) === "danger" ? "critical" : "normal";
+  }
+
+  if (remainingMinutes <= 0) return "critical";
+  if (remainingMinutes <= 5) return "due-soon";
+  return "normal";
+}
+
+function getOrderUrgencyRank(order) {
+  const urgency = getOrderUrgencyLevel(order);
+  if (urgency === "critical") return 0;
+  if (urgency === "due-soon") return 1;
+  if (urgency === "ready-waiting") return 2;
+  return 3;
 }
 
 function matchesArchivedFilters(order) {
@@ -587,9 +691,15 @@ function buildOrderCard(order, isArchived) {
   const saveButton = document.createElement("button");
   const isExpanded = expandedOrderId === order.id;
   const isEditing = editingOrderId === order.id && !isArchived;
+  const isCounterMode = restaurantDisplayMode === "counter" && !isArchived;
+  const urgencyLevel = getOrderUrgencyLevel(order);
 
   card.className = "order-card order-card--compact";
   if (isArchived) card.classList.add("order-card--archived");
+  if (isCounterMode) card.classList.add("order-card--counter");
+  if (urgencyLevel === "critical") card.classList.add("order-card--critical");
+  if (urgencyLevel === "due-soon") card.classList.add("order-card--due-soon");
+  if (urgencyLevel === "ready-waiting") card.classList.add("order-card--ready-waiting");
   compactButton.type = "button";
   compactButton.className = "order-card__summary";
   compactMain.className = "order-card__summary-main";
@@ -608,11 +718,11 @@ function buildOrderCard(order, isArchived) {
   footer.className = "order-card__footer";
 
   compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  compactLine.textContent = order.items;
+  compactLine.textContent = `${order.items} · ${order.pickupPoint} · ${formatOrderEtaSummary(order)}`;
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
-  qrCode.textContent = order.sourceOrderId || order.id;
+  qrCode.textContent = order.publicTrackingToken || order.sourceOrderId || order.id;
   rating.className = "order-card__rating";
   rating.textContent = order.rating ? formatRating(order.rating.score) : "Sin valorar";
   commentButton.type = "button";
@@ -629,23 +739,27 @@ function buildOrderCard(order, isArchived) {
 
   compactTop.append(elapsedTime);
   compactMeta.append(compactTop, compactTitle, compactLine, compactTime);
-  buildQuickStatusButtons(order, quickStatusActions, isArchived);
+  buildQuickStatusButtons(order, quickStatusActions, isArchived, isCounterMode);
   compactMain.append(compactMeta);
   ratingRow.append(rating, commentButton);
   compactSide.append(qrCode, ratingRow, badge, quickStatusActions);
   compactButton.append(compactMain, compactSide);
   compactButton.addEventListener("click", () => {
+    if (isCounterMode) return;
     expandedOrderId = expandedOrderId === order.id ? null : order.id;
     renderRestaurant();
   });
 
-  qr.src = buildQrUrl(order.sourceOrderId || order.id);
+  qr.src = buildQrUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
   qr.alt = `QR del pedido ${order.orderNumber}`;
   qr.className = "order-card__qr";
 
   grid.append(
     buildField("Pedido original", "sourceOrderId", order.sourceOrderId, !isEditing),
+    buildField("Origen", "sourceSystem", order.sourceSystem, !isEditing),
     buildField("Cliente", "customerName", order.customerName, !isEditing),
+    buildField("Recogida", "pickupPoint", order.pickupPoint, !isEditing),
+    buildField("Tiempo estimado (min)", "estimatedReadyMinutes", String(order.estimatedReadyMinutes || 15), !isEditing, false, "number"),
     buildField("Pedido", "items", order.items, !isEditing, true),
     buildField("Diligencias opcionales", "notes", order.notes, !isEditing, true),
   );
@@ -656,7 +770,10 @@ function buildOrderCard(order, isArchived) {
     try {
       updateOrder(order.id, {
         sourceOrderId: String(formData.get("sourceOrderId") || "").trim(),
+        sourceSystem: String(formData.get("sourceSystem") || "").trim() || "Alta manual",
         customerName: String(formData.get("customerName") || "").trim() || "Cliente mostrador",
+        pickupPoint: String(formData.get("pickupPoint") || "").trim() || "Mostrador 1",
+        estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "15"),
         items: String(formData.get("items") || "").trim() || "Pedido rápido",
         notes: String(formData.get("notes") || "").trim(),
       });
@@ -672,7 +789,7 @@ function buildOrderCard(order, isArchived) {
     }
   });
 
-  link.href = buildClientUrl(order.sourceOrderId || order.id);
+  link.href = buildClientUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
   link.target = "_blank";
   link.rel = "noreferrer";
   link.className = "qr-link";
@@ -681,7 +798,7 @@ function buildOrderCard(order, isArchived) {
   editButton.type = "button";
   editButton.className = "button-secondary";
   editButton.textContent = "Editar información";
-  editButton.hidden = isArchived || isEditing;
+  editButton.hidden = isArchived || isEditing || isCounterMode;
   editButton.addEventListener("click", () => {
     editingOrderId = order.id;
     renderRestaurant();
@@ -691,6 +808,7 @@ function buildOrderCard(order, isArchived) {
   saveButton.className = "button-secondary";
   saveButton.textContent = "Guardar cambios";
   saveButton.hidden = !isEditing;
+  details.hidden = isCounterMode;
 
   detailsTop.append(qr);
   footer.append(link, editButton, saveButton);
@@ -700,13 +818,16 @@ function buildOrderCard(order, isArchived) {
   return card;
 }
 
-function buildQuickStatusButtons(order, container, disabled) {
+function buildQuickStatusButtons(order, container, disabled, isCounterMode = false) {
   ORDER_STATUSES.forEach((status) => {
+    if (isCounterMode && !["received", "preparing", "ready"].includes(status)) return;
+
     const button = document.createElement("button");
     const label = document.createElement("span");
     const duration = document.createElement("span");
     button.type = "button";
     button.className = "status-action status-action--compact";
+    if (isCounterMode) button.classList.add("status-action--counter");
     if (order.status === status) button.classList.add("is-active");
     label.className = "status-action__label";
     duration.className = "status-action__time";
@@ -727,7 +848,7 @@ function buildQuickStatusButtons(order, container, disabled) {
   });
 }
 
-function buildField(label, name, value, disabled, wide = false) {
+function buildField(label, name, value, disabled, wide = false, type = "text") {
   const wrapper = document.createElement("label");
   const text = document.createElement("span");
   const input = document.createElement("input");
@@ -735,11 +856,24 @@ function buildField(label, name, value, disabled, wide = false) {
   wrapper.className = `field${wide ? " field--wide" : ""}`;
   text.textContent = label;
   input.name = name;
+  input.type = type;
   input.value = value;
   input.disabled = disabled;
 
   wrapper.append(text, input);
   return wrapper;
+}
+
+function formatOrderEtaSummary(order) {
+  if (order.status === "ready") return "Listo";
+  if (order.status === "delivered") return "Entregado";
+  if (order.status === "cancelled") return "Cancelado";
+
+  const remainingMinutes = getRemainingEstimatedMinutes(order);
+  if (remainingMinutes === null) return "Sin ETA";
+  if (remainingMinutes <= 0) return "Retrasado";
+  if (remainingMinutes === 1) return "ETA 1 min";
+  return `ETA ${remainingMinutes} min`;
 }
 
 function handleCreateOrder(event) {
@@ -750,7 +884,10 @@ function handleCreateOrder(event) {
   try {
     order = createOrder({
       sourceOrderId: String(formData.get("sourceOrderId") || ""),
+      sourceSystem: String(formData.get("sourceSystem") || ""),
       customerName: String(formData.get("customerName") || ""),
+      pickupPoint: String(formData.get("pickupPoint") || ""),
+      estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "15"),
       items: String(formData.get("items") || ""),
       notes: String(formData.get("notes") || ""),
     });

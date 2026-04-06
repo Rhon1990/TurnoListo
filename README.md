@@ -14,7 +14,7 @@ La demo está separada en tres páginas:
 4. Abre [restaurant.html](/Users/rdelgpad/Documents/personal/ideas/restaurant.html) e inicia sesión con ese acceso.
 5. Abre [client.html](/Users/rdelgpad/Documents/personal/ideas/client.html).
 6. En restaurante crea un pedido nuevo o edita uno existente.
-7. En cliente escribe `POS-801`, `POS-802`, `POS-803` o `POS-799`, o abre `client.html?order=POS-801`.
+7. En cliente escribe `TL-ANA2048Q2Z9`, `TL-LUIS2049R7MX`, `TL-MARTA2050K4P` o `TL-PABLO2051N8W`, o abre `client.html?order=TL-ANA2048Q2Z9`.
 
 ## Cómo se conectan
 

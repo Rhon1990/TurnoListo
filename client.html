@@ -26,6 +26,14 @@
               <span class="stat__label">Pedidos antes que tú</span>
               <strong class="stat__value" id="clientQueueCount">0</strong>
             </div>
+            <div class="stat">
+              <span class="stat__label">Tiempo estimado</span>
+              <strong class="stat__value" id="clientEtaValue">--</strong>
+            </div>
+            <div class="stat">
+              <span class="stat__label">Recogida</span>
+              <strong class="stat__value" id="clientPickupPoint">--</strong>
+            </div>
           </div>
 
           <article class="ticket ticket--client" id="clientTicket">
@@ -104,10 +112,10 @@
               </button>
             </div>
             <div class="scan-box__row scan-box__row--compact">
-              <input id="clientOrderInput" type="text" placeholder="Ej. POS-801" />
+              <input id="clientOrderInput" type="text" placeholder="Ej. TL-ANA2048Q2Z9" />
               <button id="clientLoadButton" type="button">Abrir</button>
             </div>
-            <p class="scan-box__hint">Escribe otro codigo solo si quieres consultar un pedido distinto.</p>
+            <p class="scan-box__hint">Escribe el código seguro del pedido solo si quieres consultar uno distinto.</p>
           </div>
         </section>
       </main>
@@ -125,7 +133,7 @@
           </div>
           <div class="qr-card__content">
             <p class="ticket__label">Tu código</p>
-            <strong id="clientQrValue">POS-801</strong>
+            <strong id="clientQrValue">TL-ANA2048Q2Z9</strong>
             <p class="scan-box__hint" id="clientQrHint"></p>
           </div>
         </div>

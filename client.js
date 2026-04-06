@@ -1,5 +1,5 @@
 const params = new URLSearchParams(window.location.search);
-const initialOrderId = (params.get("order") || "POS-801").toUpperCase();
+const initialOrderId = normalizePublicTrackingToken(params.get("order") || "TL-ANA2048Q2Z9");
 
 const orderInput = document.querySelector("#clientOrderInput");
 const loadButton = document.querySelector("#clientLoadButton");
@@ -10,6 +10,8 @@ const progressFill = document.querySelector("#clientProgress");
 const progressSteps = document.querySelectorAll("#clientProgressSteps [data-step]");
 const statsBlock = document.querySelector("#clientStats");
 const queueCount = document.querySelector("#clientQueueCount");
+const etaValue = document.querySelector("#clientEtaValue");
+const pickupPointValue = document.querySelector("#clientPickupPoint");
 const clientBrand = document.querySelector("#clientBrand");
 const clientBrandLogo = document.querySelector("#clientBrandLogo");
 const qrImage = document.querySelector("#clientQrImage");
@@ -163,7 +165,7 @@ function renderClient() {
   const previousStatus = lastRenderedStatus;
   const queue = getQueueBefore(order.id);
   const meta = statusMeta[order.status];
-  const publicOrderId = order.sourceOrderId || order.id;
+  const publicOrderId = order.publicTrackingToken || order.sourceOrderId || order.id;
   const sourceOrder = getOrderById(order.id) || getOrderByPublicId(publicOrderId);
   const restaurant = getRestaurantById(order.restaurantId || sourceOrder?.restaurantId);
   const publicRestaurantBrand = {
@@ -183,6 +185,8 @@ function renderClient() {
   renderProgressSteps(order.status);
   statsBlock.hidden = order.status === "delivered";
   queueCount.textContent = queue.length;
+  etaValue.textContent = formatClientEta(order);
+  pickupPointValue.textContent = order.pickupPoint || "Mostrador";
   qrImage.src = buildQrUrl(publicOrderId);
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
@@ -237,6 +241,8 @@ function renderMissingOrder() {
   renderProgressSteps(null);
   statsBlock.hidden = false;
   queueCount.textContent = "0";
+  etaValue.textContent = "--";
+  pickupPointValue.textContent = "--";
   qrImage.removeAttribute("src");
   qrValue.textContent = selectedOrderId;
   qrHint.textContent = "Este QR ya no está disponible.";
@@ -300,6 +306,19 @@ function buildNotificationBody(order) {
   }
 
   return `${order.orderNumber} ahora está en estado ${statusMeta[order.status].label.toLowerCase()}.`;
+}
+
+function formatClientEta(order) {
+  if (!order) return "--";
+  if (order.status === "ready") return "Listo ahora";
+  if (order.status === "delivered") return "Entregado";
+  if (order.status === "cancelled") return "Cancelado";
+
+  const remainingMinutes = getRemainingEstimatedMinutes(order);
+  if (remainingMinutes === null) return "Sin dato";
+  if (remainingMinutes <= 0) return "Con retraso";
+  if (remainingMinutes === 1) return "1 min";
+  return `${remainingMinutes} min`;
 }
 
 function triggerReadyCelebration(previousStatus, nextStatus) {
@@ -397,9 +416,9 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
 
   const result = await backend.enableClientPushNotifications({
     orderId: currentOrder.id,
-    orderPublicId: currentOrder.sourceOrderId || currentOrder.id,
+    orderPublicId: currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id,
     orderNumber: currentOrder.orderNumber,
-    clientUrl: buildClientUrl(currentOrder.sourceOrderId || currentOrder.id),
+    clientUrl: buildClientUrl(currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id),
   });
 
   if (!result?.enabled) {

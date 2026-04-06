@@ -127,6 +127,28 @@
                   <p class="dashboard-card__hint">Pedidos cerrados sin entrega</p>
                 </article>
               </div>
+              <div class="dashboard-grid dashboard-grid--actions">
+                <article class="dashboard-card dashboard-card--action" id="adminActionRenewal" role="button" tabindex="0">
+                  <p class="stat__label">Renovar hoy</p>
+                  <strong class="dashboard-card__value" id="adminActionRenewalCount">0</strong>
+                  <p class="dashboard-card__hint" id="adminActionRenewalHint">Cuentas con acceso vencido o a punto de vencer</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="adminActionOnboarding" role="button" tabindex="0">
+                  <p class="stat__label">Activar onboarding</p>
+                  <strong class="dashboard-card__value" id="adminActionOnboardingCount">0</strong>
+                  <p class="dashboard-card__hint" id="adminActionOnboardingHint">Locales que aún no consolidan el flujo principal</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="adminActionRisk" role="button" tabindex="0">
+                  <p class="stat__label">Recuperar uso</p>
+                  <strong class="dashboard-card__value" id="adminActionRiskCount">0</strong>
+                  <p class="dashboard-card__hint" id="adminActionRiskHint">Restaurantes con señales de caída de actividad</p>
+                </article>
+                <article class="dashboard-card dashboard-card--action" id="adminActionHealthy" role="button" tabindex="0">
+                  <p class="stat__label">Upsell</p>
+                  <strong class="dashboard-card__value" id="adminActionHealthyCount">0</strong>
+                  <p class="dashboard-card__hint" id="adminActionHealthyHint">Base sana para retención, reseñas y expansión</p>
+                </article>
+              </div>
               <div class="dashboard-layout">
                 <article class="dashboard-panel">
                   <div class="dashboard-panel__top">
@@ -249,6 +271,16 @@
                   <option value="all">Todos</option>
                   <option value="with-orders">Con pedidos</option>
                   <option value="without-orders">Sin pedidos</option>
+                </select>
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Salud comercial</span>
+                <select id="adminLifecycleFilter">
+                  <option value="all">Todas</option>
+                  <option value="healthy">Sanas</option>
+                  <option value="onboarding">En onboarding</option>
+                  <option value="renewal">Para renovar</option>
+                  <option value="at-risk">En riesgo</option>
                 </select>
               </label>
             </div>

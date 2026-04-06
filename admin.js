@@ -1,5 +1,3 @@
-const adminParams = new URLSearchParams(window.location.search);
-
 const adminLoginView = document.querySelector("#adminLoginView");
 const adminWorkspace = document.querySelector("#adminWorkspace");
 const adminLoginForm = document.querySelector("#adminLoginForm");
@@ -22,6 +20,7 @@ const adminPanels = document.querySelectorAll("[data-admin-panel]");
 const adminSearchInput = document.querySelector("#adminSearchInput");
 const adminStatusFilter = document.querySelector("#adminStatusFilter");
 const adminActivityFilter = document.querySelector("#adminActivityFilter");
+const adminLifecycleFilter = document.querySelector("#adminLifecycleFilter");
 const adminStatRestaurants = document.querySelector("#adminStatRestaurants");
 const adminStatActiveRestaurants = document.querySelector("#adminStatActiveRestaurants");
 const adminStatExpiredRestaurants = document.querySelector("#adminStatExpiredRestaurants");
@@ -30,6 +29,18 @@ const adminStatTotalOrders = document.querySelector("#adminStatTotalOrders");
 const adminStatActiveOrders = document.querySelector("#adminStatActiveOrders");
 const adminStatDelivered = document.querySelector("#adminStatDelivered");
 const adminStatCancelled = document.querySelector("#adminStatCancelled");
+const adminActionRenewal = document.querySelector("#adminActionRenewal");
+const adminActionOnboarding = document.querySelector("#adminActionOnboarding");
+const adminActionRisk = document.querySelector("#adminActionRisk");
+const adminActionHealthy = document.querySelector("#adminActionHealthy");
+const adminActionRenewalCount = document.querySelector("#adminActionRenewalCount");
+const adminActionOnboardingCount = document.querySelector("#adminActionOnboardingCount");
+const adminActionRiskCount = document.querySelector("#adminActionRiskCount");
+const adminActionHealthyCount = document.querySelector("#adminActionHealthyCount");
+const adminActionRenewalHint = document.querySelector("#adminActionRenewalHint");
+const adminActionOnboardingHint = document.querySelector("#adminActionOnboardingHint");
+const adminActionRiskHint = document.querySelector("#adminActionRiskHint");
+const adminActionHealthyHint = document.querySelector("#adminActionHealthyHint");
 const adminTopRestaurantPanel = document.querySelector("#adminTopRestaurantPanel");
 const adminInsights = document.querySelector("#adminInsights");
 const adminDeleteModal = document.querySelector("#adminDeleteModal");
@@ -69,44 +80,26 @@ adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
 adminDeleteConfirm.addEventListener("click", confirmDeleteRestaurant);
+bindAdminActionQueue(adminActionRenewal, "renewal");
+bindAdminActionQueue(adminActionOnboarding, "onboarding");
+bindAdminActionQueue(adminActionRisk, "at-risk");
+bindAdminActionQueue(adminActionHealthy, "healthy");
 adminTabs.forEach((button) => {
   button.addEventListener("click", () => {
     activeAdminSection = button.dataset.adminSection || "dashboard";
     syncAdminSections();
   });
 });
-[adminSearchInput, adminStatusFilter, adminActivityFilter].forEach((control) => {
+[adminSearchInput, adminStatusFilter, adminActivityFilter, adminLifecycleFilter].forEach((control) => {
   control.addEventListener("input", renderAdminWorkspace);
   control.addEventListener("change", renderAdminWorkspace);
 });
 
 function bootAdminPage() {
-  tryAutoLoginFromUrl();
   syncAdminAccess();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
     renderAdminWorkspace();
-  }
-}
-
-async function tryAutoLoginFromUrl() {
-  const username = String(adminParams.get("email") || adminParams.get("username") || "").trim();
-  const password = String(adminParams.get("password") || "").trim();
-
-  if (!username && !password) return;
-
-  adminLoginUsername.value = username;
-  adminLoginPassword.value = password;
-
-  const backend = await waitForFirebaseBackend();
-  if (!backend?.enabled || typeof backend.signIn !== "function") return;
-
-  try {
-    await backend.signIn(username, password);
-  } catch {
-    adminLoginFeedback.textContent = "Las credenciales recibidas por URL no son válidas.";
-    adminLoginFeedback.className = "form-feedback form-feedback--error";
-    adminLoginFeedback.hidden = false;
   }
 }
 
@@ -202,18 +195,22 @@ async function handleCreateRestaurant(event) {
       planName: formData.get("planName"),
       activationDays: formData.get("activationDays"),
       notes: formData.get("notes"),
+      appUrl: buildRestaurantAccessUrl(),
     });
-    const restaurant = result?.restaurant;
+    const restaurant = {
+      ...(result?.restaurant || {}),
+      accessLink: String(result?.accessLink || "").trim(),
+    };
 
     adminCreateRestaurantForm.reset();
     resetRestaurantLogoPreview();
     syncActivationDaysWithPlan();
     await reconnectDataStoreToFirebase();
-    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Usuario Auth y perfil users/{uid} generados automaticamente.`;
+    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Se preparó un enlace seguro para definir la contraseña.`;
     adminCreateFeedback.className = "form-feedback form-feedback--success";
     adminCreateFeedback.hidden = false;
     showTurnoAlert(`Restaurante ${restaurant.name} creado correctamente.`, "success");
-    openCredentialsEmail(restaurant);
+    await openCredentialsEmail(restaurant);
     activeAdminSection = "restaurants";
     renderAdminWorkspace();
   } catch (error) {
@@ -358,6 +355,9 @@ function renderAdminWorkspace() {
         status: getRestaurantAccessStatus(restaurant),
         remainingDays: getRestaurantRemainingDays(restaurant),
         orderCount: restaurantOrders.length,
+        recent7dOrderCount: restaurantOrders.filter((order) => isWithinLastDays(order.createdAt, 7)).length,
+        lastOrderAt: [...restaurantOrders]
+          .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))[0]?.createdAt || "",
         activeOrderCount: restaurantOrders.filter((order) => !order.archivedAt).length,
         deliveredCount: deliveredOrders.length,
         cancelledCount: restaurantOrders.filter((order) => order.status === "cancelled").length,
@@ -366,10 +366,16 @@ function renderAdminWorkspace() {
               deliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) / deliveredOrders.length,
             )
           : 0,
+        onboardingStage: getRestaurantOnboardingStage(restaurant, restaurantOrders),
+        healthSegment: getRestaurantHealthSegment(restaurant, restaurantOrders),
       };
     })
     .filter(matchesAdminFilters)
-    .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+    .sort((left, right) => {
+      const priorityDifference = getHealthSegmentPriority(left.healthSegment) - getHealthSegmentPriority(right.healthSegment);
+      if (priorityDifference !== 0) return priorityDifference;
+      return new Date(right.createdAt) - new Date(left.createdAt);
+    });
 
   renderAdminDashboard(stats);
   renderRestaurantDirectory(enrichedRestaurants);
@@ -385,6 +391,23 @@ function renderAdminDashboard(stats) {
   adminStatActiveOrders.textContent = stats.activeOrders;
   adminStatDelivered.textContent = stats.deliveredOrders;
   adminStatCancelled.textContent = stats.cancelledOrders;
+  const actionQueues = getAdminActionQueues();
+  adminActionRenewalCount.textContent = actionQueues.renewal;
+  adminActionOnboardingCount.textContent = actionQueues.onboarding;
+  adminActionRiskCount.textContent = actionQueues["at-risk"];
+  adminActionHealthyCount.textContent = actionQueues.healthy;
+  adminActionRenewalHint.textContent = actionQueues.renewal
+    ? `${actionQueues.renewal} cuentas necesitan renovación o contacto comercial inmediato`
+    : "No hay cuentas urgentes de renovación ahora mismo";
+  adminActionOnboardingHint.textContent = actionQueues.onboarding
+    ? `${actionQueues.onboarding} locales necesitan activar hábito y primer valor claro`
+    : "No hay onboarding bloqueado en este momento";
+  adminActionRiskHint.textContent = actionQueues["at-risk"]
+    ? `${actionQueues["at-risk"]} restaurantes muestran caída de uso o posible churn`
+    : "No hay restaurantes en riesgo detectados ahora";
+  adminActionHealthyHint.textContent = actionQueues.healthy
+    ? `${actionQueues.healthy} cuentas están listas para retención, reseñas o expansión`
+    : "Aún no hay base sana suficiente para empujar upsell";
 
   adminTopRestaurantPanel.innerHTML = "";
   adminInsights.innerHTML = "";
@@ -422,6 +445,18 @@ function buildAdminInsights(stats) {
     insights.push("La operación activa es alta frente a los entregados. Revisa si algunos locales necesitan apoyo.");
   }
 
+  if (stats.restaurantsWithoutOrders > 0) {
+    insights.push(`${stats.restaurantsWithoutOrders} restaurantes aún no han hecho su primer pedido. Necesitan onboarding o seguimiento comercial.`);
+  }
+
+  if (stats.dormantRestaurants > 0) {
+    insights.push(`${stats.dormantRestaurants} restaurantes llevan más de 14 días sin actividad. Aquí puede haber riesgo de churn.`);
+  }
+
+  if (stats.expiredRestaurants === 0 && stats.soonToExpire === 0 && stats.restaurantsWithoutOrders === 0) {
+    insights.push("La base está sana: ahora la oportunidad es empujar más frecuencia y más valoraciones de cliente.");
+  }
+
   if (!insights.length) {
     insights.push("La cartera va estable. Aquí aparecerán avisos cuando detectemos vencimientos o cuellos de botella.");
   }
@@ -433,6 +468,7 @@ function matchesAdminFilters(restaurant) {
   const search = String(adminSearchInput.value || "").trim().toLowerCase();
   const status = adminStatusFilter.value || "all";
   const activity = adminActivityFilter.value || "all";
+  const lifecycle = adminLifecycleFilter.value || "all";
 
   if (search) {
     const haystack = [
@@ -460,7 +496,32 @@ function matchesAdminFilters(restaurant) {
   if (activity === "with-orders" && restaurant.orderCount === 0) return false;
   if (activity === "without-orders" && restaurant.orderCount > 0) return false;
 
+  if (lifecycle !== "all" && restaurant.healthSegment !== lifecycle) return false;
+
   return true;
+}
+
+function bindAdminActionQueue(element, segment) {
+  if (!element) return;
+  const trigger = () => {
+    applyAdminQueueFilter(segment);
+  };
+
+  element.addEventListener("click", trigger);
+  element.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    trigger();
+  });
+}
+
+function applyAdminQueueFilter(segment) {
+  activeAdminSection = "restaurants";
+  adminSearchInput.value = "";
+  adminStatusFilter.value = "all";
+  adminActivityFilter.value = "all";
+  adminLifecycleFilter.value = segment;
+  renderAdminWorkspace();
 }
 
 function renderRestaurantDirectory(restaurants) {
@@ -485,13 +546,19 @@ function renderRestaurantDirectory(restaurants) {
     const title = document.createElement("h3");
     const meta = document.createElement("div");
     const status = document.createElement("span");
+    const health = document.createElement("span");
     const grid = document.createElement("div");
     const owner = document.createElement("p");
     const contact = document.createElement("p");
     const address = document.createElement("p");
     const activation = document.createElement("p");
     const orders = document.createElement("p");
+    const usage = document.createElement("p");
     const notes = document.createElement("p");
+    const onboarding = document.createElement("p");
+    const playbook = document.createElement("div");
+    const playbookLabel = document.createElement("span");
+    const playbookText = document.createElement("strong");
     const accountStack = document.createElement("div");
     const login = document.createElement("p");
     const logoField = document.createElement("label");
@@ -499,14 +566,17 @@ function renderRestaurantDirectory(restaurants) {
     const logoHint = document.createElement("span");
     const logoPreview = document.createElement("div");
     const logoPreviewImage = document.createElement("img");
-    const passwordWrap = document.createElement("div");
-    const passwordLabel = document.createElement("span");
-    const passwordValue = document.createElement("strong");
-    const togglePassword = document.createElement("button");
+    const accessWrap = document.createElement("div");
+    const accessLabel = document.createElement("span");
+    const accessValue = document.createElement("strong");
     const actions = document.createElement("div");
     const link = document.createElement("a");
     const logoInput = document.createElement("input");
     const resend = document.createElement("button");
+    const onboardingEmail = document.createElement("button");
+    const renewalEmail = document.createElement("button");
+    const renew30 = document.createElement("button");
+    const renew90 = document.createElement("button");
     const remove = document.createElement("button");
 
     card.className = "admin-card";
@@ -515,14 +585,19 @@ function renderRestaurantDirectory(restaurants) {
     brandLogoWrap.className = "admin-card__brand-logo";
     brandText.className = "admin-card__brand-text";
     meta.className = "admin-card__meta";
-    passwordWrap.className = "admin-card__password";
-    passwordLabel.className = "admin-card__password-label";
-    passwordValue.className = "admin-card__password-value";
+    accessWrap.className = "admin-card__password";
+    accessLabel.className = "admin-card__password-label";
+    accessValue.className = "admin-card__password-value";
     actions.className = "admin-card__actions";
     status.className = "status-pill";
+    health.className = "status-pill admin-card__health-pill";
+    playbook.className = "admin-card__playbook";
+    playbookLabel.className = "admin-card__playbook-label";
+    playbookText.className = "admin-card__playbook-text";
     status.textContent = restaurant.status === "active" ? "Activo" : "Vencido";
     status.style.background = restaurant.status === "active" ? "rgba(31, 122, 99, 0.12)" : "rgba(127, 29, 29, 0.12)";
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
+    syncRestaurantHealthPill(health, restaurant.healthSegment);
     grid.className = "admin-card__grid";
     brandFallback.className = "admin-card__brand-fallback";
     accountStack.className = "admin-card__account-stack";
@@ -538,22 +613,17 @@ function renderRestaurantDirectory(restaurants) {
       `Activado hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${buildRemainingAccessLabel(restaurant)}`;
     orders.textContent =
       `Pedidos: ${restaurant.orderCount} · Activos: ${restaurant.activeOrderCount} · Entregados: ${restaurant.deliveredCount}`;
+    usage.textContent = restaurant.orderCount
+      ? `Uso: ${restaurant.recent7dOrderCount} pedidos en 7 días · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`
+      : "Uso: todavía sin pedidos. Conviene activar el onboarding del local.";
+    onboarding.textContent = `Onboarding: ${buildOnboardingSummary(restaurant)}`;
     notes.textContent = restaurant.notes ? `Notas: ${restaurant.notes}` : "Notas: sin observaciones";
+    playbookLabel.textContent = "Siguiente paso";
+    playbookText.textContent = buildRestaurantPlaybook(restaurant);
     logoFieldLabel.textContent = "Logo del restaurante";
     logoHint.textContent = "Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.";
-    passwordLabel.textContent = "Clave:";
-    passwordValue.textContent = "••••••••••••";
-    passwordValue.dataset.password = restaurant.password;
-    togglePassword.type = "button";
-    togglePassword.className = "password-toggle";
-    togglePassword.textContent = "👁";
-    togglePassword.setAttribute("aria-label", "Mostrar clave");
-    togglePassword.addEventListener("click", () => {
-      const isHidden = passwordValue.textContent !== restaurant.password;
-      passwordValue.textContent = isHidden ? restaurant.password : "••••••••••••";
-      togglePassword.classList.toggle("is-active", isHidden);
-      togglePassword.setAttribute("aria-label", isHidden ? "Ocultar clave" : "Mostrar clave");
-    });
+    accessLabel.textContent = "Acceso:";
+    accessValue.textContent = "Gestionado con enlace seguro";
     link.className = "qr-link";
     link.href = "#";
     link.textContent = "Abrir acceso restaurante";
@@ -592,9 +662,45 @@ function renderRestaurantDirectory(restaurants) {
     });
     resend.type = "button";
     resend.className = "comment-button";
-    resend.textContent = "Reenviar credenciales";
-    resend.addEventListener("click", () => {
-      openCredentialsEmail(restaurant);
+    resend.textContent = "Preparar email de acceso";
+    resend.addEventListener("click", async () => {
+      await openCredentialsEmail(restaurant);
+    });
+    onboardingEmail.type = "button";
+    onboardingEmail.className = "comment-button";
+    onboardingEmail.textContent = "Email onboarding";
+    onboardingEmail.addEventListener("click", async () => {
+      await openOnboardingEmail(restaurant);
+    });
+    renewalEmail.type = "button";
+    renewalEmail.className = "comment-button";
+    renewalEmail.textContent = "Email renovación";
+    renewalEmail.addEventListener("click", () => {
+      openRenewalEmail(restaurant);
+    });
+    renew30.type = "button";
+    renew30.className = "comment-button";
+    renew30.textContent = "+30 días";
+    renew30.addEventListener("click", () => {
+      const updatedRestaurant = extendRestaurantActivation(restaurant.id, 30);
+      if (!updatedRestaurant) return;
+      adminCreateFeedback.textContent = `Acceso renovado 30 días para ${restaurant.name}.`;
+      adminCreateFeedback.className = "form-feedback form-feedback--success";
+      adminCreateFeedback.hidden = false;
+      showTurnoAlert(`Acceso renovado 30 días para ${restaurant.name}.`, "success");
+      renderAdminWorkspace();
+    });
+    renew90.type = "button";
+    renew90.className = "comment-button";
+    renew90.textContent = "+90 días";
+    renew90.addEventListener("click", () => {
+      const updatedRestaurant = extendRestaurantActivation(restaurant.id, 90);
+      if (!updatedRestaurant) return;
+      adminCreateFeedback.textContent = `Acceso renovado 90 días para ${restaurant.name}.`;
+      adminCreateFeedback.className = "form-feedback form-feedback--success";
+      adminCreateFeedback.hidden = false;
+      showTurnoAlert(`Acceso renovado 90 días para ${restaurant.name}.`, "success");
+      renderAdminWorkspace();
     });
     remove.type = "button";
     remove.className = "comment-button";
@@ -617,16 +723,152 @@ function renderRestaurantDirectory(restaurants) {
     }
     brandText.append(title, meta);
     brand.append(brandLogoWrap, brandText);
-    meta.append(status);
+    meta.append(status, health);
     logoField.append(logoFieldLabel, logoInput, logoHint);
-    passwordWrap.append(passwordLabel, passwordValue, togglePassword);
-    actions.append(link, resend, remove);
-    accountStack.append(logoField, logoPreview, login, passwordWrap);
-    grid.append(owner, contact, address, activation, orders, notes, accountStack);
+    accessWrap.append(accessLabel, accessValue);
+    actions.append(link, resend, onboardingEmail, renewalEmail, renew30, renew90, remove);
+    accountStack.append(logoField, logoPreview, login, accessWrap);
+    playbook.append(playbookLabel, playbookText);
+    grid.append(owner, contact, address, activation, orders, usage, onboarding, playbook, notes, accountStack);
     card.append(top, grid, actions);
     top.append(brand);
     adminRestaurantList.append(card);
   });
+}
+
+function getRestaurantOnboardingStage(restaurant, restaurantOrders) {
+  if (!restaurant.logoUrl) return "pendiente-logo";
+  if (!restaurantOrders.length) return "pendiente-primer-pedido";
+  if (!restaurantOrders.some((order) => order.status === "ready" || order.status === "delivered")) {
+    return "sin-ciclo-completo";
+  }
+  if (!restaurantOrders.some((order) => order.rating?.score)) {
+    return "sin-feedback";
+  }
+  return "activo";
+}
+
+function buildOnboardingSummary(restaurant) {
+  if (restaurant.onboardingStage === "pendiente-logo") {
+    return "falta logo y personalización básica.";
+  }
+
+  if (restaurant.onboardingStage === "pendiente-primer-pedido") {
+    return "sin primer pedido. Hace falta activación del equipo.";
+  }
+
+  if (restaurant.onboardingStage === "sin-ciclo-completo") {
+    return "ya usa la app, pero aún no cerró un ciclo completo.";
+  }
+
+  if (restaurant.onboardingStage === "sin-feedback") {
+    return "operación activa, falta validar feedback del cliente.";
+  }
+
+  return "activado y usando el flujo principal.";
+}
+
+function getRestaurantHealthSegment(restaurant, restaurantOrders) {
+  const remainingDays = getRestaurantRemainingDays(restaurant);
+  const onboardingStage = getRestaurantOnboardingStage(restaurant, restaurantOrders);
+  const hadOrders = restaurantOrders.length > 0;
+  const activeLast7Days = restaurantOrders.some((order) => isWithinLastDays(order.createdAt, 7));
+  const activeLast14Days = restaurantOrders.some((order) => isWithinLastDays(order.createdAt, 14));
+
+  if (!isRestaurantAccessActive(restaurant)) return "renewal";
+  if (remainingDays !== null && remainingDays <= 7) return "renewal";
+  if (onboardingStage !== "activo") return "onboarding";
+  if (hadOrders && !activeLast14Days) return "at-risk";
+  if (hadOrders && !activeLast7Days) return "at-risk";
+  return "healthy";
+}
+
+function syncRestaurantHealthPill(element, segment) {
+  const meta = {
+    healthy: {
+      label: "Sano",
+      background: "rgba(31, 122, 99, 0.12)",
+      color: "#1f7a63",
+    },
+    onboarding: {
+      label: "Onboarding",
+      background: "rgba(216, 95, 49, 0.12)",
+      color: "#8f3513",
+    },
+    renewal: {
+      label: "Renovación",
+      background: "rgba(127, 29, 29, 0.12)",
+      color: "#7f1d1d",
+    },
+    "at-risk": {
+      label: "En riesgo",
+      background: "rgba(180, 83, 9, 0.14)",
+      color: "#9a4a10",
+    },
+  }[segment] || {
+    label: "Seguimiento",
+    background: "rgba(29, 26, 22, 0.08)",
+    color: "var(--muted)",
+  };
+
+  element.textContent = meta.label;
+  element.style.background = meta.background;
+  element.style.color = meta.color;
+}
+
+function buildRestaurantPlaybook(restaurant) {
+  if (restaurant.healthSegment === "renewal") {
+    if (restaurant.status !== "active") {
+      return "Renueva acceso y reenvía el enlace seguro antes de perder la cuenta.";
+    }
+    return "Activa recordatorio de renovación y deja cerrado el siguiente periodo comercial.";
+  }
+
+  if (restaurant.healthSegment === "onboarding") {
+    if (restaurant.onboardingStage === "pendiente-logo") {
+      return "Completa logo y personalización para que el local sienta el producto como propio.";
+    }
+    if (restaurant.onboardingStage === "pendiente-primer-pedido") {
+      return "Agenda activación con el equipo y acompaña el primer pedido real en hora pico.";
+    }
+    if (restaurant.onboardingStage === "sin-ciclo-completo") {
+      return "Empuja un ciclo completo hasta estado listo o entregado para crear hábito operativo.";
+    }
+    return "Pide feedback del cliente y úsalo como prueba de valor para la renovación.";
+  }
+
+  if (restaurant.healthSegment === "at-risk") {
+    return "Revisa por qué cayó el uso y ofrece ayuda en mostrador o una reactivación con seguimiento.";
+  }
+
+  return "Mantén frecuencia, pide valoraciones y prepara upsell a más locales o más tiempo de plan.";
+}
+
+function getHealthSegmentPriority(segment) {
+  if (segment === "renewal") return 0;
+  if (segment === "onboarding") return 1;
+  if (segment === "at-risk") return 2;
+  if (segment === "healthy") return 3;
+  return 4;
+}
+
+function getAdminActionQueues() {
+  const restaurants = loadRestaurants();
+  const orders = loadOrders();
+  const counts = {
+    renewal: 0,
+    onboarding: 0,
+    "at-risk": 0,
+    healthy: 0,
+  };
+
+  restaurants.forEach((restaurant) => {
+    const restaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
+    const segment = getRestaurantHealthSegment(restaurant, restaurantOrders);
+    counts[segment] = (counts[segment] || 0) + 1;
+  });
+
+  return counts;
 }
 
 function formatAdminDate(value) {
@@ -646,9 +888,73 @@ function buildRemainingAccessLabel(restaurant) {
   return `Vence en ${days} días`;
 }
 
-function openCredentialsEmail(restaurant) {
+function buildRestaurantAccessUrl() {
+  return new URL("./restaurant.html", window.location.href).toString();
+}
+
+async function openCredentialsEmail(restaurant) {
   if (!restaurant.email) return;
-  const email = buildRestaurantCredentialsEmail(restaurant);
+  const emailRestaurant = { ...restaurant };
+  const backend = await waitForFirebaseBackend();
+
+  if (!emailRestaurant.accessLink && backend?.enabled && typeof backend.createRestaurantAccessLink === "function") {
+    try {
+      const result = await backend.createRestaurantAccessLink({
+        restaurantId: restaurant.id,
+        appUrl: buildRestaurantAccessUrl(),
+      });
+      emailRestaurant.accessLink = String(result?.accessLink || "").trim();
+    } catch (error) {
+      console.error("No se pudo preparar el enlace de acceso del restaurante.", error);
+      adminCreateFeedback.textContent = "No se pudo generar el enlace seguro del restaurante.";
+      adminCreateFeedback.className = "form-feedback form-feedback--error";
+      adminCreateFeedback.hidden = false;
+      showTurnoAlert("No se pudo generar el enlace seguro del restaurante.", "error");
+      return;
+    }
+  }
+
+  if (!emailRestaurant.accessLink) {
+    adminCreateFeedback.textContent = "No hay enlace seguro disponible para este restaurante.";
+    adminCreateFeedback.className = "form-feedback form-feedback--error";
+    adminCreateFeedback.hidden = false;
+    return;
+  }
+
+  const email = buildRestaurantCredentialsEmail(emailRestaurant, {
+    accessUrl: buildRestaurantAccessUrl(),
+  });
+  window.location.href = email.href;
+}
+
+async function openOnboardingEmail(restaurant) {
+  if (!restaurant.email) return;
+  const emailRestaurant = { ...restaurant };
+  const backend = await waitForFirebaseBackend();
+
+  if (!emailRestaurant.accessLink && backend?.enabled && typeof backend.createRestaurantAccessLink === "function") {
+    try {
+      const result = await backend.createRestaurantAccessLink({
+        restaurantId: restaurant.id,
+        appUrl: buildRestaurantAccessUrl(),
+      });
+      emailRestaurant.accessLink = String(result?.accessLink || "").trim();
+    } catch (error) {
+      console.error("No se pudo preparar el enlace de onboarding del restaurante.", error);
+    }
+  }
+
+  const email = buildRestaurantOnboardingEmail(emailRestaurant, {
+    accessUrl: buildRestaurantAccessUrl(),
+  });
+  window.location.href = email.href;
+}
+
+function openRenewalEmail(restaurant) {
+  if (!restaurant.email) return;
+  const email = buildRestaurantRenewalEmail(restaurant, {
+    accessUrl: buildRestaurantAccessUrl(),
+  });
   window.location.href = email.href;
 }
 

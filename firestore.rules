@@ -5,8 +5,79 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function currentUserProfile() {
+      return isSignedIn()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        : null;
+    }
+
+    function hasRole(role) {
+      return isSignedIn() && currentUserProfile() != null && currentUserProfile().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole("admin");
+    }
+
+    function isRestaurantUser() {
+      return hasRole("restaurant");
+    }
+
     function isOwnUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isOwnRestaurantDocument(restaurantId) {
+      return isRestaurantUser() && currentUserProfile().restaurantId == restaurantId;
+    }
+
+    function canReadRestaurantDoc() {
+      return isAdmin()
+        || (isRestaurantUser() && resource != null && currentUserProfile().restaurantId == resource.data.id);
+    }
+
+    function canWriteRestaurantDoc() {
+      return isAdmin()
+        || (isRestaurantUser()
+          && resource != null
+          && request.resource != null
+          && currentUserProfile().restaurantId == resource.data.id
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.authUid == resource.data.authUid
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.username == resource.data.username
+          && request.resource.data.activatedAt == resource.data.activatedAt
+          && request.resource.data.activatedUntil == resource.data.activatedUntil
+          && request.resource.data.planName == resource.data.planName);
+    }
+
+    function canReadOrderDoc() {
+      return isAdmin()
+        || (isRestaurantUser()
+          && resource != null
+          && currentUserProfile().restaurantId == resource.data.restaurantId);
+    }
+
+    function canWriteOrderDoc() {
+      return isAdmin()
+        || (isRestaurantUser()
+          && request.resource != null
+          && currentUserProfile().restaurantId == request.resource.data.restaurantId
+          && (
+            resource == null
+            || resource.data.restaurantId == currentUserProfile().restaurantId
+          ));
+    }
+
+    function canManageTrackingDoc() {
+      return isAdmin()
+        || (isRestaurantUser()
+          && request.resource != null
+          && currentUserProfile().restaurantId == request.resource.data.restaurantId
+          && (
+            resource == null
+            || resource.data.restaurantId == currentUserProfile().restaurantId
+          ));
     }
 
     function isPublicTrackingRatingUpdate() {
@@ -16,10 +87,13 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           "id",
           "restaurantId",
+          "publicTrackingToken",
           "sourceOrderId",
           "orderNumber",
           "customerName",
           "pickupPoint",
+          "estimatedReadyMinutes",
+          "promisedReadyAt",
           "status",
           "rating",
           "createdAt",
@@ -27,10 +101,13 @@ service cloud.firestore {
         ])
         && request.resource.data.id == resource.data.id
         && request.resource.data.restaurantId == resource.data.restaurantId
+        && request.resource.data.publicTrackingToken == resource.data.publicTrackingToken
         && request.resource.data.sourceOrderId == resource.data.sourceOrderId
         && request.resource.data.orderNumber == resource.data.orderNumber
         && request.resource.data.customerName == resource.data.customerName
         && request.resource.data.pickupPoint == resource.data.pickupPoint
+        && request.resource.data.estimatedReadyMinutes == resource.data.estimatedReadyMinutes
+        && request.resource.data.promisedReadyAt == resource.data.promisedReadyAt
         && request.resource.data.status == resource.data.status
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.archivedAt == resource.data.archivedAt
@@ -55,21 +132,30 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isOwnUser(userId);
+      allow read: if isOwnUser(userId) || isAdmin();
       allow write: if false;
     }
 
     match /orders/{orderId} {
-      allow read, write: if isSignedIn();
+      allow read: if canReadOrderDoc();
+      allow create, update: if canWriteOrderDoc();
+      allow delete: if isAdmin() || isOwnRestaurantDocument(resource.data.restaurantId);
     }
 
     match /restaurants/{restaurantId} {
-      allow read, write: if isSignedIn();
+      allow read: if canReadRestaurantDoc();
+      allow create: if isAdmin();
+      allow update: if canWriteRestaurantDoc();
+      allow delete: if isAdmin();
     }
 
     match /tracking/{trackingId} {
       allow read: if true;
-      allow create, update, delete: if isSignedIn();
+      allow create, update: if canManageTrackingDoc();
+      allow delete: if isAdmin()
+        || (isRestaurantUser()
+          && resource != null
+          && currentUserProfile().restaurantId == resource.data.restaurantId);
       allow update: if isPublicTrackingRatingUpdate();
     }
   }

@@ -41,6 +41,18 @@ function normalizeLogoUrl(value) {
   return logoUrl;
 }
 
+function normalizeAppUrl(value) {
+  const appUrl = trimValue(value);
+  if (!appUrl) return "";
+
+  try {
+    const parsed = new URL(appUrl);
+    return parsed.toString();
+  } catch {
+    throw new HttpsError("invalid-argument", "La URL de acceso del restaurante no es valida.");
+  }
+}
+
 function generateRestaurantPassword(length = 14) {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const lower = "abcdefghijkmnopqrstuvwxyz";
@@ -96,6 +108,7 @@ exports.createRestaurantAccount = onCall(async (request) => {
   const planName = trimValue(data.planName) || "Mensual";
   const notes = trimValue(data.notes);
   const activationDays = Math.max(1, Number.parseInt(String(data.activationDays || "30"), 10) || 30);
+  const appUrl = normalizeAppUrl(data.appUrl);
 
   const username = email;
   const password = generateRestaurantPassword();
@@ -142,7 +155,6 @@ exports.createRestaurantAccount = onCall(async (request) => {
     activatedAt,
     activatedUntil,
     username,
-    password,
     authUid: userRecord.uid,
     createdAt: activatedAt,
   };
@@ -163,12 +175,69 @@ exports.createRestaurantAccount = onCall(async (request) => {
     throw new HttpsError("internal", "No se pudo guardar el restaurante en Firestore.");
   }
 
+  let accessLink = "";
+  if (appUrl) {
+    try {
+      accessLink = await auth.generatePasswordResetLink(email, {
+        url: appUrl,
+        handleCodeInApp: false,
+      });
+    } catch (error) {
+      console.error("No se pudo generar el enlace inicial de acceso.", error);
+    }
+  }
+
   return {
     restaurant,
+    accessLink,
     authUser: {
       uid: userRecord.uid,
       email: userRecord.email,
     },
+  };
+});
+
+exports.createRestaurantAccessLink = onCall(async (request) => {
+  const authUid = request.auth?.uid || null;
+  await assertAdmin(authUid);
+
+  const restaurantId = trimValue(request.data?.restaurantId);
+  const appUrl = normalizeAppUrl(request.data?.appUrl);
+
+  if (!restaurantId) {
+    throw new HttpsError("invalid-argument", "Falta el restaurante para generar el acceso.");
+  }
+
+  if (!appUrl) {
+    throw new HttpsError("invalid-argument", "Falta la URL de acceso del restaurante.");
+  }
+
+  const restaurantSnapshot = await firestore.collection("restaurants").doc(restaurantId).get();
+  if (!restaurantSnapshot.exists) {
+    throw new HttpsError("not-found", "No se encontro el restaurante solicitado.");
+  }
+
+  const restaurant = restaurantSnapshot.data() || {};
+  const email = normalizeEmail(restaurant.email);
+  if (!email) {
+    throw new HttpsError("failed-precondition", "El restaurante no tiene un correo valido.");
+  }
+
+  let accessLink = "";
+  try {
+    accessLink = await auth.generatePasswordResetLink(email, {
+      url: appUrl,
+      handleCodeInApp: false,
+    });
+  } catch (error) {
+    console.error("No se pudo generar el enlace de acceso del restaurante.", error);
+    throw new HttpsError("internal", "No se pudo generar el enlace de acceso del restaurante.");
+  }
+
+  return {
+    restaurantId,
+    email,
+    accessLink,
   };
 });
 

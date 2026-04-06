@@ -399,6 +399,73 @@ button:hover,
   border: 1px solid rgba(29, 26, 22, 0.08);
 }
 
+.focus-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.95rem 0 0;
+}
+
+.focus-chip {
+  display: grid;
+  gap: 0.22rem;
+  text-align: left;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(249, 242, 232, 0.84));
+  box-shadow: 0 10px 24px rgba(105, 66, 28, 0.05);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.focus-chip:hover,
+.focus-chip:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(105, 66, 28, 0.08);
+}
+
+.focus-chip.is-active {
+  border-color: rgba(216, 95, 49, 0.3);
+  box-shadow: 0 0 0 4px rgba(216, 95, 49, 0.08);
+}
+
+.focus-chip__label {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.focus-chip__value {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.mode-strip {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.35rem;
+  margin-top: 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.mode-chip {
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.mode-chip.is-active {
+  background: rgba(216, 95, 49, 0.12);
+  color: var(--brand-dark);
+}
+
 .list-toolbar__search,
 .list-toolbar__filter {
   display: grid;
@@ -1038,6 +1105,26 @@ button:hover,
   padding: 0.8rem;
 }
 
+.order-card--counter {
+  padding: 1rem;
+  border-width: 2px;
+}
+
+.order-card--critical {
+  border-color: rgba(180, 35, 24, 0.34);
+  box-shadow: 0 16px 34px rgba(180, 35, 24, 0.12);
+}
+
+.order-card--due-soon {
+  border-color: rgba(182, 106, 8, 0.28);
+  box-shadow: 0 16px 34px rgba(182, 106, 8, 0.1);
+}
+
+.order-card--ready-waiting {
+  border-color: rgba(31, 122, 99, 0.28);
+  box-shadow: 0 16px 34px rgba(31, 122, 99, 0.1);
+}
+
 .order-card--archived {
   opacity: 0.82;
 }
@@ -1188,6 +1275,8 @@ button:hover,
 .admin-card__meta {
   display: flex;
   justify-content: flex-start;
+  gap: 0.45rem;
+  flex-wrap: wrap;
 }
 
 .admin-card__top {
@@ -1257,6 +1346,28 @@ button:hover,
   gap: 0.45rem 1rem;
 }
 
+.admin-card__playbook {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(216, 95, 49, 0.08);
+  border: 1px solid rgba(216, 95, 49, 0.12);
+}
+
+.admin-card__playbook-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.admin-card__playbook-text {
+  font-size: 0.96rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
 .admin-card__account-stack {
   display: grid;
   gap: 0.55rem;
@@ -1284,6 +1395,10 @@ button:hover,
   align-items: center;
   gap: 0.9rem;
   flex-wrap: wrap;
+}
+
+.admin-card__actions .comment-button {
+  padding: 0.35rem 0.15rem;
 }
 
 .password-toggle {
@@ -1393,6 +1508,25 @@ button:hover,
   margin-top: 0.35rem;
 }
 
+.status-action--counter {
+  min-width: 120px;
+  min-height: 56px;
+  padding: 0.7rem 0.85rem;
+  border-radius: 18px;
+}
+
+.restaurant-workspace--counter .list-toolbar {
+  grid-template-columns: minmax(0, 1fr) repeat(3, minmax(160px, 0.7fr));
+}
+
+.restaurant-workspace--counter .order-card__summary {
+  align-items: start;
+}
+
+.restaurant-workspace--counter .order-card__summary-side {
+  min-width: 360px;
+}
+
 .status-action {
   padding: 0.7rem 0.95rem;
   border-radius: 999px;
@@ -1500,6 +1634,10 @@ button:hover,
   margin-top: 0.9rem;
 }
 
+.dashboard-grid--actions {
+  margin-top: 0.75rem;
+}
+
 .dashboard-card,
 .dashboard-panel {
   padding: 1rem;
@@ -1522,6 +1660,11 @@ button:hover,
   transform: translateY(-2px);
   border-color: rgba(216, 95, 49, 0.24);
   box-shadow: 0 14px 28px rgba(105, 66, 28, 0.1);
+}
+
+.dashboard-card--action:focus-visible {
+  outline: 2px solid rgba(216, 95, 49, 0.55);
+  outline-offset: 3px;
 }
 
 .dashboard-card__value {
@@ -1708,6 +1851,8 @@ button:hover,
   .quick-form,
   .admin-create-form,
   .list-toolbar,
+  .mode-strip,
+  .focus-strip,
   .order-edit-grid,
   .dashboard-grid,
   .dashboard-layout {
