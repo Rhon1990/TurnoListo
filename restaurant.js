@@ -268,7 +268,17 @@ function renderRestaurant() {
     });
 
   if (!filteredArchivedOrders.length) {
-    archivedList.append(buildEmptyState("No hay pedidos archivados que coincidan con esos filtros."));
+    const hasArchivedFilters =
+      String(archivedSearchInput.value || "").trim() ||
+      (archivedStatusFilter.value || "all") !== "all" ||
+      (archivedRatingFilter.value || "all") !== "all";
+    archivedList.append(
+      buildEmptyState(
+        hasArchivedFilters
+          ? "No hay pedidos archivados que coincidan con esos filtros."
+          : "Aqui apareceran los pedidos entregados o cancelados.",
+      ),
+    );
   }
 }
 
@@ -866,9 +876,9 @@ function buildField(label, name, value, disabled, wide = false, type = "text") {
 }
 
 function formatOrderEtaSummary(order) {
-  if (order.status === "ready") return "Listo";
+  if (order.status === "ready") return "Listo esperando";
   if (order.status === "delivered") return "Entregado";
-  if (order.status === "cancelled") return "Cancelado";
+  if (order.status === "cancelled") return "Cancelado / desistio";
 
   const remainingMinutes = getRemainingEstimatedMinutes(order);
   if (remainingMinutes === null) return "Sin ETA";
