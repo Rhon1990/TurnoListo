@@ -12,9 +12,7 @@ const statsBlock = document.querySelector("#clientStats");
 const queueCount = document.querySelector("#clientQueueCount");
 const metaStrip = document.querySelector("#clientMetaStrip");
 const etaValue = document.querySelector("#clientEtaValue");
-const pickupPointValue = document.querySelector("#clientPickupPoint");
 const etaStat = document.querySelector("#clientEtaStat");
-const pickupPointStat = document.querySelector("#clientPickupPointStat");
 const clientBrand = document.querySelector("#clientBrand");
 const clientBrandLogo = document.querySelector("#clientBrandLogo");
 const qrImage = document.querySelector("#clientQrImage");
@@ -189,12 +187,9 @@ function renderClient() {
   statsBlock.hidden = order.status === "delivered";
   queueCount.textContent = queue.length;
   const shouldShowEta = hasClientEta(order);
-  const shouldShowPickupPoint = hasClientPickupPoint(order);
-  metaStrip.hidden = !shouldShowEta && !shouldShowPickupPoint;
+  metaStrip.hidden = !shouldShowEta;
   etaStat.hidden = !shouldShowEta;
-  pickupPointStat.hidden = !shouldShowPickupPoint;
   etaValue.textContent = shouldShowEta ? formatClientEta(order) : "--";
-  pickupPointValue.textContent = shouldShowPickupPoint ? order.pickupPoint : "--";
   qrImage.src = buildQrUrl(publicOrderId);
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
@@ -250,10 +245,8 @@ function renderMissingOrder() {
   statsBlock.hidden = false;
   metaStrip.hidden = false;
   etaStat.hidden = false;
-  pickupPointStat.hidden = false;
   queueCount.textContent = "0";
   etaValue.textContent = "--";
-  pickupPointValue.textContent = "--";
   qrImage.removeAttribute("src");
   qrValue.textContent = selectedOrderId;
   qrHint.textContent = "Este QR ya no está disponible.";
@@ -305,9 +298,7 @@ function getProgressWidth(status) {
 
 function buildNotificationBody(order) {
   if (order.status === "ready") {
-    return hasClientPickupPoint(order)
-      ? `${order.orderNumber} ya puede recogerse en ${order.pickupPoint}.`
-      : `${order.orderNumber} ya está listo para recoger.`;
+    return `${order.orderNumber} ya está listo para recoger.`;
   }
 
   if (order.status === "delivered") {
@@ -336,10 +327,6 @@ function formatClientEta(order) {
 
 function hasClientEta(order) {
   return Boolean(String(order?.promisedReadyAt || "").trim());
-}
-
-function hasClientPickupPoint(order) {
-  return Boolean(String(order?.pickupPoint || "").trim());
 }
 
 function triggerReadyCelebration(previousStatus, nextStatus) {
