@@ -20,6 +20,7 @@ const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
+const restaurantModeTooltip = document.querySelector("#restaurantModeTooltip");
 const activeSearchInput = document.querySelector("#activeSearchInput");
 const activeStatusFilter = document.querySelector("#activeStatusFilter");
 const activePriorityFilter = document.querySelector("#activePriorityFilter");
@@ -85,6 +86,7 @@ let pendingCancelOrderLabel = "";
 let activeSection = "orders";
 let lastDashboardStats = null;
 let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-display-mode") || "standard";
+let restaurantModeTooltipTimer = 0;
 
 initializeRestaurantFirebaseAuth();
 waitForDataReady().then(bootRestaurantPage);
@@ -99,6 +101,10 @@ onOrdersChanged(() => {
 quickCreateForm.addEventListener("submit", handleCreateOrder);
 restaurantModeStandard.addEventListener("click", () => setRestaurantDisplayMode("standard"));
 restaurantModeCounter.addEventListener("click", () => setRestaurantDisplayMode("counter"));
+[restaurantModeStandard, restaurantModeCounter].forEach((button) => {
+  button.addEventListener("mouseenter", () => scheduleRestaurantModeTooltip(button));
+  button.addEventListener("mouseleave", hideRestaurantModeTooltip);
+});
 restaurantLoginForm.addEventListener("submit", handleRestaurantLogin);
 restaurantLoginTogglePassword.addEventListener("click", (event) => {
   event.preventDefault();
@@ -299,6 +305,30 @@ function syncRestaurantDisplayMode() {
   restaurantWorkspace.classList.toggle("restaurant-workspace--counter", isCounterMode);
   restaurantModeStandard.classList.toggle("is-active", !isCounterMode);
   restaurantModeCounter.classList.toggle("is-active", isCounterMode);
+}
+
+function scheduleRestaurantModeTooltip(button) {
+  window.clearTimeout(restaurantModeTooltipTimer);
+  restaurantModeTooltipTimer = window.setTimeout(() => {
+    showRestaurantModeTooltip(button);
+  }, 450);
+}
+
+function showRestaurantModeTooltip(button) {
+  const hint = String(button?.dataset.modeHint || "").trim();
+  if (!hint) return;
+
+  const rect = button.getBoundingClientRect();
+  restaurantModeTooltip.textContent = hint;
+  restaurantModeTooltip.hidden = false;
+  restaurantModeTooltip.style.left = `${rect.left + rect.width / 2}px`;
+  restaurantModeTooltip.style.top = `${rect.top - 10}px`;
+}
+
+function hideRestaurantModeTooltip() {
+  window.clearTimeout(restaurantModeTooltipTimer);
+  restaurantModeTooltip.hidden = true;
+  restaurantModeTooltip.textContent = "";
 }
 
 function renderRestaurantBrand(restaurant) {

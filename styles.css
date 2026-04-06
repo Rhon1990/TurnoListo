@@ -454,7 +454,6 @@ button:hover,
 }
 
 .mode-chip {
-  position: relative;
   padding: 0.72rem 1rem;
   border-radius: 999px;
   background: transparent;
@@ -462,12 +461,15 @@ button:hover,
   font-weight: 700;
 }
 
-.mode-chip::after {
-  content: attr(data-mode-hint);
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 0.55rem);
-  width: max-content;
+.mode-chip.is-active {
+  background: rgba(216, 95, 49, 0.12);
+  color: var(--brand-dark);
+}
+
+.floating-tooltip {
+  position: fixed;
+  left: 0;
+  top: 0;
   max-width: min(320px, 70vw);
   padding: 0.55rem 0.75rem;
   border-radius: 14px;
@@ -476,24 +478,10 @@ button:hover,
   font-size: 0.78rem;
   font-weight: 500;
   line-height: 1.4;
-  text-transform: none;
-  letter-spacing: normal;
   box-shadow: 0 14px 28px rgba(29, 26, 22, 0.18);
-  transform: translateX(-50%);
-  opacity: 0;
+  transform: translate(-50%, -100%);
   pointer-events: none;
-  transition: opacity 140ms ease;
-  z-index: 20;
-  white-space: normal;
-}
-
-.mode-chip:hover::after {
-  opacity: 1;
-}
-
-.mode-chip.is-active {
-  background: rgba(216, 95, 49, 0.12);
-  color: var(--brand-dark);
+  z-index: 40;
 }
 
 .list-toolbar__search,
