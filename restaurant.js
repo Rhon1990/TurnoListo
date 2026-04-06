@@ -581,10 +581,6 @@ function matchesActiveFilters(order) {
   if (priority === "ready-waiting" && order.status !== "ready") return false;
   if (priority === "normal" && orderTone !== "safe") return false;
 
-  if (restaurantDisplayMode === "counter" && !["critical", "due-soon", "ready-waiting"].includes(urgencyLevel)) {
-    return false;
-  }
-
   return true;
 }
 
