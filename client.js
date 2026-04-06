@@ -12,6 +12,8 @@ const statsBlock = document.querySelector("#clientStats");
 const queueCount = document.querySelector("#clientQueueCount");
 const etaValue = document.querySelector("#clientEtaValue");
 const pickupPointValue = document.querySelector("#clientPickupPoint");
+const etaStat = etaValue.closest(".stat");
+const pickupPointStat = pickupPointValue.closest(".stat");
 const clientBrand = document.querySelector("#clientBrand");
 const clientBrandLogo = document.querySelector("#clientBrandLogo");
 const qrImage = document.querySelector("#clientQrImage");
@@ -185,8 +187,12 @@ function renderClient() {
   renderProgressSteps(order.status);
   statsBlock.hidden = order.status === "delivered";
   queueCount.textContent = queue.length;
-  etaValue.textContent = formatClientEta(order);
-  pickupPointValue.textContent = order.pickupPoint || "Mostrador";
+  const shouldShowEta = hasClientEta(order);
+  const shouldShowPickupPoint = hasClientPickupPoint(order);
+  etaStat.hidden = !shouldShowEta;
+  pickupPointStat.hidden = !shouldShowPickupPoint;
+  etaValue.textContent = shouldShowEta ? formatClientEta(order) : "--";
+  pickupPointValue.textContent = shouldShowPickupPoint ? order.pickupPoint : "--";
   qrImage.src = buildQrUrl(publicOrderId);
   qrValue.textContent = publicOrderId;
   qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
@@ -240,6 +246,8 @@ function renderMissingOrder() {
   progressFill.style.width = "0%";
   renderProgressSteps(null);
   statsBlock.hidden = false;
+  etaStat.hidden = false;
+  pickupPointStat.hidden = false;
   queueCount.textContent = "0";
   etaValue.textContent = "--";
   pickupPointValue.textContent = "--";
@@ -294,7 +302,9 @@ function getProgressWidth(status) {
 
 function buildNotificationBody(order) {
   if (order.status === "ready") {
-    return `${order.orderNumber} ya puede recogerse en ${order.pickupPoint}.`;
+    return hasClientPickupPoint(order)
+      ? `${order.orderNumber} ya puede recogerse en ${order.pickupPoint}.`
+      : `${order.orderNumber} ya está listo para recoger.`;
   }
 
   if (order.status === "delivered") {
@@ -319,6 +329,14 @@ function formatClientEta(order) {
   if (remainingMinutes <= 0) return "Con retraso";
   if (remainingMinutes === 1) return "1 min";
   return `${remainingMinutes} min`;
+}
+
+function hasClientEta(order) {
+  return Boolean(String(order?.promisedReadyAt || "").trim());
+}
+
+function hasClientPickupPoint(order) {
+  return Boolean(String(order?.pickupPoint || "").trim());
 }
 
 function triggerReadyCelebration(previousStatus, nextStatus) {

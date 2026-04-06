@@ -274,6 +274,7 @@ async function connectPrivateDataStoreToFirebase() {
 
     applyRestaurantsSnapshot(remoteRestaurants);
     repairMissingPublicTrackingTokens(loadOrders());
+    repairPublicTrackingRecordsFromOrders(loadOrders());
 
     disconnectPrivateFirebaseSubscriptions();
 
@@ -882,7 +883,12 @@ function sourceOrderIdExists(sourceOrderId, excludedOrderId = null) {
 }
 
 function buildPromisedReadyAt(createdAt, estimatedReadyMinutes) {
-  const normalizedMinutes = Math.max(1, Number.parseInt(String(estimatedReadyMinutes || "15"), 10) || 15);
+  const parsedMinutes = Number.parseInt(String(estimatedReadyMinutes || ""), 10);
+  if (!Number.isFinite(parsedMinutes) || parsedMinutes <= 0) {
+    return "";
+  }
+
+  const normalizedMinutes = Math.max(1, parsedMinutes);
   const baseDate = new Date(createdAt || new Date().toISOString());
   return new Date(baseDate.getTime() + normalizedMinutes * 60000).toISOString();
 }
@@ -908,6 +914,12 @@ function createOrder(orderData) {
   }
 
   const nextIndex = getNextOrderIndex(orders);
+  const normalizedPickupPoint = String(orderData.pickupPoint || "").trim();
+  const parsedEstimatedReadyMinutes = Number.parseInt(String(orderData.estimatedReadyMinutes || ""), 10);
+  const normalizedEstimatedReadyMinutes =
+    Number.isFinite(parsedEstimatedReadyMinutes) && parsedEstimatedReadyMinutes > 0
+      ? Math.max(1, parsedEstimatedReadyMinutes)
+      : null;
   const order = {
     restaurantId: currentRestaurantId,
     createdAt: new Date().toISOString(),
@@ -918,8 +930,8 @@ function createOrder(orderData) {
     sourceSystem: String(orderData.sourceSystem || "").trim() || "Alta manual",
     customerName: String(orderData.customerName || "").trim() || "Cliente mostrador",
     items: String(orderData.items || "").trim() || "Pedido rápido",
-    pickupPoint: String(orderData.pickupPoint || "").trim() || "Mostrador 1",
-    estimatedReadyMinutes: Math.max(1, Number.parseInt(String(orderData.estimatedReadyMinutes || "15"), 10) || 15),
+    pickupPoint: normalizedPickupPoint,
+    estimatedReadyMinutes: normalizedEstimatedReadyMinutes,
     status: "received",
     notes: String(orderData.notes || "").trim(),
     rating: null,
@@ -956,10 +968,11 @@ function updateOrder(id, updates) {
   }
 
   if (Object.prototype.hasOwnProperty.call(nextUpdates, "estimatedReadyMinutes")) {
-    nextUpdates.estimatedReadyMinutes = Math.max(
-      1,
-      Number.parseInt(String(nextUpdates.estimatedReadyMinutes || currentOrder.estimatedReadyMinutes || "15"), 10) || 15,
-    );
+    const parsedEstimatedReadyMinutes = Number.parseInt(String(nextUpdates.estimatedReadyMinutes || ""), 10);
+    nextUpdates.estimatedReadyMinutes =
+      Number.isFinite(parsedEstimatedReadyMinutes) && parsedEstimatedReadyMinutes > 0
+        ? Math.max(1, parsedEstimatedReadyMinutes)
+        : null;
   }
 
   if (
@@ -1472,6 +1485,44 @@ function onOrdersChanged(callback) {
   }
 }
 
+function shouldRepairTrackingRecord(order, trackingRecord) {
+  if (!trackingRecord) return true;
+
+  const expectedTracking = buildPublicTrackingRecord(order);
+  const trackedKeys = [
+    "restaurantId",
+    "restaurantLogoUrl",
+    "publicTrackingToken",
+    "sourceOrderId",
+    "orderNumber",
+    "customerName",
+    "pickupPoint",
+    "estimatedReadyMinutes",
+    "promisedReadyAt",
+    "status",
+    "createdAt",
+    "archivedAt",
+  ];
+
+  return trackedKeys.some((key) => {
+    const expectedValue = expectedTracking[key] ?? null;
+    const currentValue = trackingRecord[key] ?? null;
+    return expectedValue !== currentValue;
+  });
+}
+
+function repairPublicTrackingRecordsFromOrders(orders) {
+  if (!firebaseBackend?.enabled || typeof firebaseBackend.setDocument !== "function") return;
+
+  const trackingLookup = buildTrackingLookup(loadPublicOrders());
+
+  orders.forEach((order) => {
+    const trackingRecord = trackingLookup.get(getTrackingLookupKey(order));
+    if (!shouldRepairTrackingRecord(order, trackingRecord)) return;
+    persistTrackingDocumentForOrder(order);
+  });
+}
+
 function broadcastOrdersChanged() {
   window.dispatchEvent(new CustomEvent(SYNC_EVENT_NAME, { detail: { at: Date.now() } }));
   const channel = getSyncChannel();
@@ -1530,8 +1581,8 @@ function normalizePublicTracking(trackingRecords) {
       publicTrackingToken: "",
       sourceOrderId: "",
       customerName: "",
-      pickupPoint: "Mostrador 1",
-      estimatedReadyMinutes: 15,
+      pickupPoint: "",
+      estimatedReadyMinutes: null,
       promisedReadyAt: "",
       rating: null,
       archivedAt: null,
