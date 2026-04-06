@@ -311,7 +311,7 @@ function scheduleRestaurantModeTooltip(button) {
   window.clearTimeout(restaurantModeTooltipTimer);
   restaurantModeTooltipTimer = window.setTimeout(() => {
     showRestaurantModeTooltip(button);
-  }, 3000);
+  }, 5000);
 }
 
 function showRestaurantModeTooltip(button) {
@@ -322,7 +322,7 @@ function showRestaurantModeTooltip(button) {
   restaurantModeTooltip.textContent = hint;
   restaurantModeTooltip.hidden = false;
   restaurantModeTooltip.style.left = `${rect.left + rect.width / 2}px`;
-  restaurantModeTooltip.style.top = `${rect.top - 10}px`;
+  restaurantModeTooltip.style.top = `${rect.bottom + 10}px`;
 }
 
 function hideRestaurantModeTooltip() {

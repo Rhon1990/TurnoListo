@@ -479,7 +479,7 @@ button:hover,
   font-weight: 500;
   line-height: 1.4;
   box-shadow: 0 14px 28px rgba(29, 26, 22, 0.18);
-  transform: translate(-50%, -100%);
+  transform: translateX(-50%);
   pointer-events: none;
   z-index: 40;
 }
