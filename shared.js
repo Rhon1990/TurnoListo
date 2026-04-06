@@ -24,7 +24,6 @@ let ordersUnsubscribe = null;
 let restaurantsUnsubscribe = null;
 let trackingUnsubscribe = null;
 let currentUserProfile = null;
-const dataReadyPromise = initializeDataStore();
 
 const statusMeta = {
   received: { label: "Recibido", color: "#8f3513", bg: "rgba(216, 95, 49, 0.12)", progress: 18 },
@@ -36,6 +35,7 @@ const statusMeta = {
 
 const PUBLIC_TRACKING_TOKEN_PREFIX = "TL";
 const PUBLIC_TRACKING_TOKEN_LENGTH = 12;
+const dataReadyPromise = initializeDataStore();
 
 initializeTurnoAlerts();
 
