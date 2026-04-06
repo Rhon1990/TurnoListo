@@ -312,7 +312,7 @@ function scheduleRestaurantModeTooltip(button) {
   window.clearTimeout(restaurantModeTooltipTimer);
   restaurantModeTooltipTimer = window.setTimeout(() => {
     showRestaurantModeTooltip(button);
-  }, 5000);
+  }, 3000);
 }
 
 function showRestaurantModeTooltip(button) {
