@@ -1958,7 +1958,7 @@ button:hover,
 
   .client-meta-strip {
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: center;
     gap: 0.45rem;
     padding-inline: 0;
   }
