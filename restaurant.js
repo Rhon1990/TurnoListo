@@ -324,7 +324,7 @@ function showRestaurantModeTooltip(button) {
   restaurantModeTooltip.textContent = hint;
   restaurantModeTooltip.hidden = false;
   restaurantModeTooltip.style.left = `${rect.left - stripRect.left + rect.width / 2}px`;
-  restaurantModeTooltip.style.top = `${restaurantModeStrip.offsetHeight + 10}px`;
+  restaurantModeTooltip.style.top = `${restaurantModeStrip.offsetHeight + 4}px`;
 }
 
 function hideRestaurantModeTooltip() {
