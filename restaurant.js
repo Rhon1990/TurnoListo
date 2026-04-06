@@ -20,7 +20,6 @@ const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
-const restaurantModeHint = document.querySelector("#restaurantModeHint");
 const activeSearchInput = document.querySelector("#activeSearchInput");
 const activeStatusFilter = document.querySelector("#activeStatusFilter");
 const activePriorityFilter = document.querySelector("#activePriorityFilter");
@@ -100,12 +99,6 @@ onOrdersChanged(() => {
 quickCreateForm.addEventListener("submit", handleCreateOrder);
 restaurantModeStandard.addEventListener("click", () => setRestaurantDisplayMode("standard"));
 restaurantModeCounter.addEventListener("click", () => setRestaurantDisplayMode("counter"));
-[restaurantModeStandard, restaurantModeCounter].forEach((button) => {
-  button.addEventListener("mouseenter", () => showRestaurantModeHint(button));
-  button.addEventListener("mouseleave", hideRestaurantModeHint);
-  button.addEventListener("focus", () => showRestaurantModeHint(button));
-  button.addEventListener("blur", hideRestaurantModeHint);
-});
 restaurantLoginForm.addEventListener("submit", handleRestaurantLogin);
 restaurantLoginTogglePassword.addEventListener("click", (event) => {
   event.preventDefault();
@@ -306,18 +299,6 @@ function syncRestaurantDisplayMode() {
   restaurantWorkspace.classList.toggle("restaurant-workspace--counter", isCounterMode);
   restaurantModeStandard.classList.toggle("is-active", !isCounterMode);
   restaurantModeCounter.classList.toggle("is-active", isCounterMode);
-}
-
-function showRestaurantModeHint(button) {
-  const hint = String(button?.dataset.modeHint || "").trim();
-  if (!hint) return;
-  restaurantModeHint.textContent = hint;
-  restaurantModeHint.hidden = false;
-}
-
-function hideRestaurantModeHint() {
-  restaurantModeHint.hidden = true;
-  restaurantModeHint.textContent = "";
 }
 
 function renderRestaurantBrand(restaurant) {
