@@ -100,6 +100,12 @@ onOrdersChanged(() => {
 quickCreateForm.addEventListener("submit", handleCreateOrder);
 restaurantModeStandard.addEventListener("click", () => setRestaurantDisplayMode("standard"));
 restaurantModeCounter.addEventListener("click", () => setRestaurantDisplayMode("counter"));
+[restaurantModeStandard, restaurantModeCounter].forEach((button) => {
+  button.addEventListener("mouseenter", () => showRestaurantModeHint(button));
+  button.addEventListener("mouseleave", hideRestaurantModeHint);
+  button.addEventListener("focus", () => showRestaurantModeHint(button));
+  button.addEventListener("blur", hideRestaurantModeHint);
+});
 restaurantLoginForm.addEventListener("submit", handleRestaurantLogin);
 restaurantLoginTogglePassword.addEventListener("click", (event) => {
   event.preventDefault();
@@ -300,9 +306,18 @@ function syncRestaurantDisplayMode() {
   restaurantWorkspace.classList.toggle("restaurant-workspace--counter", isCounterMode);
   restaurantModeStandard.classList.toggle("is-active", !isCounterMode);
   restaurantModeCounter.classList.toggle("is-active", isCounterMode);
-  restaurantModeHint.textContent = isCounterMode
-    ? "Modo hora pico: mantiene todos los pedidos visibles, pero prioriza visualmente lo urgente y acelera el cambio de estados."
-    : "Modo completo: muestra la vista completa para revisar, buscar y editar pedidos.";
+}
+
+function showRestaurantModeHint(button) {
+  const hint = String(button?.dataset.modeHint || "").trim();
+  if (!hint) return;
+  restaurantModeHint.textContent = hint;
+  restaurantModeHint.hidden = false;
+}
+
+function hideRestaurantModeHint() {
+  restaurantModeHint.hidden = true;
+  restaurantModeHint.textContent = "";
 }
 
 function renderRestaurantBrand(restaurant) {

@@ -466,6 +466,11 @@ button:hover,
   color: var(--brand-dark);
 }
 
+.mode-tooltip {
+  margin-top: 0.45rem;
+  min-height: 1.2rem;
+}
+
 .list-toolbar__search,
 .list-toolbar__filter {
   display: grid;

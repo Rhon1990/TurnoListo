@@ -96,12 +96,24 @@
               Vista rápida para cocina y mostrador. Aquí solo aparecen los pedidos que todavía requieren acción.
             </p>
             <div class="mode-strip">
-              <button class="mode-chip is-active" type="button" id="restaurantModeStandard">Modo completo</button>
-              <button class="mode-chip" type="button" id="restaurantModeCounter">Modo hora pico</button>
+              <button
+                class="mode-chip is-active"
+                type="button"
+                id="restaurantModeStandard"
+                data-mode-hint="Muestra la vista completa para revisar, buscar y editar pedidos."
+              >
+                Modo completo
+              </button>
+              <button
+                class="mode-chip"
+                type="button"
+                id="restaurantModeCounter"
+                data-mode-hint="Mantiene todos los pedidos visibles, pero prioriza visualmente lo urgente y acelera el cambio de estados."
+              >
+                Modo hora pico
+              </button>
             </div>
-            <p class="hero__hint" id="restaurantModeHint">
-              Modo completo: muestra la vista completa para revisar, buscar y editar pedidos.
-            </p>
+            <p class="mode-tooltip hero__hint" id="restaurantModeHint" hidden></p>
             <div class="focus-strip" id="restaurantFocusStrip">
               <button class="focus-chip" type="button" id="focusChipCritical">
                 <span class="focus-chip__label">En riesgo</span>
