@@ -351,6 +351,7 @@ async function handleRestaurantLogin(event) {
 
 async function handleRestaurantLogout() {
   const backend = await waitForFirebaseBackend();
+  preparePrivateFirebaseSignOut();
   clearCurrentRestaurantSession();
   syncRestaurantAccess();
 

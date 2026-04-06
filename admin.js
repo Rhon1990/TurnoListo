@@ -162,6 +162,7 @@ async function handleAdminLogin(event) {
 
 async function handleAdminLogout() {
   const backend = await waitForFirebaseBackend();
+  preparePrivateFirebaseSignOut();
   clearCurrentUserProfile();
   syncAdminAccess();
 

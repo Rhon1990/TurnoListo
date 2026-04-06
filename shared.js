@@ -139,6 +139,12 @@ function disconnectPrivateFirebaseSubscriptions() {
   restaurantsUnsubscribe = null;
 }
 
+function preparePrivateFirebaseSignOut() {
+  disconnectPrivateFirebaseSubscriptions();
+  clearCurrentUserProfile();
+  updateDataBackendMode();
+}
+
 function disconnectPublicFirebaseSubscriptions() {
   trackingUnsubscribe?.();
   trackingUnsubscribe = null;
