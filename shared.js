@@ -899,6 +899,10 @@ function createOrder(orderData) {
   const currentRestaurantId =
     String(orderData.restaurantId || "").trim() || getCurrentRestaurantSession()?.restaurantId || DEFAULT_RESTAURANT_ID;
 
+  if (!normalizedSourceOrderId) {
+    throw new Error("missing-source-order");
+  }
+
   if (sourceOrderIdExists(normalizedSourceOrderId)) {
     throw new Error("duplicate-source-order");
   }

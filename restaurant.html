@@ -155,32 +155,16 @@
           <section class="restaurant-section" data-section-panel="create" hidden>
             <form class="quick-form" id="quickCreateForm">
               <label class="field">
-                <span>Pedido original</span>
-                <input id="sourceOrderId" name="sourceOrderId" type="text" placeholder="Ej. POS-804" />
+                <span>Código de factura / ticket</span>
+                <input id="sourceOrderId" name="sourceOrderId" type="text" placeholder="Ej. FAC-804 o POS-804" required />
               </label>
               <label class="field">
-                <span>Origen</span>
-                <input id="sourceSystem" name="sourceSystem" type="text" placeholder="TPV mostrador, Glovo, Uber Eats..." />
-              </label>
-              <label class="field">
-                <span>Cliente</span>
-                <input id="customerName" name="customerName" type="text" placeholder="Nombre o alias" required />
-              </label>
-              <label class="field">
-                <span>Punto de recogida</span>
-                <input id="pickupPoint" name="pickupPoint" type="text" placeholder="Mostrador 1, pickup express..." />
-              </label>
-              <label class="field">
-                <span>Tiempo estimado (min)</span>
-                <input id="estimatedReadyMinutes" name="estimatedReadyMinutes" type="number" min="1" max="180" value="15" />
+                <span>Cliente (opcional)</span>
+                <input id="customerName" name="customerName" type="text" placeholder="Nombre o alias" />
               </label>
               <label class="field field--wide">
                 <span>Pedido / resumen (opcional)</span>
                 <input id="items" name="items" type="text" placeholder="Burger doble + bebida" />
-              </label>
-              <label class="field field--wide">
-                <span>Diligencias opcionales</span>
-                <input id="notes" name="notes" type="text" placeholder="Opcional: sin gluten, avisar, extra salsa..." />
               </label>
               <div class="quick-form__actions">
                 <button type="submit" class="launcher">Crear pedido</button>
@@ -188,7 +172,7 @@
             </form>
             <p class="form-feedback" id="quickCreateFeedback" hidden></p>
             <p class="hero__hint">
-              Este panel gestiona el seguimiento del pedido y su QR, sin modificar el registro original del TPV.
+              Pega el codigo de factura o ticket de tu sistema actual y TurnoListo se encarga del seguimiento al cliente.
             </p>
           </section>
           <section class="restaurant-section" data-section-panel="dashboard" hidden>

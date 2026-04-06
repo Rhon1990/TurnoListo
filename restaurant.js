@@ -756,7 +756,7 @@ function buildOrderCard(order, isArchived) {
   qr.className = "order-card__qr";
 
   grid.append(
-    buildField("Pedido original", "sourceOrderId", order.sourceOrderId, !isEditing),
+    buildField("Código factura / ticket", "sourceOrderId", order.sourceOrderId, !isEditing),
     buildField("Origen", "sourceSystem", order.sourceSystem, !isEditing),
     buildField("Cliente", "customerName", order.customerName, !isEditing),
     buildField("Recogida", "pickupPoint", order.pickupPoint, !isEditing),
@@ -885,14 +885,17 @@ function handleCreateOrder(event) {
   try {
     order = createOrder({
       sourceOrderId: String(formData.get("sourceOrderId") || ""),
-      sourceSystem: String(formData.get("sourceSystem") || ""),
       customerName: String(formData.get("customerName") || ""),
-      pickupPoint: String(formData.get("pickupPoint") || ""),
-      estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "15"),
       items: String(formData.get("items") || ""),
-      notes: String(formData.get("notes") || ""),
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "missing-source-order") {
+      quickCreateFeedback.textContent = "Necesitas pegar el codigo de factura o ticket.";
+      quickCreateFeedback.className = "form-feedback form-feedback--error";
+      quickCreateFeedback.hidden = false;
+      return;
+    }
+
     if (error instanceof Error && error.message === "duplicate-source-order") {
       quickCreateFeedback.textContent = "Ese pedido ya existe.";
       quickCreateFeedback.className = "form-feedback form-feedback--error";
