@@ -44,7 +44,6 @@ const feedbackComment = document.querySelector("#clientFeedbackComment");
 const commentInput = document.querySelector("#clientCommentInput");
 const commentSaveButton = document.querySelector("#clientCommentSave");
 const commentSentMessage = document.querySelector("#clientCommentSentMessage");
-const clientManifestLink = document.querySelector("#clientManifestLink");
 
 let selectedOrderId = initialOrderId;
 let orderInputDirty = false;
@@ -78,6 +77,8 @@ const IS_IOS_STANDALONE =
   IS_IOS_DEVICE &&
   (window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator?.standalone === true);
 const IS_IOS_CHROME = /CriOS/i.test(String(window.navigator?.userAgent || ""));
+
+const clientManifestLink = ensureClientManifestLink();
 
 readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "true";
 pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
@@ -332,13 +333,22 @@ function rememberClientOrder(orderId) {
   window.localStorage.setItem(LAST_CLIENT_ORDER_STORAGE_KEY, normalizedOrderId);
 }
 
+function ensureClientManifestLink() {
+  if (IS_IOS_DEVICE) return null;
+
+  let manifestLink = document.querySelector("#clientManifestLink");
+  if (manifestLink) return manifestLink;
+
+  manifestLink = document.createElement("link");
+  manifestLink.id = "clientManifestLink";
+  manifestLink.rel = "manifest";
+  manifestLink.href = "./manifest.webmanifest";
+  document.head.append(manifestLink);
+  return manifestLink;
+}
+
 function syncClientInstallManifest(orderId) {
   if (!clientManifestLink) return;
-
-  if (IS_IOS_DEVICE) {
-    clientManifestLink.remove();
-    return;
-  }
 
   const normalizedOrderId = normalizePublicTrackingToken(orderId || "");
   if (!normalizedOrderId) {
