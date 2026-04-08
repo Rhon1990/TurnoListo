@@ -947,7 +947,8 @@ function buildOrderCard(order, isArchived) {
   ratingRow.append(rating, commentButton);
   compactSide.append(qrCode, ratingRow, badge, quickStatusActions);
   compactButton.append(compactMain, compactSide);
-  compactButton.addEventListener("click", () => {
+  compactButton.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest(".term-hint")) return;
     if (isCounterMode) return;
     expandedOrderId = expandedOrderId === order.id ? null : order.id;
     renderRestaurant();
@@ -1092,15 +1093,6 @@ function buildEtaHintElement(order) {
         : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
     element.dataset.termHint = hint;
     element.tabIndex = 0;
-    element.addEventListener("mouseenter", () => showRestaurantTermTooltip(element));
-    element.addEventListener("mouseleave", hideRestaurantTermTooltip);
-    element.addEventListener("focus", () => showRestaurantTermTooltip(element));
-    element.addEventListener("blur", hideRestaurantTermTooltip);
-    ["click", "mousedown", "mouseup"].forEach((eventName) => {
-      element.addEventListener(eventName, (event) => {
-        event.stopPropagation();
-      });
-    });
   }
 
   return element;
