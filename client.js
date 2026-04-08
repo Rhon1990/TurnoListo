@@ -335,6 +335,11 @@ function rememberClientOrder(orderId) {
 function syncClientInstallManifest(orderId) {
   if (!clientManifestLink) return;
 
+  if (IS_IOS_DEVICE) {
+    clientManifestLink.remove();
+    return;
+  }
+
   const normalizedOrderId = normalizePublicTrackingToken(orderId || "");
   if (!normalizedOrderId) {
     clientManifestLink.href = "./manifest.webmanifest";
@@ -556,7 +561,7 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     alertsButtonLockedReason = "";
 
     if (result?.reason === "missing-vapid-key") {
-      alertsStatusOverride = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
+      alertsStatusOverride = "Falta configurar los avisos para que funcionen aunque uses otras apps en este dispositivo.";
     } else if (result?.reason === "permission-denied") {
       alertsStatusOverride = "Has bloqueado las notificaciones del navegador. Activalas en los permisos del sitio.";
     } else if (result?.reason === "permission-dismissed") {
@@ -571,12 +576,13 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
       alertsButtonLockedReason = "unsupported";
     } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
       alertsStatusOverride =
-        "La activacion de avisos tardo demasiado en este dispositivo. Puedes seguir usando el sonido local con la pagina abierta.";
+        "La activacion de avisos tardo demasiado en este dispositivo. Puedes seguir usando TurnoListo sin problema mientras dejes esta pantalla abierta.";
     } else if (result?.reason === "missing-token" && options.retryAfterGrant) {
       alertsStatusOverride =
         "Estamos terminando de activar las notificaciones en este navegador. Intenta de nuevo en unos segundos si no se completa.";
     } else {
-      alertsStatusOverride = "No se pudo activar la notificacion en segundo plano en este dispositivo.";
+      alertsStatusOverride =
+        "No se pudo activar el aviso para cuando uses otras apps en este dispositivo. Aun asi, TurnoListo seguira funcionando en esta pantalla.";
     }
     return { enabled: false, reason: result?.reason || "unknown" };
   }
@@ -681,8 +687,8 @@ function renderIosInstallBanner() {
 
   iosInstallTitle.textContent = "Mejora los avisos en tu iPhone.";
   iosInstallText.textContent = IS_IOS_CHROME
-    ? "Abre este pedido en Safari y anadelo a pantalla de inicio. Desde ahi TurnoListo podra avisarte mejor con sonido y notificaciones."
-    : "Anade TurnoListo a pantalla de inicio y abre este pedido desde ese icono. Asi los avisos en iPhone funcionaran mejor.";
+    ? "Abre este pedido en Safari, borra cualquier icono anterior de TurnoListo y anadelo de nuevo a pantalla de inicio. Desde ahi podra avisarte mejor con sonido y notificaciones."
+    : "Borra cualquier icono anterior de TurnoListo, anade este pedido a pantalla de inicio y abrelo desde ese icono. Asi los avisos en iPhone funcionaran mejor.";
   iosInstallButton.textContent = iosInstallSteps.hidden ? "Como activarlo en iPhone" : "Ocultar pasos";
 }
 
