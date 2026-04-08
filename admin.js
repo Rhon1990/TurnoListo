@@ -54,6 +54,7 @@ const adminOrderOutcomeMix = document.querySelector("#adminOrderOutcomeMix");
 const adminAdoptionMix = document.querySelector("#adminAdoptionMix");
 const adminTopRestaurantsBars = document.querySelector("#adminTopRestaurantsBars");
 const adminInsights = document.querySelector("#adminInsights");
+const adminTermTooltip = document.querySelector("#adminTermTooltip");
 const adminDeleteModal = document.querySelector("#adminDeleteModal");
 const adminDeleteBackdrop = document.querySelector("#adminDeleteBackdrop");
 const adminDeleteClose = document.querySelector("#adminDeleteClose");
@@ -65,6 +66,7 @@ let activeAdminSection = "dashboard";
 let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
 let selectedRestaurantLogoUrl = "";
+let adminTermTooltipTimer = 0;
 const PLAN_DURATIONS = {
   Quincenal: 15,
   Mensual: 30,
@@ -107,11 +109,52 @@ adminTabs.forEach((button) => {
 });
 
 function bootAdminPage() {
+  initializeTermHints(document.querySelector("#adminWorkspace"), adminTermTooltip, () => adminTermTooltipTimer, (value) => {
+    adminTermTooltipTimer = value;
+  });
   syncAdminAccess();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
     renderAdminWorkspace();
   }
+}
+
+function initializeTermHints(root, tooltip, getTimer, setTimer) {
+  if (!root || !tooltip) return;
+  root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
+    if (element.dataset.termHintBound === "true") return;
+    element.dataset.termHintBound = "true";
+    element.tabIndex = 0;
+    element.addEventListener("mouseenter", () => {
+      window.clearTimeout(getTimer());
+      setTimer(
+        window.setTimeout(() => {
+          showTermTooltip(element, tooltip);
+        }, 700),
+      );
+    });
+    element.addEventListener("mouseleave", () => hideTermTooltip(tooltip, getTimer, setTimer));
+    element.addEventListener("focus", () => showTermTooltip(element, tooltip));
+    element.addEventListener("blur", () => hideTermTooltip(tooltip, getTimer, setTimer));
+  });
+}
+
+function showTermTooltip(element, tooltip) {
+  const hint = String(element?.dataset.termHint || "").trim();
+  if (!hint || !tooltip) return;
+  const rect = element.getBoundingClientRect();
+  tooltip.textContent = hint;
+  tooltip.hidden = false;
+  tooltip.style.left = `${rect.left + rect.width / 2}px`;
+  tooltip.style.top = `${rect.bottom + 8}px`;
+}
+
+function hideTermTooltip(tooltip, getTimer, setTimer) {
+  window.clearTimeout(getTimer());
+  setTimer(0);
+  if (!tooltip) return;
+  tooltip.hidden = true;
+  tooltip.textContent = "";
 }
 
 function syncActivationDaysWithPlan() {

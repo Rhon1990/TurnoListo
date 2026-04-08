@@ -22,6 +22,7 @@ const restaurantModeStrip = document.querySelector(".mode-strip");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
 const restaurantModeTooltip = document.querySelector("#restaurantModeTooltip");
+const restaurantTermTooltip = document.querySelector("#restaurantTermTooltip");
 const activeSearchInput = document.querySelector("#activeSearchInput");
 const activeStatusFilter = document.querySelector("#activeStatusFilter");
 const activePriorityFilter = document.querySelector("#activePriorityFilter");
@@ -95,6 +96,7 @@ let activeSection = "orders";
 let lastDashboardStats = null;
 let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-display-mode") || "standard";
 let restaurantModeTooltipTimer = 0;
+let restaurantTermTooltipTimer = 0;
 
 initializeRestaurantFirebaseAuth();
 waitForDataReady().then(bootRestaurantPage);
@@ -159,10 +161,29 @@ focusChipDueSoon.addEventListener("click", () => goToOrdersView({ status: "all",
 focusChipReady.addEventListener("click", () => goToOrdersView({ status: "ready", priority: "ready-waiting", search: "" }));
 
 function bootRestaurantPage() {
+  initializeRestaurantTermHints(document.querySelector("#restaurantWorkspace"));
   syncRestaurantAccess();
   if (getCurrentRestaurantSession()) {
     renderRestaurant();
   }
+}
+
+function initializeRestaurantTermHints(root = document) {
+  if (!root || !restaurantTermTooltip) return;
+  root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
+    if (element.dataset.termHintBound === "true") return;
+    element.dataset.termHintBound = "true";
+    element.tabIndex = 0;
+    element.addEventListener("mouseenter", () => {
+      window.clearTimeout(restaurantTermTooltipTimer);
+      restaurantTermTooltipTimer = window.setTimeout(() => {
+        showRestaurantTermTooltip(element);
+      }, 700);
+    });
+    element.addEventListener("mouseleave", hideRestaurantTermTooltip);
+    element.addEventListener("focus", () => showRestaurantTermTooltip(element));
+    element.addEventListener("blur", hideRestaurantTermTooltip);
+  });
 }
 
 function bindDashboardAction(element, handler) {
@@ -342,6 +363,24 @@ function hideRestaurantModeTooltip() {
   window.clearTimeout(restaurantModeTooltipTimer);
   restaurantModeTooltip.hidden = true;
   restaurantModeTooltip.textContent = "";
+}
+
+function showRestaurantTermTooltip(element) {
+  const hint = String(element?.dataset.termHint || "").trim();
+  if (!hint || !restaurantTermTooltip) return;
+  const rect = element.getBoundingClientRect();
+  restaurantTermTooltip.textContent = hint;
+  restaurantTermTooltip.hidden = false;
+  restaurantTermTooltip.style.left = `${rect.left + rect.width / 2}px`;
+  restaurantTermTooltip.style.top = `${rect.bottom + 8}px`;
+}
+
+function hideRestaurantTermTooltip() {
+  window.clearTimeout(restaurantTermTooltipTimer);
+  restaurantTermTooltipTimer = 0;
+  if (!restaurantTermTooltip) return;
+  restaurantTermTooltip.hidden = true;
+  restaurantTermTooltip.textContent = "";
 }
 
 function renderRestaurantBrand(restaurant) {
@@ -881,7 +920,10 @@ function buildOrderCard(order, isArchived) {
   footer.className = "order-card__footer";
 
   compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  compactLine.textContent = `${order.items} · ${order.pickupPoint} · ${formatOrderEtaSummary(order)}`;
+  compactLine.append(
+    document.createTextNode(`${order.items} · ${order.pickupPoint} · `),
+    buildEtaHintElement(order),
+  );
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
@@ -951,6 +993,8 @@ function buildOrderCard(order, isArchived) {
       throw error;
     }
   });
+
+  initializeRestaurantTermHints(card);
 
   link.href = buildClientUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
   link.target = "_blank";
@@ -1035,6 +1079,22 @@ function formatOrderEtaSummary(order) {
   if (remainingMinutes <= 0) return "Retrasado";
   if (remainingMinutes === 1) return "ETA 1 min";
   return `ETA ${remainingMinutes} min`;
+}
+
+function buildEtaHintElement(order) {
+  const summary = formatOrderEtaSummary(order);
+  const element = document.createElement("span");
+  element.textContent = summary;
+
+  if (summary === "Sin ETA" || summary.startsWith("ETA ")) {
+    element.className = "term-hint";
+    element.dataset.termHint =
+      summary === "Sin ETA"
+        ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
+        : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
+  }
+
+  return element;
 }
 
 function handleCreateOrder(event) {

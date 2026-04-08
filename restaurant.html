@@ -47,6 +47,7 @@
     </div>
 
     <div class="app-shell" id="restaurantWorkspace" hidden>
+      <div class="floating-tooltip floating-tooltip--fixed" id="restaurantTermTooltip" hidden></div>
       <header class="hero hero--compact">
         <div class="hero__copy">
           <div class="hero-brand" id="restaurantBrand" hidden>
@@ -241,7 +242,7 @@
                   <p class="dashboard-card__hint">Entregados en 15 min o menos</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Riesgo operativo</p>
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Pedidos que ya llevan demasiado tiempo abiertos y pueden acabar en queja, retraso o cancelacion.">Riesgo operativo</span></p>
                   <strong class="dashboard-card__value" id="dashboardDelayedActive">0</strong>
                   <p class="dashboard-card__hint">Pedidos activos con más de 15 min</p>
                 </article>
@@ -288,7 +289,7 @@
                       <p class="panel__kicker">Propietario</p>
                       <h3>Señales clave</h3>
                     </div>
-                    <span class="summary-chip" id="dashboardPeakHour">Hora pico --:--</span>
+                    <span class="summary-chip" id="dashboardPeakHour"><span class="term-hint" data-term-hint="La hora pico es el momento del dia en el que entran mas pedidos.">Hora pico --:--</span></span>
                   </div>
                   <div class="dashboard-signals">
                     <div class="dashboard-signal">

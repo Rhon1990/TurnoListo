@@ -47,6 +47,7 @@
     </div>
 
     <div class="app-shell" id="adminWorkspace" hidden>
+      <div class="floating-tooltip floating-tooltip--fixed" id="adminTermTooltip" hidden></div>
       <header class="hero hero--compact">
         <div class="hero__copy">
           <p class="eyebrow">Administrador</p>
@@ -88,24 +89,24 @@
               </div>
               <section class="dashboard-hero dashboard-hero--admin">
                 <article class="dashboard-hero__primary">
-                  <p class="panel__kicker">Pulso del negocio</p>
-                  <h3 class="dashboard-hero__title">Base activa</h3>
+                  <p class="panel__kicker"><span class="term-hint" data-term-hint="Es una lectura rapida del estado general del negocio en este momento.">Pulso del negocio</span></p>
+                  <h3 class="dashboard-hero__title"><span class="term-hint" data-term-hint="Muestra cuantas cuentas estan vigentes y realmente disponibles para operar.">Base activa</span></h3>
                   <strong class="dashboard-hero__value" id="adminHeroActiveBase">0</strong>
                   <p class="dashboard-hero__hint" id="adminHeroActiveBaseHint">0% de la base con acceso vigente</p>
                 </article>
                 <div class="dashboard-hero__rail">
                   <article class="dashboard-hero__mini">
-                    <p class="stat__label">Actividad semanal</p>
+                    <p class="stat__label"><span class="term-hint" data-term-hint="Porcentaje de restaurantes que han usado la plataforma durante los ultimos 7 dias.">Actividad semanal</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroWeeklyActivity">0%</strong>
                     <p class="dashboard-card__hint" id="adminHeroWeeklyActivityHint">Restaurantes operando en 7 días</p>
                   </article>
                   <article class="dashboard-hero__mini">
-                    <p class="stat__label">Renovación inmediata</p>
+                    <p class="stat__label"><span class="term-hint" data-term-hint="Cuentas que necesitan contacto comercial o renovacion en este momento.">Renovación inmediata</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroRenewal">0</strong>
                     <p class="dashboard-card__hint" id="adminHeroRenewalHint">Cuentas para mover hoy</p>
                   </article>
                   <article class="dashboard-hero__mini">
-                    <p class="stat__label">Riesgo de churn</p>
+                    <p class="stat__label"><span class="term-hint" data-term-hint="Churn significa perdida de clientes. Aqui señala restaurantes con riesgo de dejar de usar o renovar el producto.">Riesgo de churn</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroRisk">0</strong>
                     <p class="dashboard-card__hint" id="adminHeroRiskHint">Locales dormidos o sin activar</p>
                   </article>
@@ -152,7 +153,7 @@
                   <p class="dashboard-card__hint" id="adminActionRenewalHint">Cuentas con acceso vencido o a punto de vencer</p>
                 </article>
                 <article class="dashboard-card dashboard-card--action" id="adminActionOnboarding" role="button" tabindex="0">
-                  <p class="stat__label">Activar onboarding</p>
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Onboarding es el proceso de activar al restaurante para que empiece a usar el producto con exito.">Activar onboarding</span></p>
                   <strong class="dashboard-card__value" id="adminActionOnboardingCount">0</strong>
                   <p class="dashboard-card__hint" id="adminActionOnboardingHint">Locales que aún no consolidan el flujo principal</p>
                 </article>
@@ -162,7 +163,7 @@
                   <p class="dashboard-card__hint" id="adminActionRiskHint">Restaurantes con señales de caída de actividad</p>
                 </article>
                 <article class="dashboard-card dashboard-card--action" id="adminActionHealthy" role="button" tabindex="0">
-                  <p class="stat__label">Upsell</p>
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Upsell significa detectar cuentas sanas donde puedes vender mas valor, mas funciones o un plan superior.">Upsell</span></p>
                   <strong class="dashboard-card__value" id="adminActionHealthyCount">0</strong>
                   <p class="dashboard-card__hint" id="adminActionHealthyHint">Base sana para retención, reseñas y expansión</p>
                 </article>
@@ -201,7 +202,7 @@
                 <article class="dashboard-panel">
                   <div class="dashboard-panel__top">
                     <div>
-                      <p class="panel__kicker">Adopción</p>
+                      <p class="panel__kicker"><span class="term-hint" data-term-hint="Adopcion mide si los restaurantes ya incorporaron TurnoListo en su operacion habitual.">Adopción</span></p>
                       <h3>Uso por restaurante</h3>
                     </div>
                   </div>

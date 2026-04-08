@@ -530,6 +530,23 @@ button:hover,
   z-index: 40;
 }
 
+.floating-tooltip--fixed {
+  position: fixed;
+  z-index: 60;
+}
+
+.term-hint {
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 1px dashed rgba(216, 95, 49, 0.42);
+  cursor: help;
+}
+
+.term-hint:focus-visible {
+  outline: 2px solid rgba(216, 95, 49, 0.4);
+  outline-offset: 2px;
+}
+
 .list-toolbar__search,
 .list-toolbar__filter {
   display: grid;
