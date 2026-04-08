@@ -458,7 +458,7 @@ button:hover,
 .auth-brand__name {
   margin: 0;
   width: 100%;
-  font-size: clamp(2.1rem, 4.6vw, 3.75rem);
+  font-size: clamp(2.1rem, 4.8vw, 4.0625rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
   font-weight: 700;
