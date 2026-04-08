@@ -1274,6 +1274,30 @@ button:hover,
   margin-top: 0.15rem;
 }
 
+.callout--ios-install {
+  display: grid;
+  gap: 0.7rem;
+  background: linear-gradient(180deg, rgba(236, 124, 13, 0.12), rgba(255, 255, 255, 0.68));
+  border-color: rgba(236, 124, 13, 0.18);
+}
+
+.client-ios-install-steps {
+  padding: 0.85rem 0.95rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  text-align: left;
+}
+
+.client-ios-install-steps p {
+  margin: 0;
+  color: var(--ink);
+}
+
+.client-ios-install-steps p + p {
+  margin-top: 0.45rem;
+}
+
 .client-alerts-confirmation {
   margin: 1rem 0 0;
   text-align: center;

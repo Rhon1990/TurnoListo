@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TurnoListo" />
     <meta name="theme-color" content="#1f7a63" />
-    <link rel="stylesheet" href="./styles.css?v=20260408a" />
+    <link rel="stylesheet" href="./styles.css?v=20260408d" />
   </head>
   <body class="client-view">
     <div class="app-shell">
@@ -77,6 +77,22 @@
               <button class="button-secondary ghost-button--full" id="clientEnableAlertsButton" type="button">
                 Activar avisos
               </button>
+            </div>
+
+            <div class="callout callout--ios-install" id="clientIosInstallBanner" hidden>
+              <strong id="clientIosInstallTitle">Mejora los avisos en tu iPhone.</strong>
+              <span id="clientIosInstallText">
+                Para que TurnoListo pueda avisarte mejor, abre este pedido en Safari, anadelo a pantalla de inicio y activalo desde ese icono.
+              </span>
+              <button class="button-secondary ghost-button--full" id="clientIosInstallButton" type="button">
+                Como activarlo en iPhone
+              </button>
+              <div class="client-ios-install-steps" id="clientIosInstallSteps" hidden>
+                <p>1. Abre este mismo pedido en Safari.</p>
+                <p>2. Toca Compartir.</p>
+                <p>3. Elige "Anadir a pantalla de inicio".</p>
+                <p>4. Abre TurnoListo desde el icono y toca "Activar avisos".</p>
+              </div>
             </div>
 
             <p class="client-alerts-confirmation" id="clientAlertsConfirmation" hidden>
@@ -149,9 +165,9 @@
       </div>
     </div>
 
-    <script src="./firebase-config.js?v=20260408a"></script>
-    <script type="module" src="./firebase-bridge.js?v=20260408a"></script>
-    <script src="./shared.js?v=20260408a"></script>
-    <script src="./client.js?v=20260408a"></script>
+    <script src="./firebase-config.js?v=20260408d"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260408d"></script>
+    <script src="./shared.js?v=20260408d"></script>
+    <script src="./client.js?v=20260408d"></script>
   </body>
 </html>

@@ -24,6 +24,11 @@ const alertsBanner = document.querySelector("#clientAlertsBanner");
 const alertsTitle = document.querySelector("#clientAlertsTitle");
 const alertsStatus = document.querySelector("#clientAlertsStatus");
 const enableAlertsButton = document.querySelector("#clientEnableAlertsButton");
+const iosInstallBanner = document.querySelector("#clientIosInstallBanner");
+const iosInstallTitle = document.querySelector("#clientIosInstallTitle");
+const iosInstallText = document.querySelector("#clientIosInstallText");
+const iosInstallButton = document.querySelector("#clientIosInstallButton");
+const iosInstallSteps = document.querySelector("#clientIosInstallSteps");
 const alertsConfirmation = document.querySelector("#clientAlertsConfirmation");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
@@ -64,6 +69,10 @@ const PUSH_ORDER_STORAGE_KEY = "turnolisto-client-push-order";
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
 const IS_IOS_DEVICE = /iPhone|iPad|iPod/i.test(String(window.navigator?.userAgent || ""));
+const IS_IOS_STANDALONE =
+  IS_IOS_DEVICE &&
+  (window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator?.standalone === true);
+const IS_IOS_CHROME = /CriOS/i.test(String(window.navigator?.userAgent || ""));
 
 readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "true";
 pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
@@ -156,6 +165,7 @@ qrCloseButton.addEventListener("click", closeQrModal);
 ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 enableAlertsButton.addEventListener("click", handleEnableAlerts);
+iosInstallButton.addEventListener("click", toggleIosInstallSteps);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -207,6 +217,7 @@ function renderClient() {
   renderRating(order);
   renderCommentPrompt(order);
   renderAlertsBanner();
+  renderIosInstallBanner();
   syncPushRegistrationForCurrentOrder();
 
   triggerReadyCelebration(previousStatus, order.status);
@@ -261,6 +272,7 @@ function renderMissingOrder() {
   showQrButton.disabled = true;
   showQrButton.textContent = "QR no disponible";
   renderAlertsBanner();
+  renderIosInstallBanner();
 }
 
 function renderClientBrand(restaurant) {
@@ -557,6 +569,31 @@ function getDefaultAlertsCopy(options = {}) {
   }
 
   return `Recibiras sonido y vibracion si tienes ${appReference}, y notificacion si el movil esta bloqueado.`;
+}
+
+function renderIosInstallBanner() {
+  if (!iosInstallBanner) return;
+
+  const isInactiveOrder = ["delivered", "cancelled"].includes(currentOrder?.status || "");
+  const shouldShow = IS_IOS_DEVICE && !IS_IOS_STANDALONE && !isInactiveOrder;
+  iosInstallBanner.hidden = !shouldShow;
+
+  if (!shouldShow) {
+    iosInstallSteps.hidden = true;
+    return;
+  }
+
+  iosInstallTitle.textContent = "Mejora los avisos en tu iPhone.";
+  iosInstallText.textContent = IS_IOS_CHROME
+    ? "Abre este pedido en Safari y anadelo a pantalla de inicio. Desde ahi TurnoListo podra avisarte mejor con sonido y notificaciones."
+    : "Anade TurnoListo a pantalla de inicio y abre este pedido desde ese icono. Asi los avisos en iPhone funcionaran mejor.";
+  iosInstallButton.textContent = iosInstallSteps.hidden ? "Como activarlo en iPhone" : "Ocultar pasos";
+}
+
+function toggleIosInstallSteps() {
+  if (!iosInstallSteps || iosInstallBanner.hidden) return;
+  iosInstallSteps.hidden = !iosInstallSteps.hidden;
+  renderIosInstallBanner();
 }
 
 async function playReadyTone() {
