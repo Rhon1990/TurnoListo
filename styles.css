@@ -14,7 +14,7 @@
   --radius-md: 18px;
   --type-kicker: 0.72rem;
   --type-body: 0.98rem;
-  --type-h1: clamp(2rem, 5vw, 3.9rem);
+  --type-h1: clamp(1.7rem, 4vw, 3rem);
   --type-h2: clamp(1.35rem, 2.5vw, 1.8rem);
   --type-h3: clamp(1.2rem, 2vw, 1.45rem);
   --type-brand: clamp(1.2rem, 2.4vw, 1.6rem);
@@ -124,9 +124,9 @@ body.celebration-active::after {
   font-family: var(--font-display);
   font-size: var(--type-h1);
   font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.045em;
-  max-width: 11ch;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  max-width: 13ch;
 }
 
 .panel h2,
@@ -1408,7 +1408,7 @@ button:hover,
 }
 
 .admin-card__brand-fallback {
-  font-family: "Instrument Serif", serif;
+  font-family: var(--font-display);
   font-size: 1.6rem;
   line-height: 1;
   color: var(--brand-dark);
@@ -1535,9 +1535,11 @@ button:hover,
 }
 
 .comment-modal__content h3 {
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
-  line-height: 0.95;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 3vw, 1.95rem);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.03em;
 }
 
 .comment-modal__meta {
@@ -1790,9 +1792,11 @@ button:hover,
 
 .dashboard-panel__top h3 {
   margin: 0;
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  line-height: 0.98;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
 }
 
 .dashboard-bars,
