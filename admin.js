@@ -501,7 +501,7 @@ function renderAdminDashboard(stats) {
     stats.topRestaurantsByOrders.map((item) => ({
       label: item.restaurant.name,
       count: item.orderCount,
-      color: "#d85f31",
+      color: "#ff7a00",
       valueLabel: `${item.orderCount} pedidos`,
     })),
     "Todavía no hay suficiente actividad para mostrar un ranking.",
@@ -542,7 +542,7 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
 
     label.textContent = item.label;
     fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
-    fill.style.background = item.color || "#d85f31";
+    fill.style.background = item.color || "#ff7a00";
     value.textContent = item.valueLabel || String(item.count || 0);
 
     track.append(fill);
@@ -572,7 +572,7 @@ function renderDashboardDonut(container, items, centerLabel) {
     const start = accumulated;
     const size = (Number(item.count || 0) / total) * 360;
     accumulated += size;
-    return `${item.color || "#d85f31"} ${start}deg ${accumulated}deg`;
+    return `${item.color || "#ff7a00"} ${start}deg ${accumulated}deg`;
   });
 
   chart.className = "dashboard-donut__chart";
@@ -585,7 +585,7 @@ function renderDashboardDonut(container, items, centerLabel) {
   safeItems.forEach((item) => {
     const row = document.createElement("div");
     row.className = "dashboard-donut__legend-row";
-    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#d85f31"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ff7a00"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
     legend.append(row);
   });
 
@@ -955,7 +955,7 @@ function syncRestaurantHealthPill(element, segment) {
     onboarding: {
       label: "Onboarding",
       background: "rgba(216, 95, 49, 0.12)",
-      color: "#8f3513",
+      color: "#c95512",
     },
     renewal: {
       label: "Renovación",

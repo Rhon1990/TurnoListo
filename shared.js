@@ -26,8 +26,8 @@ let trackingUnsubscribe = null;
 let currentUserProfile = null;
 
 const statusMeta = {
-  received: { label: "Recibido", color: "#8f3513", bg: "rgba(216, 95, 49, 0.12)", progress: 18 },
-  preparing: { label: "En preparación", color: "#8c6403", bg: "rgba(239, 184, 76, 0.18)", progress: 58 },
+  received: { label: "Recibido", color: "#c95512", bg: "rgba(255, 122, 0, 0.12)", progress: 18 },
+  preparing: { label: "En preparación", color: "#ff7a00", bg: "rgba(255, 138, 0, 0.18)", progress: 58 },
   ready: { label: "Listo para recoger", color: "#1f7a63", bg: "rgba(31, 122, 99, 0.14)", progress: 100 },
   delivered: { label: "Entregado", color: "#0c5b75", bg: "rgba(12, 91, 117, 0.12)", progress: 100 },
   cancelled: { label: "Cancelado", color: "#7f1d1d", bg: "rgba(127, 29, 29, 0.12)", progress: 100 },
@@ -1292,7 +1292,7 @@ function getDashboardStats() {
       { label: "Comentadas", count: commentedOrders.length, color: "#0c5b75" },
     ],
     throughputMix: [
-      { label: "Activos", count: activeOrders.length, color: "#8c6403" },
+      { label: "Activos", count: activeOrders.length, color: "#ff7a00" },
       { label: "Listos", count: activeOrders.filter((order) => order.status === "ready").length, color: "#1f7a63" },
       { label: "Entregados", count: deliveredOrders.length, color: "#0c5b75" },
       { label: "Cancelados", count: todayOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
@@ -1358,16 +1358,16 @@ function getAdminDashboardStats() {
     topRestaurantsByOrders,
     accessMix: [
       { label: "Activos", count: activeRestaurants.length, color: "#1f7a63" },
-      { label: "Vencen pronto", count: soonToExpire, color: "#b66a08" },
+      { label: "Vencen pronto", count: soonToExpire, color: "#ff8a00" },
       { label: "Vencidos", count: expiredRestaurants.length, color: "#b42318" },
     ],
     adoptionMix: [
       { label: "Activos 7d", count: recentlyActiveRestaurants, color: "#1f7a63" },
-      { label: "Dormidos 14d", count: dormantRestaurants, color: "#b66a08" },
-      { label: "Sin pedidos", count: restaurantsWithoutOrders, color: "#8f3513" },
+      { label: "Dormidos 14d", count: dormantRestaurants, color: "#ff8a00" },
+      { label: "Sin pedidos", count: restaurantsWithoutOrders, color: "#c95512" },
     ],
     orderOutcomeMix: [
-      { label: "Activos", count: orders.filter((order) => !order.archivedAt).length, color: "#8c6403" },
+      { label: "Activos", count: orders.filter((order) => !order.archivedAt).length, color: "#ff7a00" },
       { label: "Entregados", count: orders.filter((order) => order.status === "delivered").length, color: "#1f7a63" },
       { label: "Cancelados", count: orders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
     ],
