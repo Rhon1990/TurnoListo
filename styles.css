@@ -450,20 +450,20 @@ button:hover,
 .auth-brand__copy {
   display: grid;
   gap: 0.1rem;
-  justify-items: stretch;
+  justify-items: center;
   width: var(--auth-brand-copy-width);
 }
 
 .auth-brand__name {
   margin: 0;
   width: 100%;
-  font-size: clamp(2.2rem, 4.1vw, 3.35rem);
+  font-size: clamp(3rem, 7vw, 6.25rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
   font-weight: 700;
   color: #ff7a00;
   white-space: nowrap;
-  text-align: left;
+  text-align: center;
 }
 
 .auth-brand__name span {
@@ -480,7 +480,7 @@ button:hover,
   letter-spacing: 0;
   color: #c06a22;
   white-space: nowrap;
-  text-align: left;
+  text-align: center;
 }
 
 .auth-form {
