@@ -11,44 +11,83 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260408a" />
+    <link rel="stylesheet" href="./styles.css?v=20260408b" />
   </head>
   <body>
     <div class="app-shell" id="restaurantLoginView" hidden>
       <main class="grid grid--single">
         <section class="panel glass-card auth-panel">
-          <div class="auth-brand">
-            <img class="auth-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
-            <div class="auth-brand__copy" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
-              <p class="auth-brand__name">Turno<span>Listo</span></p>
-              <p class="auth-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
-            </div>
-          </div>
-          <div class="panel__heading">
-            <div>
-              <p class="panel__kicker">Acceso restaurante</p>
-              <h2>Inicia sesión para gestionar tus pedidos</h2>
-            </div>
-          </div>
-          <form class="quick-form auth-form" id="restaurantLoginForm">
-            <label class="field">
-              <span>Correo de acceso</span>
-              <input id="restaurantLoginUsername" name="username" type="email" placeholder="correo@restaurante.com" required />
-            </label>
-            <label class="field">
-              <span>Contraseña</span>
-              <div class="password-field">
-                <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" required />
-                <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
-                  👁
-                </button>
+          <div class="auth-layout auth-layout--restaurant">
+            <div class="auth-showcase">
+              <div class="auth-brand">
+                <img class="auth-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+                <div class="auth-brand__copy" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
+                  <p class="auth-brand__name">Turno<span>Listo</span></p>
+                  <p class="auth-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+                </div>
               </div>
-            </label>
-            <div class="quick-form__actions">
-              <button type="submit" class="launcher">Entrar</button>
+              <div class="auth-showcase__copy">
+                <p class="panel__kicker">Acceso restaurante</p>
+                <h2>Convierte la espera en una experiencia clara, rápida y sin hardware extra.</h2>
+                <p class="auth-showcase__text">
+                  TurnoListo acompaña el flujo actual del local, comparte seguimiento al cliente y reduce preguntas en
+                  mostrador sin reemplazar el sistema principal.
+                </p>
+              </div>
+              <div class="auth-proof-grid">
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Operación ligera</p>
+                  <strong class="auth-proof-card__value">1 toque</strong>
+                  <p class="auth-proof-card__text">Actualiza estados rápido desde móvil, tablet o mostrador.</p>
+                </article>
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Sin hardware</p>
+                  <strong class="auth-proof-card__value">0 equipos</strong>
+                  <p class="auth-proof-card__text">No depende de pantallas ni turneros tradicionales para funcionar.</p>
+                </article>
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Cliente informado</p>
+                  <strong class="auth-proof-card__value">QR vivo</strong>
+                  <p class="auth-proof-card__text">El pedido se sigue en tiempo real desde el móvil del cliente.</p>
+                </article>
+              </div>
+              <div class="auth-signal-strip">
+                <span class="auth-signal">Estados en tiempo real</span>
+                <span class="auth-signal">Seguimiento por QR</span>
+                <span class="auth-signal">Menos caos en recogida</span>
+              </div>
             </div>
-          </form>
-          <p class="form-feedback" id="restaurantLoginFeedback" hidden></p>
+            <div class="auth-entry">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Acceso restaurante</p>
+                  <h2>Inicia sesión para gestionar tus pedidos</h2>
+                </div>
+              </div>
+              <p class="auth-entry__text">
+                Entra para mover pedidos, compartir el seguimiento con el cliente y operar la hora pico con más control.
+              </p>
+              <form class="quick-form auth-form" id="restaurantLoginForm">
+                <label class="field">
+                  <span>Correo de acceso</span>
+                  <input id="restaurantLoginUsername" name="username" type="email" placeholder="correo@restaurante.com" required />
+                </label>
+                <label class="field">
+                  <span>Contraseña</span>
+                  <div class="password-field">
+                    <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" required />
+                    <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
+                      👁
+                    </button>
+                  </div>
+                </label>
+                <div class="quick-form__actions auth-form__actions">
+                  <button type="submit" class="launcher">Entrar al restaurante</button>
+                </div>
+              </form>
+              <p class="form-feedback" id="restaurantLoginFeedback" hidden></p>
+            </div>
+          </div>
         </section>
       </main>
     </div>

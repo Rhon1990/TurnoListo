@@ -954,7 +954,7 @@ function syncRestaurantHealthPill(element, segment) {
     },
     onboarding: {
       label: "Onboarding",
-      background: "rgba(216, 95, 49, 0.12)",
+      background: "rgba(236, 124, 13, 0.12)",
       color: "#ec7c0d",
     },
     renewal: {

@@ -11,44 +11,83 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260408a" />
+    <link rel="stylesheet" href="./styles.css?v=20260408b" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
       <main class="grid grid--single">
         <section class="panel glass-card auth-panel">
-          <div class="auth-brand">
-            <img class="auth-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
-            <div class="auth-brand__copy" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
-              <p class="auth-brand__name">Turno<span>Listo</span></p>
-              <p class="auth-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
-            </div>
-          </div>
-          <div class="panel__heading">
-            <div>
-              <p class="panel__kicker">Administrador</p>
-              <h2>Accede al panel maestro</h2>
-            </div>
-          </div>
-          <form class="quick-form auth-form" id="adminLoginForm">
-            <label class="field">
-              <span>Correo administrador</span>
-              <input name="username" type="email" placeholder="admin@turnolisto.com" required />
-            </label>
-            <label class="field">
-              <span>Contraseña</span>
-              <div class="password-field">
-                <input id="adminLoginPassword" name="password" type="password" placeholder="Contraseña" required />
-                <button class="password-toggle password-toggle--field" id="adminLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
-                  👁
-                </button>
+          <div class="auth-layout auth-layout--admin">
+            <div class="auth-showcase">
+              <div class="auth-brand">
+                <img class="auth-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+                <div class="auth-brand__copy" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
+                  <p class="auth-brand__name">Turno<span>Listo</span></p>
+                  <p class="auth-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+                </div>
               </div>
-            </label>
-            <div class="quick-form__actions">
-              <button type="submit" class="launcher">Entrar</button>
+              <div class="auth-showcase__copy">
+                <p class="panel__kicker">Administrador</p>
+                <h2>Controla expansión, renovación y adopción desde un solo panel.</h2>
+                <p class="auth-showcase__text">
+                  Diseñado para operar una cartera de restaurantes con lectura ejecutiva, alertas comerciales y visibilidad
+                  clara sobre uso real.
+                </p>
+              </div>
+              <div class="auth-proof-grid">
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Visión ejecutiva</p>
+                  <strong class="auth-proof-card__value">360°</strong>
+                  <p class="auth-proof-card__text">Salud de cuentas, actividad y riesgo en la misma pantalla.</p>
+                </article>
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Retención</p>
+                  <strong class="auth-proof-card__value">+ foco</strong>
+                  <p class="auth-proof-card__text">Detecta renovaciones pendientes y churn antes de perder el local.</p>
+                </article>
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Escala comercial</p>
+                  <strong class="auth-proof-card__value">B2B</strong>
+                  <p class="auth-proof-card__text">Onboarding, upsell y seguimiento pensados para crecer cartera.</p>
+                </article>
+              </div>
+              <div class="auth-signal-strip">
+                <span class="auth-signal">Activación guiada</span>
+                <span class="auth-signal">Renovación segura</span>
+                <span class="auth-signal">Panel listo para demo</span>
+              </div>
             </div>
-          </form>
-          <p class="form-feedback" id="adminLoginFeedback" hidden></p>
+            <div class="auth-entry">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Acceso administrador</p>
+                  <h2>Accede al panel maestro</h2>
+                </div>
+              </div>
+              <p class="auth-entry__text">
+                Entra para gestionar restaurantes, revisar señales de negocio y mover la operación comercial del producto.
+              </p>
+              <form class="quick-form auth-form" id="adminLoginForm">
+                <label class="field">
+                  <span>Correo administrador</span>
+                  <input name="username" type="email" placeholder="admin@turnolisto.com" required />
+                </label>
+                <label class="field">
+                  <span>Contraseña</span>
+                  <div class="password-field">
+                    <input id="adminLoginPassword" name="password" type="password" placeholder="Contraseña" required />
+                    <button class="password-toggle password-toggle--field" id="adminLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
+                      👁
+                    </button>
+                  </div>
+                </label>
+                <div class="quick-form__actions auth-form__actions">
+                  <button type="submit" class="launcher">Entrar al panel</button>
+                </div>
+              </form>
+              <p class="form-feedback" id="adminLoginFeedback" hidden></p>
+            </div>
+          </div>
         </section>
       </main>
     </div>
