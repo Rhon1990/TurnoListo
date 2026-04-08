@@ -427,6 +427,7 @@ button:hover,
 }
 
 .auth-brand {
+  --auth-brand-width: min(100%, 320px);
   display: grid;
   place-items: center;
   margin-bottom: 1.35rem;
@@ -440,7 +441,7 @@ button:hover,
 }
 
 .auth-brand__image {
-  width: min(100%, 320px);
+  width: var(--auth-brand-width);
   height: auto;
   display: block;
 }
@@ -449,15 +450,18 @@ button:hover,
   display: grid;
   gap: 0.1rem;
   justify-items: center;
+  width: var(--auth-brand-width);
 }
 
 .auth-brand__name {
   margin: 0;
-  font-size: clamp(2rem, 4.2vw, 3.2rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  width: 100%;
+  font-size: clamp(1.7rem, 3.5vw, 2.7rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
   font-weight: 700;
   color: #ff7a00;
+  white-space: nowrap;
 }
 
 .auth-brand__name span {
@@ -466,12 +470,14 @@ button:hover,
 
 .auth-brand__tagline {
   margin: 0;
-  font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+  width: 100%;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
   font-family: var(--font-brand-soft);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: 0;
   color: #c06a22;
+  white-space: nowrap;
 }
 
 .auth-form {
