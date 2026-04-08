@@ -452,12 +452,13 @@ button:hover,
   gap: 0.1rem;
   justify-items: center;
   width: var(--auth-brand-copy-width);
+  margin: 0 auto;
 }
 
 .auth-brand__name {
   margin: 0;
   width: 100%;
-  font-size: clamp(3rem, 7vw, 6.25rem);
+  font-size: clamp(2.6rem, 5.8vw, 5rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
   font-weight: 700;
@@ -473,7 +474,7 @@ button:hover,
 .auth-brand__tagline {
   margin: 0;
   width: 100%;
-  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  font-size: clamp(0.8rem, 1.05vw, 0.95rem);
   font-family: var(--font-brand-soft);
   font-weight: 500;
   line-height: 1.15;
