@@ -1,77 +1,69 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-labelledby="title desc">
   <title id="title">TurnoListo</title>
-  <desc id="desc">Logotipo de TurnoListo con icono ascendente y texto de marca.</desc>
+  <desc id="desc">Marca TurnoListo con simbolo ascendente y nombre de producto.</desc>
   <defs>
-    <linearGradient id="tlWarm" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff7a00"/>
-      <stop offset="52%" stop-color="#ff8a00"/>
-      <stop offset="100%" stop-color="#e7344c"/>
+    <linearGradient id="tlOrange" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff7a00" />
+      <stop offset="52%" stop-color="#ff9500" />
+      <stop offset="100%" stop-color="#e7344c" />
     </linearGradient>
-    <linearGradient id="tlGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fff3e4" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#fff8ef" stop-opacity="0.2"/>
+    <linearGradient id="tlRed" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff7a00" />
+      <stop offset="100%" stop-color="#e7344c" />
     </linearGradient>
-    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#cf5b21" flood-opacity="0.22"/>
+    <filter id="tlShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#cf5b21" flood-opacity="0.18" />
     </filter>
   </defs>
 
-  <g filter="url(#softShadow)">
+  <g transform="translate(200 36)" filter="url(#tlShadow)">
     <path
-      d="M92 178c20-26 46-40 77-40h79c9 0 14 11 8 18l-30 36c-4 5-10 8-17 8h-44c-12 0-22 5-31 15l-12 14c-7 9-22 6-26-5-5-15-7-31-4-46z"
-      fill="url(#tlWarm)"
+      d="M36 180c18-24 42-36 72-36h74c10 0 16 12 9 20l-21 25c-5 6-12 9-19 9h-44c-12 0-22 5-30 14l-10 13c-7 9-22 6-26-5-5-14-7-28-5-40z"
+      fill="url(#tlOrange)"
     />
     <path
-      d="M91 248c7-10 22-11 31-3l58 50c9 8 22 7 30-1l139-141c5-5 12-8 19-8h55c11 0 16 14 8 22L250 351c-10 10-26 11-37 2l-117-95c-8-6-10-18-5-27z"
-      fill="url(#tlWarm)"
+      d="M30 250c7-10 22-12 31-4l78 62c8 7 20 6 28-2l157-160c5-5 12-8 19-8h37c12 0 18 14 10 23L199 356c-10 10-26 11-37 2L35 278c-9-6-11-19-5-28z"
+      fill="url(#tlOrange)"
     />
     <path
-      d="M349 115l62-63c8-8 20-12 31-12h47c12 0 17 15 8 23l-61 61c-5 5-12 8-19 8h-58c-11 0-16-13-10-20z"
-      fill="#e73649"
+      d="M269 89l74-73c7-7 17-11 27-11h39c12 0 17 15 8 23l-74 73c-5 5-12 8-19 8h-44c-12 0-18-13-11-20z"
+      fill="#e7344c"
     />
     <path
-      d="M389 65l102 1c9 0 15 9 11 17l-31 62c-3 6-9 10-16 10-12 0-19-14-11-23l15-18-74 1c-16 0-23-20-11-31 4-4 10-7 15-7z"
-      fill="#e73649"
+      d="M333 6h77c12 0 18 14 10 23l-39 46c-7 8-20 8-28 1-7-7-7-18-1-26l9-10h-28c-10 0-17-8-17-17s8-17 17-17z"
+      fill="#e7344c"
     />
     <path
-      d="M403 225h62c12 0 18 14 10 23l-20 24c-4 5-10 8-17 8h-62c-12 0-18-14-10-23l20-24c4-5 10-8 17-8z"
-      fill="url(#tlWarm)"
+      d="M175 145l33 31c8 7 8 20 0 28l-28 29c-8 8-21 7-29-2l-26-31c-7-8-6-19 2-27l18-19c8-8 21-9 30-1z"
+      fill="#ef5b5b"
+      opacity="0.95"
     />
     <path
-      d="M248 118c14-15 37-16 52-2l19 18c7 7 7 18 0 25l-46 46c-8 8-21 7-28-2l-22-27c-6-7-5-18 2-24z"
-      fill="#ef3b4d"
-      opacity="0.92"
-    />
-    <path
-      d="M115 254c7-9 20-10 28-3l74 61c8 7 21 6 29-2l162-165"
-      fill="none"
-      stroke="url(#tlGlow)"
-      stroke-linecap="round"
-      stroke-width="16"
-      opacity="0.5"
+      d="M287 267h67c12 0 17 15 8 23l-19 18c-4 4-9 6-14 6h-67c-12 0-17-15-8-23l19-18c4-4 9-6 14-6z"
+      fill="url(#tlRed)"
     />
   </g>
 
-  <g transform="translate(56 328)">
+  <g transform="translate(98 398)">
     <text
       x="0"
       y="0"
       font-family="Space Grotesk, Arial, sans-serif"
-      font-size="92"
+      font-size="88"
       font-weight="700"
       letter-spacing="-3"
-      fill="url(#tlWarm)"
+      fill="url(#tlOrange)"
     >
       TurnoListo
     </text>
     <text
-      x="4"
-      y="52"
+      x="8"
+      y="46"
       font-family="Space Grotesk, Arial, sans-serif"
-      font-size="28"
+      font-size="26"
       font-weight="500"
-      letter-spacing="0.4"
-      fill="#b76722"
+      letter-spacing="0.2"
+      fill="#c06a22"
     >
       Tecnologia que agiliza tu restaurante
     </text>
