@@ -641,9 +641,11 @@ function renderAlertsBanner() {
     alertsStatus.textContent = getDefaultAlertsCopy({ pageWord: "app" });
   }
   if (alertsButtonLockedReason === "unsupported-ios-browser") {
+    alertsTitle.textContent = "Los avisos no estan disponibles aqui.";
     enableAlertsButton.textContent = "Usa Safari y pantalla de inicio";
     enableAlertsButton.disabled = true;
   } else if (alertsButtonLockedReason === "unsupported") {
+    alertsTitle.textContent = "Los avisos no estan disponibles aqui.";
     enableAlertsButton.textContent = "Avisos no disponibles aqui";
     enableAlertsButton.disabled = true;
   } else {
