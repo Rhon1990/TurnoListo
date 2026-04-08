@@ -55,8 +55,10 @@ const dashboardLowRatingCount = document.querySelector("#dashboardLowRatingCount
 const dashboardPeakHour = document.querySelector("#dashboardPeakHour");
 const dashboardCancellationRate = document.querySelector("#dashboardCancellationRate");
 const dashboardAvgResolution = document.querySelector("#dashboardAvgResolution");
+const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
 const dashboardStatusBars = document.querySelector("#dashboardStatusBars");
 const dashboardStatusPerformanceBars = document.querySelector("#dashboardStatusPerformanceBars");
+const dashboardFeedbackDonut = document.querySelector("#dashboardFeedbackDonut");
 const dashboardFeedbackBars = document.querySelector("#dashboardFeedbackBars");
 const dashboardInsights = document.querySelector("#dashboardInsights");
 const dashboardCardActiveNow = document.querySelector("#dashboardCardActiveNow");
@@ -501,11 +503,22 @@ function renderDashboard(stats) {
   dashboardCancellationRate.textContent = `${stats.cancellationRate}%`;
   dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
 
+  dashboardStatusDonut.innerHTML = "";
   dashboardStatusBars.innerHTML = "";
   dashboardStatusPerformanceBars.innerHTML = "";
+  dashboardFeedbackDonut.innerHTML = "";
   dashboardFeedbackBars.innerHTML = "";
   dashboardInsights.innerHTML = "";
 
+  renderDashboardDonut(
+    dashboardStatusDonut,
+    stats.throughputMix.map((item) => ({
+      label: item.label,
+      count: item.count,
+      color: item.color,
+    })),
+    "Pedidos",
+  );
   renderDashboardBarChart(
     dashboardStatusBars,
     stats.statusCounts.map((item) => ({
@@ -536,6 +549,15 @@ function renderDashboard(stats) {
       valueLabel: String(item.count),
     })),
     "Todavía no hay feedback suficiente para construir esta lectura.",
+  );
+  renderDashboardDonut(
+    dashboardFeedbackDonut,
+    stats.feedbackMix.map((item) => ({
+      label: item.label,
+      count: item.count,
+      color: item.color,
+    })),
+    "Feedback",
   );
 
   buildImprovementInsights(stats).forEach((message) => {
@@ -579,6 +601,47 @@ function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suf
     row.append(label, track, value);
     container.append(row);
   });
+}
+
+function renderDashboardDonut(container, items, centerLabel) {
+  container.innerHTML = "";
+  const safeItems = Array.isArray(items) ? items.filter((item) => Number(item?.count || 0) > 0) : [];
+  const total = safeItems.reduce((sum, item) => sum + Number(item.count || 0), 0);
+
+  if (!total) {
+    const empty = document.createElement("article");
+    empty.className = "dashboard-insight";
+    empty.textContent = "Sin datos suficientes por ahora.";
+    container.append(empty);
+    return;
+  }
+
+  const chart = document.createElement("div");
+  const center = document.createElement("div");
+  const legend = document.createElement("div");
+  let accumulated = 0;
+  const segments = safeItems.map((item) => {
+    const start = accumulated;
+    const size = (Number(item.count || 0) / total) * 360;
+    accumulated += size;
+    return `${item.color || "#d85f31"} ${start}deg ${accumulated}deg`;
+  });
+
+  chart.className = "dashboard-donut__chart";
+  chart.style.background = `conic-gradient(${segments.join(", ")})`;
+  center.className = "dashboard-donut__center";
+  center.innerHTML = `<span>${centerLabel}</span><strong>${total}</strong>`;
+  chart.append(center);
+
+  legend.className = "dashboard-donut__legend";
+  safeItems.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "dashboard-donut__legend-row";
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#d85f31"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
+    legend.append(row);
+  });
+
+  container.append(chart, legend);
 }
 
 function buildImprovementInsights(stats) {

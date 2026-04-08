@@ -1805,6 +1805,65 @@ button:hover,
   gap: 0.8rem;
 }
 
+.dashboard-donut {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.95rem;
+  margin-bottom: 0.95rem;
+}
+
+.dashboard-donut__chart {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(29, 26, 22, 0.06);
+}
+
+.dashboard-donut__center {
+  position: absolute;
+  inset: 16px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.15rem;
+  border-radius: 50%;
+  background: rgba(255, 251, 245, 0.96);
+  text-align: center;
+}
+
+.dashboard-donut__center span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.dashboard-donut__center strong {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.dashboard-donut__legend {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dashboard-donut__legend-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+}
+
+.dashboard-donut__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
 .dashboard-signals {
   display: grid;
   gap: 0.75rem;

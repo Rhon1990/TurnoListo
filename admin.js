@@ -42,6 +42,8 @@ const adminActionOnboardingHint = document.querySelector("#adminActionOnboarding
 const adminActionRiskHint = document.querySelector("#adminActionRiskHint");
 const adminActionHealthyHint = document.querySelector("#adminActionHealthyHint");
 const adminTopRestaurantPanel = document.querySelector("#adminTopRestaurantPanel");
+const adminAccessDonut = document.querySelector("#adminAccessDonut");
+const adminOrderOutcomeDonut = document.querySelector("#adminOrderOutcomeDonut");
 const adminAccessMix = document.querySelector("#adminAccessMix");
 const adminOrderOutcomeMix = document.querySelector("#adminOrderOutcomeMix");
 const adminAdoptionMix = document.querySelector("#adminAdoptionMix");
@@ -415,6 +417,8 @@ function renderAdminDashboard(stats) {
     : "Aún no hay base sana suficiente para empujar upsell";
 
   adminTopRestaurantPanel.innerHTML = "";
+  adminAccessDonut.innerHTML = "";
+  adminOrderOutcomeDonut.innerHTML = "";
   adminAccessMix.innerHTML = "";
   adminOrderOutcomeMix.innerHTML = "";
   adminAdoptionMix.innerHTML = "";
@@ -431,6 +435,8 @@ function renderAdminDashboard(stats) {
   }
   adminTopRestaurantPanel.append(topBox);
 
+  renderDashboardDonut(adminAccessDonut, stats.accessMix, "Cuentas");
+  renderDashboardDonut(adminOrderOutcomeDonut, stats.orderOutcomeMix, "Pedidos");
   renderAdminBarChart(adminAccessMix, stats.accessMix);
   renderAdminBarChart(adminOrderOutcomeMix, stats.orderOutcomeMix);
   renderAdminBarChart(adminAdoptionMix, stats.adoptionMix);
@@ -487,6 +493,47 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
     row.append(label, track, value);
     container.append(row);
   });
+}
+
+function renderDashboardDonut(container, items, centerLabel) {
+  container.innerHTML = "";
+  const safeItems = Array.isArray(items) ? items.filter((item) => Number(item?.count || 0) > 0) : [];
+  const total = safeItems.reduce((sum, item) => sum + Number(item.count || 0), 0);
+
+  if (!total) {
+    const empty = document.createElement("article");
+    empty.className = "dashboard-insight";
+    empty.textContent = "Sin datos suficientes por ahora.";
+    container.append(empty);
+    return;
+  }
+
+  const chart = document.createElement("div");
+  const center = document.createElement("div");
+  const legend = document.createElement("div");
+  let accumulated = 0;
+  const segments = safeItems.map((item) => {
+    const start = accumulated;
+    const size = (Number(item.count || 0) / total) * 360;
+    accumulated += size;
+    return `${item.color || "#d85f31"} ${start}deg ${accumulated}deg`;
+  });
+
+  chart.className = "dashboard-donut__chart";
+  chart.style.background = `conic-gradient(${segments.join(", ")})`;
+  center.className = "dashboard-donut__center";
+  center.innerHTML = `<span>${centerLabel}</span><strong>${total}</strong>`;
+  chart.append(center);
+
+  legend.className = "dashboard-donut__legend";
+  safeItems.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "dashboard-donut__legend-row";
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#d85f31"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
+    legend.append(row);
+  });
+
+  container.append(chart, legend);
 }
 
 function buildAdminInsights(stats) {
