@@ -458,18 +458,10 @@ button:hover,
   letter-spacing: -0.045em;
   font-weight: 700;
   color: #ff7a00;
-  background: linear-gradient(90deg, #ff7a00 0%, #ff8a00 48%, #e7344c 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .auth-brand__name span {
   color: #e7344c;
-  background: linear-gradient(90deg, #ff7a00 0%, #e7344c 62%, #d61f46 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .auth-brand__tagline {
