@@ -1091,7 +1091,6 @@ function buildEtaHintElement(order) {
         ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
         : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
     element.dataset.termHint = hint;
-    element.title = hint;
     element.tabIndex = 0;
     element.addEventListener("mouseenter", () => showRestaurantTermTooltip(element));
     element.addEventListener("mouseleave", hideRestaurantTermTooltip);
