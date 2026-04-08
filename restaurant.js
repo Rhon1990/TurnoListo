@@ -38,37 +38,40 @@ const archivedRatingFilter = document.querySelector("#archivedRatingFilter");
 const sectionTabs = document.querySelectorAll("[data-section]");
 const sectionPanels = document.querySelectorAll("[data-section-panel]");
 const dashboardTotalToday = document.querySelector("#dashboardTotalToday");
-const dashboardActiveNow = document.querySelector("#dashboardActiveNow");
 const dashboardDeliveredToday = document.querySelector("#dashboardDeliveredToday");
-const dashboardReadyNow = document.querySelector("#dashboardReadyNow");
-const dashboardAvgDelivered = document.querySelector("#dashboardAvgDelivered");
 const dashboardOnTimeRate = document.querySelector("#dashboardOnTimeRate");
-const dashboardAverageRating = document.querySelector("#dashboardAverageRating");
 const dashboardDelayedActive = document.querySelector("#dashboardDelayedActive");
+const dashboardDelayedActiveAction = document.querySelector("#dashboardDelayedActiveAction");
 const dashboardLongestWait = document.querySelector("#dashboardLongestWait");
 const dashboardSlowestOrder = document.querySelector("#dashboardSlowestOrder");
 const dashboardSlowestOrderHint = document.querySelector("#dashboardSlowestOrderHint");
 const dashboardSlowestStatus = document.querySelector("#dashboardSlowestStatus");
 const dashboardSlowestStatusHint = document.querySelector("#dashboardSlowestStatusHint");
+const dashboardFeedbackCountCard = document.querySelector("#dashboardFeedbackCountCard");
 const dashboardFeedbackCount = document.querySelector("#dashboardFeedbackCount");
 const dashboardLowRatingCount = document.querySelector("#dashboardLowRatingCount");
 const dashboardPeakHour = document.querySelector("#dashboardPeakHour");
 const dashboardCancellationRate = document.querySelector("#dashboardCancellationRate");
 const dashboardAvgResolution = document.querySelector("#dashboardAvgResolution");
+const dashboardHeroLeadMetric = document.querySelector("#dashboardHeroLeadMetric");
+const dashboardHeroLeadHint = document.querySelector("#dashboardHeroLeadHint");
+const dashboardHeroActiveNow = document.querySelector("#dashboardHeroActiveNow");
+const dashboardHeroReadyNow = document.querySelector("#dashboardHeroReadyNow");
+const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
 const dashboardStatusBars = document.querySelector("#dashboardStatusBars");
 const dashboardStatusPerformanceBars = document.querySelector("#dashboardStatusPerformanceBars");
 const dashboardFeedbackDonut = document.querySelector("#dashboardFeedbackDonut");
 const dashboardFeedbackBars = document.querySelector("#dashboardFeedbackBars");
 const dashboardInsights = document.querySelector("#dashboardInsights");
-const dashboardCardActiveNow = document.querySelector("#dashboardCardActiveNow");
-const dashboardCardDeliveredToday = document.querySelector("#dashboardCardDeliveredToday");
-const dashboardCardReadyNow = document.querySelector("#dashboardCardReadyNow");
+const dashboardCardActiveNowHero = document.querySelector("#dashboardCardActiveNowHero");
+const dashboardCardReadyNowHero = document.querySelector("#dashboardCardReadyNowHero");
 const dashboardCardDelayedActive = document.querySelector("#dashboardCardDelayedActive");
 const dashboardCardLongestWait = document.querySelector("#dashboardCardLongestWait");
 const dashboardCardSlowestOrder = document.querySelector("#dashboardCardSlowestOrder");
 const dashboardCardSlowestStatus = document.querySelector("#dashboardCardSlowestStatus");
 const dashboardSignalFeedback = document.querySelector("#dashboardSignalFeedback");
+const dashboardSignalFeedbackHero = document.querySelector("#dashboardSignalFeedbackHero");
 const dashboardSignalLowRating = document.querySelector("#dashboardSignalLowRating");
 const dashboardSignalCancellation = document.querySelector("#dashboardSignalCancellation");
 const commentModal = document.querySelector("#restaurantCommentModal");
@@ -139,26 +142,18 @@ cancelBackdrop.addEventListener("click", closeCancelModal);
 cancelClose.addEventListener("click", closeCancelModal);
 cancelBack.addEventListener("click", closeCancelModal);
 cancelConfirm.addEventListener("click", confirmCancelOrder);
-dashboardCardActiveNow.addEventListener("click", () => goToOrdersView({ status: "all", priority: "all", search: "" }));
-dashboardCardDeliveredToday.addEventListener("click", () =>
-  goToHistoryView({ status: "delivered", rating: "all", search: "" }),
-);
-dashboardCardReadyNow.addEventListener("click", () => goToOrdersView({ status: "ready", priority: "all", search: "" }));
-dashboardCardDelayedActive.addEventListener("click", () =>
-  goToOrdersView({ status: "all", priority: "delayed", search: "" }),
-);
-dashboardCardLongestWait.addEventListener("click", () => focusSlowestOrder());
-dashboardCardSlowestOrder.addEventListener("click", () => focusSlowestOrder());
-dashboardCardSlowestStatus.addEventListener("click", () => focusSlowestStatus());
-dashboardSignalFeedback.addEventListener("click", () =>
+bindDashboardAction(dashboardCardActiveNowHero, () => goToOrdersView({ status: "all", priority: "all", search: "" }));
+bindDashboardAction(dashboardCardReadyNowHero, () => goToOrdersView({ status: "ready", priority: "all", search: "" }));
+bindDashboardAction(dashboardCardDelayedActive, () => goToOrdersView({ status: "all", priority: "delayed", search: "" }));
+bindDashboardAction(dashboardCardLongestWait, () => focusSlowestOrder());
+bindDashboardAction(dashboardCardSlowestOrder, () => focusSlowestOrder());
+bindDashboardAction(dashboardCardSlowestStatus, () => focusSlowestStatus());
+bindDashboardAction(dashboardSignalFeedback, () => goToHistoryView({ status: "all", rating: "commented", search: "" }));
+bindDashboardAction(dashboardSignalFeedbackHero, () =>
   goToHistoryView({ status: "all", rating: "commented", search: "" }),
 );
-dashboardSignalLowRating.addEventListener("click", () =>
-  goToHistoryView({ status: "all", rating: "low", search: "" }),
-);
-dashboardSignalCancellation.addEventListener("click", () =>
-  goToHistoryView({ status: "cancelled", rating: "all", search: "" }),
-);
+bindDashboardAction(dashboardSignalLowRating, () => goToHistoryView({ status: "all", rating: "low", search: "" }));
+bindDashboardAction(dashboardSignalCancellation, () => goToHistoryView({ status: "cancelled", rating: "all", search: "" }));
 focusChipCritical.addEventListener("click", () => goToOrdersView({ status: "all", priority: "critical", search: "" }));
 focusChipDueSoon.addEventListener("click", () => goToOrdersView({ status: "all", priority: "due-soon", search: "" }));
 focusChipReady.addEventListener("click", () => goToOrdersView({ status: "ready", priority: "ready-waiting", search: "" }));
@@ -167,6 +162,18 @@ function bootRestaurantPage() {
   syncRestaurantAccess();
   if (getCurrentRestaurantSession()) {
     renderRestaurant();
+  }
+}
+
+function bindDashboardAction(element, handler) {
+  if (!element) return;
+  element.addEventListener("click", handler);
+  if (!["BUTTON", "A"].includes(element.tagName)) {
+    element.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      handler();
+    });
   }
 }
 
@@ -481,13 +488,10 @@ function syncSectionView() {
 
 function renderDashboard(stats) {
   dashboardTotalToday.textContent = stats.totalToday;
-  dashboardActiveNow.textContent = stats.activeNow;
   dashboardDeliveredToday.textContent = stats.deliveredToday;
-  dashboardReadyNow.textContent = stats.readyNow;
-  dashboardAvgDelivered.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
   dashboardOnTimeRate.textContent = `${stats.onTimeRate}%`;
-  dashboardAverageRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : "Sin datos";
   dashboardDelayedActive.textContent = stats.delayedActive;
+  dashboardDelayedActiveAction.textContent = stats.delayedActive;
   dashboardLongestWait.textContent = formatDurationMinutes(stats.longestActiveMinutes);
   dashboardSlowestOrder.textContent = stats.slowestOrder ? stats.slowestOrder.orderNumber : "Sin datos";
   dashboardSlowestOrderHint.textContent = stats.slowestOrder
@@ -497,11 +501,19 @@ function renderDashboard(stats) {
   dashboardSlowestStatusHint.textContent = stats.slowestStatus
     ? `Promedio ${formatStatusDurationLabel(stats.slowestStatus.averageMinutes)}`
     : "Promedio por estado";
+  dashboardFeedbackCountCard.textContent = stats.feedbackCount;
   dashboardFeedbackCount.textContent = stats.feedbackCount;
   dashboardLowRatingCount.textContent = stats.lowRatingCount;
   dashboardPeakHour.textContent = `Hora pico ${stats.peakHour}`;
   dashboardCancellationRate.textContent = `${stats.cancellationRate}%`;
   dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
+  dashboardHeroLeadMetric.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
+  dashboardHeroLeadHint.textContent = stats.deliveredCount
+    ? `${stats.onTimeRate}% de pedidos entregados en 15 min o menos`
+    : "En cuanto cierres pedidos aquí verás la velocidad real del local";
+  dashboardHeroActiveNow.textContent = stats.activeNow;
+  dashboardHeroReadyNow.textContent = stats.readyNow;
+  dashboardHeroRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : "Sin datos";
 
   dashboardStatusDonut.innerHTML = "";
   dashboardStatusBars.innerHTML = "";

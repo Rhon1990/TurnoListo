@@ -22,13 +22,18 @@ const adminStatusFilter = document.querySelector("#adminStatusFilter");
 const adminActivityFilter = document.querySelector("#adminActivityFilter");
 const adminLifecycleFilter = document.querySelector("#adminLifecycleFilter");
 const adminStatRestaurants = document.querySelector("#adminStatRestaurants");
-const adminStatActiveRestaurants = document.querySelector("#adminStatActiveRestaurants");
 const adminStatExpiredRestaurants = document.querySelector("#adminStatExpiredRestaurants");
-const adminStatSoonToExpire = document.querySelector("#adminStatSoonToExpire");
 const adminStatTotalOrders = document.querySelector("#adminStatTotalOrders");
 const adminStatActiveOrders = document.querySelector("#adminStatActiveOrders");
 const adminStatDelivered = document.querySelector("#adminStatDelivered");
-const adminStatCancelled = document.querySelector("#adminStatCancelled");
+const adminHeroActiveBase = document.querySelector("#adminHeroActiveBase");
+const adminHeroActiveBaseHint = document.querySelector("#adminHeroActiveBaseHint");
+const adminHeroWeeklyActivity = document.querySelector("#adminHeroWeeklyActivity");
+const adminHeroWeeklyActivityHint = document.querySelector("#adminHeroWeeklyActivityHint");
+const adminHeroRenewal = document.querySelector("#adminHeroRenewal");
+const adminHeroRenewalHint = document.querySelector("#adminHeroRenewalHint");
+const adminHeroRisk = document.querySelector("#adminHeroRisk");
+const adminHeroRiskHint = document.querySelector("#adminHeroRiskHint");
 const adminActionRenewal = document.querySelector("#adminActionRenewal");
 const adminActionOnboarding = document.querySelector("#adminActionOnboarding");
 const adminActionRisk = document.querySelector("#adminActionRisk");
@@ -391,13 +396,25 @@ function renderAdminWorkspace() {
 function renderAdminDashboard(stats) {
   adminRestaurantCount.textContent = stats.totalRestaurants;
   adminStatRestaurants.textContent = stats.totalRestaurants;
-  adminStatActiveRestaurants.textContent = stats.activeRestaurants;
   adminStatExpiredRestaurants.textContent = stats.expiredRestaurants;
-  adminStatSoonToExpire.textContent = stats.soonToExpire;
   adminStatTotalOrders.textContent = stats.totalOrders;
   adminStatActiveOrders.textContent = stats.activeOrders;
   adminStatDelivered.textContent = stats.deliveredOrders;
-  adminStatCancelled.textContent = stats.cancelledOrders;
+  const activeBaseRate = stats.totalRestaurants
+    ? Math.round((stats.activeRestaurants / stats.totalRestaurants) * 100)
+    : 0;
+  const weeklyActivityRate = stats.totalRestaurants
+    ? Math.round((stats.recentlyActiveRestaurants / stats.totalRestaurants) * 100)
+    : 0;
+  const riskCount = stats.dormantRestaurants + stats.restaurantsWithoutOrders;
+  adminHeroActiveBase.textContent = stats.activeRestaurants;
+  adminHeroActiveBaseHint.textContent = `${activeBaseRate}% de la base con acceso vigente`;
+  adminHeroWeeklyActivity.textContent = `${weeklyActivityRate}%`;
+  adminHeroWeeklyActivityHint.textContent = `${stats.recentlyActiveRestaurants} restaurantes operaron en los últimos 7 días`;
+  adminHeroRenewal.textContent = stats.expiredRestaurants + stats.soonToExpire;
+  adminHeroRenewalHint.textContent = `${stats.expiredRestaurants} vencidos y ${stats.soonToExpire} por vencer`;
+  adminHeroRisk.textContent = riskCount;
+  adminHeroRiskHint.textContent = `${stats.dormantRestaurants} dormidos y ${stats.restaurantsWithoutOrders} sin activar`;
   const actionQueues = getAdminActionQueues();
   adminActionRenewalCount.textContent = actionQueues.renewal;
   adminActionOnboardingCount.textContent = actionQueues.onboarding;

@@ -86,48 +86,65 @@
                   <h2>Resumen general</h2>
                 </div>
               </div>
+              <section class="dashboard-hero dashboard-hero--admin">
+                <article class="dashboard-hero__primary">
+                  <p class="panel__kicker">Pulso del negocio</p>
+                  <h3 class="dashboard-hero__title">Base activa</h3>
+                  <strong class="dashboard-hero__value" id="adminHeroActiveBase">0</strong>
+                  <p class="dashboard-hero__hint" id="adminHeroActiveBaseHint">0% de la base con acceso vigente</p>
+                </article>
+                <div class="dashboard-hero__rail">
+                  <article class="dashboard-hero__mini">
+                    <p class="stat__label">Actividad semanal</p>
+                    <strong class="dashboard-hero__mini-value" id="adminHeroWeeklyActivity">0%</strong>
+                    <p class="dashboard-card__hint" id="adminHeroWeeklyActivityHint">Restaurantes operando en 7 días</p>
+                  </article>
+                  <article class="dashboard-hero__mini">
+                    <p class="stat__label">Renovación inmediata</p>
+                    <strong class="dashboard-hero__mini-value" id="adminHeroRenewal">0</strong>
+                    <p class="dashboard-card__hint" id="adminHeroRenewalHint">Cuentas para mover hoy</p>
+                  </article>
+                  <article class="dashboard-hero__mini">
+                    <p class="stat__label">Riesgo de churn</p>
+                    <strong class="dashboard-hero__mini-value" id="adminHeroRisk">0</strong>
+                    <p class="dashboard-card__hint" id="adminHeroRiskHint">Locales dormidos o sin activar</p>
+                  </article>
+                </div>
+              </section>
               <div class="dashboard-grid">
                 <article class="dashboard-card">
-                  <p class="stat__label">Restaurantes totales</p>
+                  <p class="stat__label">Cartera total</p>
                   <strong class="dashboard-card__value" id="adminStatRestaurants">0</strong>
                   <p class="dashboard-card__hint">Cuentas registradas</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Restaurantes activos</p>
-                  <strong class="dashboard-card__value" id="adminStatActiveRestaurants">0</strong>
-                  <p class="dashboard-card__hint">Con acceso vigente</p>
-                </article>
-                <article class="dashboard-card">
-                  <p class="stat__label">Accesos vencidos</p>
-                  <strong class="dashboard-card__value" id="adminStatExpiredRestaurants">0</strong>
-                  <p class="dashboard-card__hint">Pendientes de renovación</p>
-                </article>
-                <article class="dashboard-card">
-                  <p class="stat__label">Vencen pronto</p>
-                  <strong class="dashboard-card__value" id="adminStatSoonToExpire">0</strong>
-                  <p class="dashboard-card__hint">En los próximos 7 días</p>
-                </article>
-                <article class="dashboard-card">
-                  <p class="stat__label">Pedidos totales</p>
+                  <p class="stat__label">Pedidos acumulados</p>
                   <strong class="dashboard-card__value" id="adminStatTotalOrders">0</strong>
-                  <p class="dashboard-card__hint">Acumulado global</p>
+                  <p class="dashboard-card__hint">Volumen procesado en la plataforma</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Pedidos activos</p>
+                  <p class="stat__label">Operación abierta</p>
                   <strong class="dashboard-card__value" id="adminStatActiveOrders">0</strong>
-                  <p class="dashboard-card__hint">Operación abierta ahora</p>
+                  <p class="dashboard-card__hint">Pedidos activos ahora</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Entregados</p>
+                  <p class="stat__label">Pedidos completados</p>
                   <strong class="dashboard-card__value" id="adminStatDelivered">0</strong>
                   <p class="dashboard-card__hint">Pedidos completados</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Cancelados</p>
-                  <strong class="dashboard-card__value" id="adminStatCancelled">0</strong>
-                  <p class="dashboard-card__hint">Pedidos cerrados sin entrega</p>
+                  <p class="stat__label">Pendientes de renovar</p>
+                  <strong class="dashboard-card__value" id="adminStatExpiredRestaurants">0</strong>
+                  <p class="dashboard-card__hint">Cuentas vencidas o en pausa</p>
                 </article>
               </div>
+              <div class="dashboard-subsection">
+                <div class="dashboard-subsection__top">
+                  <div>
+                    <p class="panel__kicker">Acciones recomendadas</p>
+                    <h3>Qué mover hoy</h3>
+                  </div>
+                </div>
               <div class="dashboard-grid dashboard-grid--actions">
                 <article class="dashboard-card dashboard-card--action" id="adminActionRenewal" role="button" tabindex="0">
                   <p class="stat__label">Renovar hoy</p>
@@ -149,6 +166,7 @@
                   <strong class="dashboard-card__value" id="adminActionHealthyCount">0</strong>
                   <p class="dashboard-card__hint" id="adminActionHealthyHint">Base sana para retención, reseñas y expansión</p>
                 </article>
+              </div>
               </div>
               <div class="dashboard-layout">
                 <article class="dashboard-panel">

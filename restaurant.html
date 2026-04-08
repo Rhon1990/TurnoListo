@@ -199,6 +199,31 @@
                   <h2>Resumen del restaurante</h2>
                 </div>
               </div>
+              <section class="dashboard-hero">
+                <article class="dashboard-hero__primary">
+                  <p class="panel__kicker">Pulso operativo</p>
+                  <h3 class="dashboard-hero__title">Tiempo medio a entrega</h3>
+                  <strong class="dashboard-hero__value" id="dashboardHeroLeadMetric">--:--</strong>
+                  <p class="dashboard-hero__hint" id="dashboardHeroLeadHint">Sin datos de entrega todavía</p>
+                </article>
+                <div class="dashboard-hero__rail">
+                  <article class="dashboard-hero__mini dashboard-card--action" id="dashboardCardActiveNowHero">
+                    <p class="stat__label">Activos ahora</p>
+                    <strong class="dashboard-hero__mini-value" id="dashboardHeroActiveNow">0</strong>
+                    <p class="dashboard-card__hint">Pedidos por atender</p>
+                  </article>
+                  <article class="dashboard-hero__mini dashboard-card--action" id="dashboardCardReadyNowHero">
+                    <p class="stat__label">Listos para recoger</p>
+                    <strong class="dashboard-hero__mini-value" id="dashboardHeroReadyNow">0</strong>
+                    <p class="dashboard-card__hint">Pendientes de entrega</p>
+                  </article>
+                  <article class="dashboard-hero__mini dashboard-card--action" id="dashboardSignalFeedbackHero">
+                    <p class="stat__label">Valoración media</p>
+                    <strong class="dashboard-hero__mini-value" id="dashboardHeroRating">Sin datos</strong>
+                    <p class="dashboard-card__hint">Lo que siente el cliente</p>
+                  </article>
+                </div>
+              </section>
               <div class="dashboard-grid">
                 <article class="dashboard-card">
                   <p class="stat__label">Pedidos de hoy</p>
@@ -206,9 +231,9 @@
                   <p class="dashboard-card__hint">Pedidos registrados hoy</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Promedio entregado</p>
-                  <strong class="dashboard-card__value" id="dashboardAvgDelivered">00:00</strong>
-                  <p class="dashboard-card__hint">Tiempo medio hasta entregar</p>
+                  <p class="stat__label">Entregados hoy</p>
+                  <strong class="dashboard-card__value" id="dashboardDeliveredToday">0</strong>
+                  <p class="dashboard-card__hint">Pedidos completados</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label">Entregas a tiempo</p>
@@ -216,45 +241,45 @@
                   <p class="dashboard-card__hint">Entregados en 15 min o menos</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Valoración media</p>
-                  <strong class="dashboard-card__value" id="dashboardAverageRating">Sin datos</strong>
-                  <p class="dashboard-card__hint">Opinión de los clientes</p>
-                </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardActiveNow">
-                  <p class="stat__label">Activos ahora</p>
-                  <strong class="dashboard-card__value" id="dashboardActiveNow">0</strong>
-                  <p class="dashboard-card__hint">Pedidos aún por atender</p>
-                </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardDeliveredToday">
-                  <p class="stat__label">Entregados hoy</p>
-                  <strong class="dashboard-card__value" id="dashboardDeliveredToday">0</strong>
-                  <p class="dashboard-card__hint">Pedidos completados</p>
-                </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardReadyNow">
-                  <p class="stat__label">Listos ahora</p>
-                  <strong class="dashboard-card__value" id="dashboardReadyNow">0</strong>
-                  <p class="dashboard-card__hint">Esperando recogida</p>
-                </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardDelayedActive">
                   <p class="stat__label">Riesgo operativo</p>
                   <strong class="dashboard-card__value" id="dashboardDelayedActive">0</strong>
                   <p class="dashboard-card__hint">Pedidos activos con más de 15 min</p>
                 </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardLongestWait">
-                  <p class="stat__label">Espera más larga</p>
-                  <strong class="dashboard-card__value" id="dashboardLongestWait">00:00</strong>
-                  <p class="dashboard-card__hint">Ir al pedido con mayor espera</p>
+                <article class="dashboard-card">
+                  <p class="stat__label">Comentarios recibidos</p>
+                  <strong class="dashboard-card__value" id="dashboardFeedbackCountCard">0</strong>
+                  <p class="dashboard-card__hint">Feedback útil para mejorar</p>
                 </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestOrder">
-                  <p class="stat__label">Pedido más lento</p>
-                  <strong class="dashboard-card__value" id="dashboardSlowestOrder">Sin datos</strong>
-                  <p class="dashboard-card__hint" id="dashboardSlowestOrderHint">Pedido con mayor espera activa</p>
-                </article>
-                <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestStatus">
-                  <p class="stat__label">Estado más lento</p>
-                  <strong class="dashboard-card__value" id="dashboardSlowestStatus">Sin datos</strong>
-                  <p class="dashboard-card__hint" id="dashboardSlowestStatusHint">Promedio por estado</p>
-                </article>
+              </div>
+              <div class="dashboard-subsection">
+                <div class="dashboard-subsection__top">
+                  <div>
+                    <p class="panel__kicker">Acciones rápidas</p>
+                    <h3>Dónde intervenir</h3>
+                  </div>
+                </div>
+                <div class="dashboard-grid dashboard-grid--actions">
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardDelayedActive">
+                    <p class="stat__label">Pedidos en riesgo</p>
+                    <strong class="dashboard-card__value" id="dashboardDelayedActiveAction">0</strong>
+                    <p class="dashboard-card__hint">Entran directo al foco operativo</p>
+                  </article>
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardLongestWait">
+                    <p class="stat__label">Espera más larga</p>
+                    <strong class="dashboard-card__value" id="dashboardLongestWait">00:00</strong>
+                    <p class="dashboard-card__hint">Ir al pedido con mayor espera</p>
+                  </article>
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestOrder">
+                    <p class="stat__label">Pedido más lento</p>
+                    <strong class="dashboard-card__value" id="dashboardSlowestOrder">Sin datos</strong>
+                    <p class="dashboard-card__hint" id="dashboardSlowestOrderHint">Pedido con mayor espera activa</p>
+                  </article>
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestStatus">
+                    <p class="stat__label">Estado más lento</p>
+                    <strong class="dashboard-card__value" id="dashboardSlowestStatus">Sin datos</strong>
+                    <p class="dashboard-card__hint" id="dashboardSlowestStatusHint">Promedio por estado</p>
+                  </article>
+                </div>
               </div>
               <div class="dashboard-layout">
                 <article class="dashboard-panel">
