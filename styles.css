@@ -363,6 +363,19 @@ button:hover,
   color: var(--ink);
 }
 
+.button-secondary--primary {
+  background: linear-gradient(135deg, #ec7c0d, #d86500);
+  color: #fff7f1;
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(216, 101, 0, 0.2);
+}
+
+.button-secondary--primary:hover,
+.button-secondary--primary:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(216, 101, 0, 0.26);
+}
+
 .quick-form,
 .order-edit-grid {
   display: grid;

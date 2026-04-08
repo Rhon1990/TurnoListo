@@ -31,7 +31,6 @@ const iosInstallText = document.querySelector("#clientIosInstallText");
 const iosInstallButton = document.querySelector("#clientIosInstallButton");
 const iosInstallSteps = document.querySelector("#clientIosInstallSteps");
 const copyLinkButton = document.querySelector("#clientCopyLinkButton");
-const iosStepReset = document.querySelector("#clientIosStepReset");
 const iosStepCopy = document.querySelector("#clientIosStepCopy");
 const iosStepSafari = document.querySelector("#clientIosStepSafari");
 const iosStepShare = document.querySelector("#clientIosStepShare");
@@ -584,11 +583,11 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
       alertsStatusOverride = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
     } else if (result?.reason === "unsupported-ios-browser") {
       alertsStatusOverride =
-        "No te preocupes: TurnoListo sigue funcionando; solo no cierres ni minimices esta pantalla si quieres seguir escuchando el aviso cuando tu pedido este listo, y si quieres que te avise mientras usas otras apps, sigue los pasos de abajo y abre TurnoListo desde Safari en la pantalla de inicio.";
+        "TurnoListo sigue funcionando aqui. Si quieres avisos mientras usas otras apps, sigue los pasos de abajo en Safari.";
       alertsButtonLockedReason = "unsupported-ios-browser";
     } else if (result?.reason === "unsupported") {
       alertsStatusOverride =
-        "No te preocupes: TurnoListo sigue funcionando; solo no cierres ni minimices esta pantalla si quieres seguir escuchando el aviso cuando tu pedido este listo, y si quieres que te avise mientras usas otras apps, sigue los pasos de abajo.";
+        "TurnoListo sigue funcionando aqui. Si quieres avisos mientras usas otras apps, sigue los pasos de abajo.";
       alertsButtonLockedReason = "unsupported";
     } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
       alertsStatusOverride =
@@ -717,36 +716,25 @@ function renderIosInstallBanner() {
   if (copyLinkButton) {
     copyLinkButton.hidden = iosInstallMode !== "chrome";
   }
-  if (iosStepReset) {
-    iosStepReset.hidden = false;
-    iosStepReset.textContent =
-      iosInstallMode === "chrome"
-        ? "1. Si ya tenias un icono de TurnoListo, borralo."
-        : "1. Si ya tenias un icono de TurnoListo, borralo.";
-  }
   if (iosStepCopy) {
     iosStepCopy.hidden = iosInstallMode !== "chrome";
-    iosStepCopy.textContent = "2. Copia el enlace de este pedido.";
+    iosStepCopy.textContent = "1. Copia el enlace de este pedido.";
   }
   if (iosStepSafari) {
     iosStepSafari.hidden = iosInstallMode !== "chrome";
-    iosStepSafari.textContent = "3. Abre Safari y pega el enlace.";
+    iosStepSafari.textContent = "2. Abre Safari y pega el enlace.";
   }
   if (iosStepShare) {
-    iosStepShare.hidden = false;
-    iosStepShare.textContent = iosInstallMode === "chrome" ? '4. Toca Compartir.' : '2. Toca Compartir.';
+    iosStepShare.hidden = iosInstallMode === "chrome";
+    iosStepShare.textContent = '1. Toca Compartir.';
   }
   if (iosStepInstall) {
-    iosStepInstall.hidden = false;
-    iosStepInstall.textContent =
-      iosInstallMode === "chrome" ? '5. Elige "Anadir a pantalla de inicio".' : '3. Elige "Anadir a pantalla de inicio".';
+    iosStepInstall.hidden = iosInstallMode === "chrome";
+    iosStepInstall.textContent = '2. Elige "Anadir a pantalla de inicio".';
   }
   if (iosStepOpen) {
-    iosStepOpen.hidden = false;
-    iosStepOpen.textContent =
-      iosInstallMode === "chrome"
-        ? '6. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".'
-        : '4. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".';
+    iosStepOpen.hidden = iosInstallMode === "chrome";
+    iosStepOpen.textContent = '3. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".';
   }
 }
 
