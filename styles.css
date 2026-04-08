@@ -1,6 +1,7 @@
 :root {
   --font-sans: "Space Grotesk", sans-serif;
   --font-display: "Space Grotesk", sans-serif;
+  --font-brand-soft: "Poppins", sans-serif;
   --ink: #1d1a16;
   --muted: #6e6258;
   --card: rgba(255, 250, 243, 0.72);
@@ -439,7 +440,7 @@ button:hover,
 }
 
 .auth-brand__image {
-  width: min(100%, 360px);
+  width: min(100%, 320px);
   height: auto;
   display: block;
 }
@@ -474,8 +475,10 @@ button:hover,
 .auth-brand__tagline {
   margin: 0;
   font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+  font-family: var(--font-brand-soft);
+  font-weight: 500;
   line-height: 1.15;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: #c06a22;
 }
 
