@@ -1,6 +1,6 @@
 :root {
   --font-sans: "Space Grotesk", sans-serif;
-  --font-display: "Instrument Serif", serif;
+  --font-display: "Space Grotesk", sans-serif;
   --ink: #1d1a16;
   --muted: #6e6258;
   --card: rgba(255, 250, 243, 0.72);
@@ -14,10 +14,10 @@
   --radius-md: 18px;
   --type-kicker: 0.72rem;
   --type-body: 0.98rem;
-  --type-h1: clamp(2.5rem, 6vw, 5rem);
-  --type-h2: clamp(1.55rem, 3vw, 2.05rem);
-  --type-h3: clamp(1.35rem, 2.4vw, 1.75rem);
-  --type-brand: clamp(1.5rem, 3vw, 2rem);
+  --type-h1: clamp(2rem, 5vw, 3.9rem);
+  --type-h2: clamp(1.35rem, 2.5vw, 1.8rem);
+  --type-h3: clamp(1.2rem, 2vw, 1.45rem);
+  --type-brand: clamp(1.2rem, 2.4vw, 1.6rem);
 }
 
 * {
@@ -123,18 +123,19 @@ body.celebration-active::after {
 .hero h1 {
   font-family: var(--font-display);
   font-size: var(--type-h1);
-  font-weight: 400;
-  line-height: 0.92;
-  max-width: 10ch;
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  max-width: 11ch;
 }
 
 .panel h2,
 .ticket h3 {
   font-family: var(--font-display);
   font-size: var(--type-h2);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
 }
 
 .eyebrow,
@@ -238,9 +239,9 @@ body.celebration-active::after {
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--type-brand);
-  font-weight: 400;
-  line-height: 0.94;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 .hero__metric {
@@ -1097,10 +1098,12 @@ button:hover,
 }
 
 .feedback-card h4 {
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(1.8rem, 4.2vw, 2.5rem);
-  line-height: 0.95;
-  margin-bottom: 0.45rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.6vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.25rem;
 }
 
 .feedback-card__text,
