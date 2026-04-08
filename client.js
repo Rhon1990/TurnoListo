@@ -49,6 +49,7 @@ let readyToneEnabled = false;
 let readyTonePrimed = false;
 let readyToneStopTimer = 0;
 let readyToneNodes = [];
+let readyVibrationTimer = 0;
 let lastReadyAlertMarker = "";
 let pushNotificationsEnabled = false;
 let pushNotificationToken = "";
@@ -339,6 +340,7 @@ function triggerReadyCelebration(previousStatus, nextStatus) {
   if (nextStatus !== "ready") {
     lastReadyAlertMarker = "";
     stopReadyTonePlayback();
+    stopReadyVibration();
     document.body.classList.remove("celebration-active");
     return;
   }
@@ -354,6 +356,7 @@ function triggerReadyCelebration(previousStatus, nextStatus) {
 
   lastReadyAlertMarker = nextReadyMarker;
   playReadyTone();
+  playReadyVibration();
   document.body.classList.remove("celebration-active");
 
   window.requestAnimationFrame(() => {
@@ -492,7 +495,7 @@ function renderAlertsBanner() {
     alertsTitle.textContent = "Avisos activados.";
     alertsStatus.textContent = alertLocked
       ? "Este pedido ya quedó configurado para avisarte."
-      : "Recibirás sonido si tienes la página abierta y notificación si el móvil está bloqueado.";
+      : "Recibirás sonido y vibración si tienes la página abierta, y notificación si el móvil está bloqueado.";
     enableAlertsButton.textContent = "Avisos activados";
     enableAlertsButton.disabled = true;
     enableAlertsButton.classList.remove("is-pending");
@@ -504,7 +507,7 @@ function renderAlertsBanner() {
   if (Notification.permission === "denied") {
     alertsStatus.textContent = "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.";
   } else {
-    alertsStatus.textContent = "Recibirás sonido si tienes la app abierta y notificación si el móvil está bloqueado.";
+    alertsStatus.textContent = "Recibirás sonido y vibración si tienes la app abierta, y notificación si el móvil está bloqueado.";
   }
   enableAlertsButton.textContent = "Activar avisos";
   enableAlertsButton.disabled = alertLocked;
@@ -567,6 +570,18 @@ async function playReadyTone() {
   }, (finalStopAt - now) * 1000 + 120);
 }
 
+function playReadyVibration() {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") {
+    return;
+  }
+
+  stopReadyVibration();
+  navigator.vibrate([220, 120, 220, 120, 320]);
+  readyVibrationTimer = window.setTimeout(() => {
+    readyVibrationTimer = 0;
+  }, 1000);
+}
+
 function stopReadyTonePlayback() {
   if (readyToneStopTimer) {
     window.clearTimeout(readyToneStopTimer);
@@ -588,6 +603,19 @@ function stopReadyTonePlayback() {
   });
 
   readyToneNodes = [];
+}
+
+function stopReadyVibration() {
+  if (readyVibrationTimer) {
+    window.clearTimeout(readyVibrationTimer);
+    readyVibrationTimer = 0;
+  }
+
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") {
+    return;
+  }
+
+  navigator.vibrate(0);
 }
 
 function closeQrModal() {
