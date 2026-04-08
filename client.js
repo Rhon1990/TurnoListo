@@ -44,6 +44,7 @@ const feedbackComment = document.querySelector("#clientFeedbackComment");
 const commentInput = document.querySelector("#clientCommentInput");
 const commentSaveButton = document.querySelector("#clientCommentSave");
 const commentSentMessage = document.querySelector("#clientCommentSentMessage");
+const clientManifestLink = document.querySelector("#clientManifestLink");
 
 let selectedOrderId = initialOrderId;
 let orderInputDirty = false;
@@ -65,6 +66,7 @@ let pushNotificationBusy = false;
 let alertsDismissed = false;
 let alertsStatusOverride = "";
 let alertsButtonLockedReason = "";
+let dynamicClientManifestUrl = "";
 const SOUND_ENABLED_STORAGE_KEY = "turnolisto-client-ready-sound-enabled";
 const PUSH_ENABLED_STORAGE_KEY = "turnolisto-client-push-enabled";
 const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
@@ -195,6 +197,7 @@ function renderClient() {
 
   selectedOrderId = publicOrderId;
   rememberClientOrder(publicOrderId);
+  syncClientInstallManifest(publicOrderId);
   syncOrderInputValue(publicOrderId);
   renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
@@ -327,6 +330,53 @@ function rememberClientOrder(orderId) {
   const normalizedOrderId = normalizePublicTrackingToken(orderId || "");
   if (!normalizedOrderId) return;
   window.localStorage.setItem(LAST_CLIENT_ORDER_STORAGE_KEY, normalizedOrderId);
+}
+
+function syncClientInstallManifest(orderId) {
+  if (!clientManifestLink) return;
+
+  const normalizedOrderId = normalizePublicTrackingToken(orderId || "");
+  if (!normalizedOrderId) {
+    clientManifestLink.href = "./manifest.webmanifest";
+    return;
+  }
+
+  const manifest = {
+    name: "TurnoListo",
+    short_name: "TurnoListo",
+    description: "Seguimiento de pedidos para cliente y restaurante en tiempo real.",
+    start_url: buildClientUrl(normalizedOrderId),
+    scope: "./",
+    display: "standalone",
+    background_color: "#f6efe6",
+    theme_color: "#1f7a63",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "./turnolisto-brand.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "./turnolisto-brand.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+  };
+
+  if (dynamicClientManifestUrl) {
+    URL.revokeObjectURL(dynamicClientManifestUrl);
+  }
+
+  dynamicClientManifestUrl = URL.createObjectURL(
+    new Blob([JSON.stringify(manifest)], {
+      type: "application/manifest+json",
+    }),
+  );
+  clientManifestLink.href = dynamicClientManifestUrl;
 }
 
 function renderProgressSteps(status) {
@@ -513,11 +563,11 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
       alertsStatusOverride = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
     } else if (result?.reason === "unsupported-ios-browser") {
       alertsStatusOverride =
-        "En iPhone los avisos en segundo plano solo funcionan al anadir TurnoListo a la pantalla de inicio y abrirlo desde ese icono. En esta pestaña usaras solo el sonido local.";
+        "No te preocupes: TurnoListo sigue funcionando en esta pantalla. Solo ten en cuenta que no podras cerrar ni minimizar la pestana si quieres seguir oyendo el aviso. Si prefieres recibirlo mientras usas tu movil para otras cosas, sigue los pasos de abajo y abre TurnoListo desde Safari en la pantalla de inicio.";
       alertsButtonLockedReason = "unsupported-ios-browser";
     } else if (result?.reason === "unsupported") {
       alertsStatusOverride =
-        "Este dispositivo o navegador no permite avisos en segundo plano. El sonido local seguira disponible en esta pantalla.";
+        "No te preocupes: TurnoListo sigue funcionando en esta pantalla. Solo ten en cuenta que no podras cerrar ni minimizar la pestana si quieres seguir oyendo el aviso. Si quieres que funcione mientras usas tu movil en otras cosas, sigue los pasos indicados mas abajo.";
       alertsButtonLockedReason = "unsupported";
     } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
       alertsStatusOverride =
