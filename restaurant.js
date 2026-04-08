@@ -608,7 +608,7 @@ function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suf
     label.textContent = item.label;
     value.textContent = item.valueLabel || String(item.count || 0);
     fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
-    fill.style.background = `linear-gradient(90deg, ${item.color || "#d85f31"}, rgba(255,255,255,0.92))`;
+    fill.style.background = item.color || "#d85f31";
     track.append(fill);
     row.append(label, track, value);
     container.append(row);
