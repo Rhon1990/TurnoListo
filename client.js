@@ -1,5 +1,6 @@
+const LAST_CLIENT_ORDER_STORAGE_KEY = "turnolisto-client-last-order";
 const params = new URLSearchParams(window.location.search);
-const initialOrderId = normalizePublicTrackingToken(params.get("order") || "TL-ANA2048Q2Z9");
+const initialOrderId = resolveInitialOrderId();
 
 const orderInput = document.querySelector("#clientOrderInput");
 const loadButton = document.querySelector("#clientLoadButton");
@@ -190,6 +191,7 @@ function renderClient() {
   };
 
   selectedOrderId = publicOrderId;
+  rememberClientOrder(publicOrderId);
   syncOrderInputValue(publicOrderId);
   renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
@@ -298,6 +300,30 @@ function syncOrderInputValue(value) {
   if (orderInput.value !== normalizedValue) {
     orderInput.value = normalizedValue;
   }
+}
+
+function resolveInitialOrderId() {
+  const orderFromUrl = normalizePublicTrackingToken(params.get("order") || "");
+  if (orderFromUrl) {
+    rememberClientOrder(orderFromUrl);
+    return orderFromUrl;
+  }
+
+  const isIosStandalone =
+    /iPhone|iPad|iPod/i.test(String(window.navigator?.userAgent || "")) &&
+    (window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator?.standalone === true);
+  const storedOrderId = normalizePublicTrackingToken(window.localStorage.getItem(LAST_CLIENT_ORDER_STORAGE_KEY) || "");
+  if (isIosStandalone && storedOrderId) {
+    return storedOrderId;
+  }
+
+  return normalizePublicTrackingToken("TL-ANA2048Q2Z9");
+}
+
+function rememberClientOrder(orderId) {
+  const normalizedOrderId = normalizePublicTrackingToken(orderId || "");
+  if (!normalizedOrderId) return;
+  window.localStorage.setItem(LAST_CLIENT_ORDER_STORAGE_KEY, normalizedOrderId);
 }
 
 function renderProgressSteps(status) {
