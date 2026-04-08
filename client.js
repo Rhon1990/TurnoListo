@@ -56,6 +56,7 @@ let pushNotificationToken = "";
 let pushRegistrationOrderId = "";
 let pushNotificationBusy = false;
 let alertsDismissed = false;
+let alertsStatusOverride = "";
 const SOUND_ENABLED_STORAGE_KEY = "turnolisto-client-ready-sound-enabled";
 const PUSH_ENABLED_STORAGE_KEY = "turnolisto-client-push-enabled";
 const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
@@ -402,13 +403,25 @@ async function handleEnableAlerts() {
 
   try {
     await warmUpReadyTone();
+    alertsStatusOverride = "";
     let activationResult = await syncPushRegistrationForCurrentOrder({ force: true });
-    if (!activationResult?.enabled && typeof Notification !== "undefined" && Notification.permission === "granted") {
+    if (
+      !activationResult?.enabled &&
+      activationResult?.reason === "missing-token" &&
+      typeof Notification !== "undefined" &&
+      Notification.permission === "granted"
+    ) {
       await new Promise((resolve) => window.setTimeout(resolve, 350));
       activationResult = await syncPushRegistrationForCurrentOrder({ force: true, retryAfterGrant: true });
     }
     syncReadyTonePrimedState();
     alertsDismissed = readyToneEnabled && pushNotificationsEnabled;
+  } catch (error) {
+    console.error("No se pudieron activar los avisos del pedido.", error);
+    pushNotificationsEnabled = false;
+    alertsDismissed = false;
+    alertsStatusOverride =
+      "No se pudieron activar las notificaciones en este dispositivo. El sonido local seguira disponible en esta pantalla.";
   } finally {
     pushNotificationBusy = false;
     renderAlertsBanner();
@@ -429,12 +442,18 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     return { enabled: true, token: pushNotificationToken, reused: true };
   }
 
-  const result = await backend.enableClientPushNotifications({
-    orderId: currentOrder.id,
-    orderPublicId: currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id,
-    orderNumber: currentOrder.orderNumber,
-    clientUrl: buildClientUrl(currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id),
-  });
+  let result;
+  try {
+    result = await backend.enableClientPushNotifications({
+      orderId: currentOrder.id,
+      orderPublicId: currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id,
+      orderNumber: currentOrder.orderNumber,
+      clientUrl: buildClientUrl(currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id),
+    });
+  } catch (error) {
+    console.error("Fallo al registrar las notificaciones push del cliente.", error);
+    result = { enabled: false, reason: "setup-failed" };
+  }
 
   if (!result?.enabled) {
     pushNotificationsEnabled = false;
@@ -442,19 +461,30 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     alertsDismissed = false;
 
     if (result?.reason === "missing-vapid-key") {
-      alertsStatus.textContent = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
+      alertsStatusOverride = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
     } else if (result?.reason === "permission-denied") {
-      alertsStatus.textContent = "Has bloqueado las notificaciones del navegador. Actívalas en los permisos del sitio.";
+      alertsStatusOverride = "Has bloqueado las notificaciones del navegador. Activalas en los permisos del sitio.";
     } else if (result?.reason === "permission-dismissed") {
-      alertsStatus.textContent = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
+      alertsStatusOverride = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
+    } else if (result?.reason === "unsupported-ios-browser") {
+      alertsStatusOverride =
+        "En iPhone los avisos en segundo plano solo funcionan al anadir TurnoListo a la pantalla de inicio y abrirlo desde ese icono. En esta pestaña usaras solo el sonido local.";
+    } else if (result?.reason === "unsupported") {
+      alertsStatusOverride =
+        "Este dispositivo o navegador no permite avisos en segundo plano. El sonido local seguira disponible en esta pantalla.";
+    } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
+      alertsStatusOverride =
+        "La activacion de avisos tardo demasiado en este dispositivo. Puedes seguir usando el sonido local con la pagina abierta.";
     } else if (result?.reason === "missing-token" && options.retryAfterGrant) {
-      alertsStatus.textContent = "Estamos terminando de activar las notificaciones en este navegador. Intenta de nuevo en unos segundos si no se completa.";
+      alertsStatusOverride =
+        "Estamos terminando de activar las notificaciones en este navegador. Intenta de nuevo en unos segundos si no se completa.";
     } else {
-      alertsStatus.textContent = "No se pudo activar la notificación en segundo plano en este dispositivo.";
+      alertsStatusOverride = "No se pudo activar la notificacion en segundo plano en este dispositivo.";
     }
     return { enabled: false, reason: result?.reason || "unknown" };
   }
 
+  alertsStatusOverride = "";
   pushNotificationsEnabled = true;
   pushNotificationToken = String(result.token || "");
   pushRegistrationOrderId = currentOrder.id;
@@ -504,7 +534,9 @@ function renderAlertsBanner() {
   }
 
   alertsTitle.textContent = "Activa los avisos del pedido.";
-  if (Notification.permission === "denied") {
+  if (alertsStatusOverride) {
+    alertsStatus.textContent = alertsStatusOverride;
+  } else if (Notification.permission === "denied") {
     alertsStatus.textContent = "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.";
   } else {
     alertsStatus.textContent = "Recibirás sonido y vibración si tienes la app abierta, y notificación si el móvil está bloqueado.";

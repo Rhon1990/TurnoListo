@@ -67,6 +67,34 @@ function notifyFirebaseBridgeError(error, fallbackMessage) {
   }
 }
 
+function isIosBrowserWithoutStandaloneSupport() {
+  const userAgent = String(window.navigator?.userAgent || "");
+  const isIosDevice = /iPhone|iPad|iPod/i.test(userAgent);
+  if (!isIosDevice) return false;
+
+  const standaloneMatch = window.matchMedia?.("(display-mode: standalone)")?.matches;
+  const navigatorStandalone = window.navigator?.standalone === true;
+  return !standaloneMatch && !navigatorStandalone;
+}
+
+async function withTimeout(promise, timeoutMs, timeoutReason) {
+  let timeoutId = 0;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((resolve) => {
+        timeoutId = window.setTimeout(() => {
+          resolve({ enabled: false, reason: timeoutReason });
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+  }
+}
+
 async function replaceCollection(db, collectionName, items) {
   const snapshot = await getDocs(collection(db, collectionName));
   const docsToDelete = snapshot.docs.filter((snapshotDoc) => !items.some((item) => String(item.id) === snapshotDoc.id));
@@ -174,6 +202,10 @@ window.__turnoFirebaseReadyPromise = (async () => {
         return { enabled: false, reason: "unsupported" };
       }
 
+      if (isIosBrowserWithoutStandaloneSupport()) {
+        return { enabled: false, reason: "unsupported-ios-browser" };
+      }
+
       const vapidKey = String(firebaseConfig.messagingVapidKey || "").trim();
       if (!vapidKey || vapidKey.startsWith("REPLACE_WITH_")) {
         return { enabled: false, reason: "missing-vapid-key" };
@@ -184,15 +216,34 @@ window.__turnoFirebaseReadyPromise = (async () => {
         return { enabled: false, reason: permission === "denied" ? "permission-denied" : "permission-dismissed" };
       }
 
-      const serviceWorkerRegistration = await navigator.serviceWorker.register("./firebase-messaging-sw.js");
-      await navigator.serviceWorker.ready.catch(() => serviceWorkerRegistration);
-      const token = await getToken(messaging, {
-        vapidKey,
-        serviceWorkerRegistration,
-      });
+      const serviceWorkerRegistration = await withTimeout(
+        navigator.serviceWorker.register("./firebase-messaging-sw.js"),
+        7000,
+        "service-worker-timeout",
+      );
+      if (!serviceWorkerRegistration?.active && serviceWorkerRegistration?.enabled === false) {
+        return serviceWorkerRegistration;
+      }
+
+      await withTimeout(
+        navigator.serviceWorker.ready.catch(() => serviceWorkerRegistration),
+        7000,
+        "service-worker-timeout",
+      );
+      const token = await withTimeout(
+        getToken(messaging, {
+          vapidKey,
+          serviceWorkerRegistration,
+        }),
+        9000,
+        "token-timeout",
+      );
 
       if (!token) {
         return { enabled: false, reason: "missing-token" };
+      }
+      if (typeof token === "object" && token?.enabled === false) {
+        return token;
       }
 
       const callable = httpsCallable(functions, "registerClientPushSubscription");
