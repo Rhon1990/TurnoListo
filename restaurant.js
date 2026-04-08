@@ -584,7 +584,7 @@ function renderDashboard(stats) {
       .map((item) => ({
         label: item.label,
         count: item.averageMinutes,
-        color: "#ff7a00",
+        color: "#ec7c0d",
         valueLabel: formatStatusDurationLabel(item.averageMinutes),
       })),
     "Aún no hay suficiente histórico para medir tiempos por estado.",
@@ -645,7 +645,7 @@ function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suf
     label.textContent = item.label;
     value.textContent = item.valueLabel || String(item.count || 0);
     fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
-    fill.style.background = item.color || "#ff7a00";
+    fill.style.background = item.color || "#ec7c0d";
     track.append(fill);
     row.append(label, track, value);
     container.append(row);
@@ -673,7 +673,7 @@ function renderDashboardDonut(container, items, centerLabel) {
     const start = accumulated;
     const size = (Number(item.count || 0) / total) * 360;
     accumulated += size;
-    return `${item.color || "#ff7a00"} ${start}deg ${accumulated}deg`;
+    return `${item.color || "#ec7c0d"} ${start}deg ${accumulated}deg`;
   });
 
   chart.className = "dashboard-donut__chart";
@@ -686,7 +686,7 @@ function renderDashboardDonut(container, items, centerLabel) {
   safeItems.forEach((item) => {
     const row = document.createElement("div");
     row.className = "dashboard-donut__legend-row";
-    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ff7a00"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
     legend.append(row);
   });
 

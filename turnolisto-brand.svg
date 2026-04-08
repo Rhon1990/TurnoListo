@@ -3,16 +3,16 @@
   <desc id="desc">Marca TurnoListo con simbolo ascendente y nombre de producto.</desc>
   <defs>
     <linearGradient id="tlOrange" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff7a00" />
-      <stop offset="52%" stop-color="#ff9500" />
-      <stop offset="100%" stop-color="#e7344c" />
+      <stop offset="0%" stop-color="#ec7c0d" />
+      <stop offset="52%" stop-color="#ec7c0d" />
+      <stop offset="100%" stop-color="#b91d2b" />
     </linearGradient>
     <linearGradient id="tlRed" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ff7a00" />
-      <stop offset="100%" stop-color="#e7344c" />
+      <stop offset="0%" stop-color="#ec7c0d" />
+      <stop offset="100%" stop-color="#b91d2b" />
     </linearGradient>
     <filter id="tlShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#cf5b21" flood-opacity="0.18" />
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#ec7c0d" flood-opacity="0.18" />
     </filter>
   </defs>
 
@@ -27,11 +27,11 @@
     />
     <path
       d="M269 89l74-73c7-7 17-11 27-11h39c12 0 17 15 8 23l-74 73c-5 5-12 8-19 8h-44c-12 0-18-13-11-20z"
-      fill="#e7344c"
+      fill="#b91d2b"
     />
     <path
       d="M333 6h77c12 0 18 14 10 23l-39 46c-7 8-20 8-28 1-7-7-7-18-1-26l9-10h-28c-10 0-17-8-17-17s8-17 17-17z"
-      fill="#e7344c"
+      fill="#b91d2b"
     />
     <path
       d="M175 145l33 31c8 7 8 20 0 28l-28 29c-8 8-21 7-29-2l-26-31c-7-8-6-19 2-27l18-19c8-8 21-9 30-1z"
@@ -63,7 +63,7 @@
       font-size="26"
       font-weight="500"
       letter-spacing="0.2"
-      fill="#c06a22"
+      fill="#ec7c0d"
     >
       Tecnologia que agiliza tu restaurante
     </text>
