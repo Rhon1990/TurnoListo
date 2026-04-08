@@ -563,11 +563,11 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
       alertsStatusOverride = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
     } else if (result?.reason === "unsupported-ios-browser") {
       alertsStatusOverride =
-        "No te preocupes: TurnoListo sigue funcionando en esta pantalla. Solo ten en cuenta que no podras cerrar ni minimizar la pestana si quieres seguir oyendo el aviso. Si prefieres recibirlo mientras usas tu movil para otras cosas, sigue los pasos de abajo y abre TurnoListo desde Safari en la pantalla de inicio.";
+        "No te preocupes: TurnoListo sigue funcionando; solo no cierres ni minimices esta pantalla si quieres seguir escuchando el aviso cuando tu pedido este listo, y si quieres que te avise mientras usas otras apps, sigue los pasos de abajo y abre TurnoListo desde Safari en la pantalla de inicio.";
       alertsButtonLockedReason = "unsupported-ios-browser";
     } else if (result?.reason === "unsupported") {
       alertsStatusOverride =
-        "No te preocupes: TurnoListo sigue funcionando en esta pantalla. Solo ten en cuenta que no podras cerrar ni minimizar la pestana si quieres seguir oyendo el aviso. Si quieres que funcione mientras usas tu movil en otras cosas, sigue los pasos indicados mas abajo.";
+        "No te preocupes: TurnoListo sigue funcionando; solo no cierres ni minimices esta pantalla si quieres seguir escuchando el aviso cuando tu pedido este listo, y si quieres que te avise mientras usas otras apps, sigue los pasos de abajo.";
       alertsButtonLockedReason = "unsupported";
     } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
       alertsStatusOverride =
