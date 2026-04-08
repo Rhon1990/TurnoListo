@@ -427,11 +427,12 @@ button:hover,
 }
 
 .auth-brand {
-  --auth-brand-width: min(100%, 320px);
+  --auth-brand-logo-width: min(100%, 224px);
+  --auth-brand-copy-width: min(100%, 360px);
   display: grid;
   place-items: center;
   margin-bottom: 1.35rem;
-  gap: 0.8rem;
+  gap: 0.7rem;
   padding: 1.45rem 1rem 1.15rem;
   border-radius: 32px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(252, 244, 234, 0.88));
@@ -441,7 +442,7 @@ button:hover,
 }
 
 .auth-brand__image {
-  width: var(--auth-brand-width);
+  width: var(--auth-brand-logo-width);
   height: auto;
   display: block;
 }
@@ -449,22 +450,29 @@ button:hover,
 .auth-brand__copy {
   display: grid;
   gap: 0.1rem;
-  justify-items: center;
-  width: var(--auth-brand-width);
+  justify-items: stretch;
+  width: var(--auth-brand-copy-width);
 }
 
 .auth-brand__name {
   margin: 0;
   width: 100%;
-  font-size: clamp(1.7rem, 3.5vw, 2.7rem);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: clamp(1.85rem, 3.6vw, 2.9rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
   font-weight: 700;
-  color: #ff7a00;
   white-space: nowrap;
+  text-align: left;
 }
 
-.auth-brand__name span {
+.auth-brand__name-turno {
+  color: #ff7a00;
+}
+
+.auth-brand__name-listo {
   color: #e7344c;
 }
 
@@ -478,6 +486,7 @@ button:hover,
   letter-spacing: 0;
   color: #c06a22;
   white-space: nowrap;
+  text-align: left;
 }
 
 .auth-form {
