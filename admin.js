@@ -42,6 +42,10 @@ const adminActionOnboardingHint = document.querySelector("#adminActionOnboarding
 const adminActionRiskHint = document.querySelector("#adminActionRiskHint");
 const adminActionHealthyHint = document.querySelector("#adminActionHealthyHint");
 const adminTopRestaurantPanel = document.querySelector("#adminTopRestaurantPanel");
+const adminAccessMix = document.querySelector("#adminAccessMix");
+const adminOrderOutcomeMix = document.querySelector("#adminOrderOutcomeMix");
+const adminAdoptionMix = document.querySelector("#adminAdoptionMix");
+const adminTopRestaurantsBars = document.querySelector("#adminTopRestaurantsBars");
 const adminInsights = document.querySelector("#adminInsights");
 const adminDeleteModal = document.querySelector("#adminDeleteModal");
 const adminDeleteBackdrop = document.querySelector("#adminDeleteBackdrop");
@@ -411,6 +415,10 @@ function renderAdminDashboard(stats) {
     : "Aún no hay base sana suficiente para empujar upsell";
 
   adminTopRestaurantPanel.innerHTML = "";
+  adminAccessMix.innerHTML = "";
+  adminOrderOutcomeMix.innerHTML = "";
+  adminAdoptionMix.innerHTML = "";
+  adminTopRestaurantsBars.innerHTML = "";
   adminInsights.innerHTML = "";
 
   const topBox = document.createElement("article");
@@ -423,11 +431,61 @@ function renderAdminDashboard(stats) {
   }
   adminTopRestaurantPanel.append(topBox);
 
+  renderAdminBarChart(adminAccessMix, stats.accessMix);
+  renderAdminBarChart(adminOrderOutcomeMix, stats.orderOutcomeMix);
+  renderAdminBarChart(adminAdoptionMix, stats.adoptionMix);
+  renderAdminBarChart(
+    adminTopRestaurantsBars,
+    stats.topRestaurantsByOrders.map((item) => ({
+      label: item.restaurant.name,
+      count: item.orderCount,
+      color: "#d85f31",
+      valueLabel: `${item.orderCount} pedidos`,
+    })),
+    "Todavía no hay suficiente actividad para mostrar un ranking.",
+  );
+
   buildAdminInsights(stats).forEach((message) => {
     const card = document.createElement("article");
     card.className = "dashboard-insight";
     card.textContent = message;
     adminInsights.append(card);
+  });
+}
+
+function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {
+  container.innerHTML = "";
+  const safeItems = Array.isArray(items) ? items.filter(Boolean) : [];
+  const maxValue = safeItems.reduce((max, item) => Math.max(max, Number(item.count || 0)), 0);
+
+  if (!safeItems.length || maxValue <= 0) {
+    const empty = document.createElement("article");
+    empty.className = "dashboard-insight";
+    empty.textContent = emptyMessage;
+    container.append(empty);
+    return;
+  }
+
+  safeItems.forEach((item) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const track = document.createElement("div");
+    const fill = document.createElement("span");
+    const value = document.createElement("span");
+
+    row.className = "dashboard-bar";
+    label.className = "dashboard-bar__label";
+    track.className = "dashboard-bar__track";
+    value.className = "dashboard-bar__value";
+
+    label.textContent = item.label;
+    fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
+    fill.style.background = item.color || "#d85f31";
+    value.textContent = item.valueLabel || String(item.count || 0);
+
+    track.append(fill);
+    row.append(label, track, value);
+    container.append(row);
   });
 }
 

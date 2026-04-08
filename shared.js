@@ -1286,6 +1286,17 @@ function getDashboardStats() {
       color: statusMeta[status].color,
       bg: statusMeta[status].bg,
     })),
+    feedbackMix: [
+      { label: "Valoradas", count: ratedOrders.length, color: "#1f7a63" },
+      { label: "Bajas", count: lowRatedOrders.length, color: "#b42318" },
+      { label: "Comentadas", count: commentedOrders.length, color: "#0c5b75" },
+    ],
+    throughputMix: [
+      { label: "Activos", count: activeOrders.length, color: "#8c6403" },
+      { label: "Listos", count: activeOrders.filter((order) => order.status === "ready").length, color: "#1f7a63" },
+      { label: "Entregados", count: deliveredOrders.length, color: "#0c5b75" },
+      { label: "Cancelados", count: todayOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
+    ],
   };
 }
 
@@ -1326,6 +1337,10 @@ function getAdminDashboardStats() {
       return remainingDays !== null && remainingDays >= 0 && remainingDays <= 7;
     })
     .length;
+  const topRestaurantsByOrders = [...restaurantsWithOrders]
+    .filter((item) => item.orderCount > 0)
+    .sort((left, right) => right.orderCount - left.orderCount)
+    .slice(0, 5);
 
   return {
     totalRestaurants: restaurants.length,
@@ -1340,6 +1355,22 @@ function getAdminDashboardStats() {
     dormantRestaurants,
     restaurantsWithoutOrders,
     topRestaurant,
+    topRestaurantsByOrders,
+    accessMix: [
+      { label: "Activos", count: activeRestaurants.length, color: "#1f7a63" },
+      { label: "Vencen pronto", count: soonToExpire, color: "#b66a08" },
+      { label: "Vencidos", count: expiredRestaurants.length, color: "#b42318" },
+    ],
+    adoptionMix: [
+      { label: "Activos 7d", count: recentlyActiveRestaurants, color: "#1f7a63" },
+      { label: "Dormidos 14d", count: dormantRestaurants, color: "#b66a08" },
+      { label: "Sin pedidos", count: restaurantsWithoutOrders, color: "#8f3513" },
+    ],
+    orderOutcomeMix: [
+      { label: "Activos", count: orders.filter((order) => !order.archivedAt).length, color: "#8c6403" },
+      { label: "Entregados", count: orders.filter((order) => order.status === "delivered").length, color: "#1f7a63" },
+      { label: "Cancelados", count: orders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
+    ],
   };
 }
 

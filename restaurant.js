@@ -56,6 +56,8 @@ const dashboardPeakHour = document.querySelector("#dashboardPeakHour");
 const dashboardCancellationRate = document.querySelector("#dashboardCancellationRate");
 const dashboardAvgResolution = document.querySelector("#dashboardAvgResolution");
 const dashboardStatusBars = document.querySelector("#dashboardStatusBars");
+const dashboardStatusPerformanceBars = document.querySelector("#dashboardStatusPerformanceBars");
+const dashboardFeedbackBars = document.querySelector("#dashboardFeedbackBars");
 const dashboardInsights = document.querySelector("#dashboardInsights");
 const dashboardCardActiveNow = document.querySelector("#dashboardCardActiveNow");
 const dashboardCardDeliveredToday = document.querySelector("#dashboardCardDeliveredToday");
@@ -500,10 +502,64 @@ function renderDashboard(stats) {
   dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
 
   dashboardStatusBars.innerHTML = "";
+  dashboardStatusPerformanceBars.innerHTML = "";
+  dashboardFeedbackBars.innerHTML = "";
   dashboardInsights.innerHTML = "";
 
-  const maxCount = Math.max(1, ...stats.statusCounts.map((item) => item.count));
-  stats.statusCounts.forEach((item) => {
+  renderDashboardBarChart(
+    dashboardStatusBars,
+    stats.statusCounts.map((item) => ({
+      label: item.label,
+      count: item.count,
+      color: item.color,
+      valueLabel: String(item.count),
+    })),
+  );
+  renderDashboardBarChart(
+    dashboardStatusPerformanceBars,
+    stats.statusPerformance
+      .filter((item) => item.count > 0)
+      .map((item) => ({
+        label: item.label,
+        count: item.averageMinutes,
+        color: "#d85f31",
+        valueLabel: formatStatusDurationLabel(item.averageMinutes),
+      })),
+    "Aún no hay suficiente histórico para medir tiempos por estado.",
+  );
+  renderDashboardBarChart(
+    dashboardFeedbackBars,
+    stats.feedbackMix.map((item) => ({
+      label: item.label,
+      count: item.count,
+      color: item.color,
+      valueLabel: String(item.count),
+    })),
+    "Todavía no hay feedback suficiente para construir esta lectura.",
+  );
+
+  buildImprovementInsights(stats).forEach((message) => {
+    const item = document.createElement("article");
+    item.className = "dashboard-insight";
+    item.textContent = message;
+    dashboardInsights.append(item);
+  });
+}
+
+function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {
+  container.innerHTML = "";
+  const safeItems = Array.isArray(items) ? items.filter(Boolean) : [];
+  const maxValue = safeItems.reduce((max, item) => Math.max(max, Number(item.count || 0)), 0);
+
+  if (!safeItems.length || maxValue <= 0) {
+    const empty = document.createElement("article");
+    empty.className = "dashboard-insight";
+    empty.textContent = emptyMessage;
+    container.append(empty);
+    return;
+  }
+
+  safeItems.forEach((item) => {
     const row = document.createElement("div");
     const label = document.createElement("div");
     const track = document.createElement("div");
@@ -516,19 +572,12 @@ function renderDashboard(stats) {
     value.className = "dashboard-bar__value";
 
     label.textContent = item.label;
-    value.textContent = item.count;
-    fill.style.width = `${(item.count / maxCount) * 100}%`;
-    fill.style.background = `linear-gradient(90deg, ${item.color}, rgba(255,255,255,0.92))`;
+    value.textContent = item.valueLabel || String(item.count || 0);
+    fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
+    fill.style.background = `linear-gradient(90deg, ${item.color || "#d85f31"}, rgba(255,255,255,0.92))`;
     track.append(fill);
     row.append(label, track, value);
-    dashboardStatusBars.append(row);
-  });
-
-  buildImprovementInsights(stats).forEach((message) => {
-    const item = document.createElement("article");
-    item.className = "dashboard-insight";
-    item.textContent = message;
-    dashboardInsights.append(item);
+    container.append(row);
   });
 }
 
