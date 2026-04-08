@@ -670,11 +670,12 @@ button:hover,
 
 .mode-strip {
   position: relative;
-  display: inline-grid;
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
   padding: 0.35rem;
   margin-top: 0.75rem;
+  width: min(100%, 420px);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(29, 26, 22, 0.08);
@@ -686,6 +687,8 @@ button:hover,
   background: transparent;
   color: var(--muted);
   font-weight: 700;
+  min-width: 0;
+  text-align: center;
 }
 
 .mode-chip.is-active {
@@ -2288,7 +2291,6 @@ button:hover,
   .quick-form,
   .admin-create-form,
   .list-toolbar,
-  .mode-strip,
   .focus-strip,
   .order-edit-grid,
   .dashboard-hero,
@@ -2299,6 +2301,16 @@ button:hover,
 
   .section-switcher {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .mode-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .mode-chip {
+    padding-inline: 0.8rem;
+    font-size: 0.95rem;
   }
 
   .admin-card__grid {
