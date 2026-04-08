@@ -1471,7 +1471,7 @@ function formatAdminEmailDate(value) {
 function buildClientUrl(orderId) {
   const url = new URL("./client-launch.html", window.location.href);
   const publicOrderId = typeof orderId === "string" ? orderId : getOrderPublicTrackingToken(orderId);
-  url.searchParams.set("order", publicOrderId);
+  url.hash = `order=${encodeURIComponent(publicOrderId)}`;
   return url.toString();
 }
 
