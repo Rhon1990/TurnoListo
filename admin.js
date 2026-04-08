@@ -127,11 +127,7 @@ function initializeTermHints(root, tooltip, getTimer, setTimer) {
     element.tabIndex = 0;
     element.addEventListener("mouseenter", () => {
       window.clearTimeout(getTimer());
-      setTimer(
-        window.setTimeout(() => {
-          showTermTooltip(element, tooltip);
-        }, 700),
-      );
+      showTermTooltip(element, tooltip);
     });
     element.addEventListener("mouseleave", () => hideTermTooltip(tooltip, getTimer, setTimer));
     element.addEventListener("focus", () => showTermTooltip(element, tooltip));

@@ -176,9 +176,7 @@ function initializeRestaurantTermHints(root = document) {
     element.tabIndex = 0;
     element.addEventListener("mouseenter", () => {
       window.clearTimeout(restaurantTermTooltipTimer);
-      restaurantTermTooltipTimer = window.setTimeout(() => {
-        showRestaurantTermTooltip(element);
-      }, 700);
+      showRestaurantTermTooltip(element);
     });
     element.addEventListener("mouseleave", hideRestaurantTermTooltip);
     element.addEventListener("focus", () => showRestaurantTermTooltip(element));
