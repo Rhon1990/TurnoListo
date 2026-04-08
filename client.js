@@ -64,6 +64,7 @@ let pushRegistrationOrderId = "";
 let pushNotificationBusy = false;
 let alertsDismissed = false;
 let alertsStatusOverride = "";
+let alertsButtonLockedReason = "";
 const SOUND_ENABLED_STORAGE_KEY = "turnolisto-client-ready-sound-enabled";
 const PUSH_ENABLED_STORAGE_KEY = "turnolisto-client-push-enabled";
 const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
@@ -445,6 +446,7 @@ async function handleEnableAlerts() {
   try {
     await warmUpReadyTone();
     alertsStatusOverride = "";
+    alertsButtonLockedReason = "";
     let activationResult = await syncPushRegistrationForCurrentOrder({ force: true });
     if (
       !activationResult?.enabled &&
@@ -463,6 +465,7 @@ async function handleEnableAlerts() {
     alertsDismissed = false;
     alertsStatusOverride =
       "No se pudieron activar las notificaciones en este dispositivo. El sonido local seguira disponible en esta pantalla.";
+    alertsButtonLockedReason = "";
   } finally {
     pushNotificationBusy = false;
     renderAlertsBanner();
@@ -500,6 +503,7 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     pushNotificationsEnabled = false;
     window.localStorage.setItem(PUSH_ENABLED_STORAGE_KEY, "false");
     alertsDismissed = false;
+    alertsButtonLockedReason = "";
 
     if (result?.reason === "missing-vapid-key") {
       alertsStatusOverride = "Falta configurar la clave web push de Firebase para activar avisos en segundo plano.";
@@ -510,9 +514,11 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     } else if (result?.reason === "unsupported-ios-browser") {
       alertsStatusOverride =
         "En iPhone los avisos en segundo plano solo funcionan al anadir TurnoListo a la pantalla de inicio y abrirlo desde ese icono. En esta pestaña usaras solo el sonido local.";
+      alertsButtonLockedReason = "unsupported-ios-browser";
     } else if (result?.reason === "unsupported") {
       alertsStatusOverride =
         "Este dispositivo o navegador no permite avisos en segundo plano. El sonido local seguira disponible en esta pantalla.";
+      alertsButtonLockedReason = "unsupported";
     } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
       alertsStatusOverride =
         "La activacion de avisos tardo demasiado en este dispositivo. Puedes seguir usando el sonido local con la pagina abierta.";
@@ -526,6 +532,7 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
   }
 
   alertsStatusOverride = "";
+  alertsButtonLockedReason = "";
   pushNotificationsEnabled = true;
   pushNotificationToken = String(result.token || "");
   pushRegistrationOrderId = currentOrder.id;
@@ -552,6 +559,7 @@ function renderAlertsBanner() {
 
   if (alertsBanner.hidden) {
     enableAlertsButton.classList.remove("is-pending");
+    enableAlertsButton.classList.remove("is-success");
     return;
   }
 
@@ -582,8 +590,16 @@ function renderAlertsBanner() {
   } else {
     alertsStatus.textContent = getDefaultAlertsCopy({ pageWord: "app" });
   }
-  enableAlertsButton.textContent = "Activar avisos";
-  enableAlertsButton.disabled = alertLocked;
+  if (alertsButtonLockedReason === "unsupported-ios-browser") {
+    enableAlertsButton.textContent = "Usa Safari y pantalla de inicio";
+    enableAlertsButton.disabled = true;
+  } else if (alertsButtonLockedReason === "unsupported") {
+    enableAlertsButton.textContent = "Avisos no disponibles aqui";
+    enableAlertsButton.disabled = true;
+  } else {
+    enableAlertsButton.textContent = "Activar avisos";
+    enableAlertsButton.disabled = alertLocked;
+  }
   enableAlertsButton.classList.remove("is-pending");
   enableAlertsButton.classList.remove("is-success");
 }
