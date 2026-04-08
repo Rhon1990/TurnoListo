@@ -63,6 +63,7 @@ const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
 const PUSH_ORDER_STORAGE_KEY = "turnolisto-client-push-order";
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
+const IS_IOS_DEVICE = /iPhone|iPad|iPod/i.test(String(window.navigator?.userAgent || ""));
 
 readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "true";
 pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
@@ -525,7 +526,7 @@ function renderAlertsBanner() {
     alertsTitle.textContent = "Avisos activados.";
     alertsStatus.textContent = alertLocked
       ? "Este pedido ya quedó configurado para avisarte."
-      : "Recibirás sonido y vibración si tienes la página abierta, y notificación si el móvil está bloqueado.";
+      : getDefaultAlertsCopy({ pageWord: "pagina" });
     enableAlertsButton.textContent = "Avisos activados";
     enableAlertsButton.disabled = true;
     enableAlertsButton.classList.remove("is-pending");
@@ -539,12 +540,23 @@ function renderAlertsBanner() {
   } else if (Notification.permission === "denied") {
     alertsStatus.textContent = "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.";
   } else {
-    alertsStatus.textContent = "Recibirás sonido y vibración si tienes la app abierta, y notificación si el móvil está bloqueado.";
+    alertsStatus.textContent = getDefaultAlertsCopy({ pageWord: "app" });
   }
   enableAlertsButton.textContent = "Activar avisos";
   enableAlertsButton.disabled = alertLocked;
   enableAlertsButton.classList.remove("is-pending");
   enableAlertsButton.classList.remove("is-success");
+}
+
+function getDefaultAlertsCopy(options = {}) {
+  const pageWord = options.pageWord === "pagina" ? "pagina" : "app";
+  const appReference = pageWord === "pagina" ? "la pagina abierta" : "la app abierta";
+
+  if (IS_IOS_DEVICE) {
+    return `Recibiras sonido si tienes ${appReference}, y notificacion si el movil esta bloqueado.`;
+  }
+
+  return `Recibiras sonido y vibracion si tienes ${appReference}, y notificacion si el movil esta bloqueado.`;
 }
 
 async function playReadyTone() {
