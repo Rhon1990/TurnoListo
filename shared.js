@@ -1491,6 +1491,7 @@ function shouldRepairTrackingRecord(order, trackingRecord) {
   const expectedTracking = buildPublicTrackingRecord(order);
   const trackedKeys = [
     "restaurantId",
+    "restaurantName",
     "restaurantLogoUrl",
     "publicTrackingToken",
     "sourceOrderId",
@@ -1559,6 +1560,7 @@ function buildPublicTrackingRecord(order) {
   return {
     id: order.id,
     restaurantId: order.restaurantId,
+    restaurantName: String(restaurant?.name || existingTracking?.restaurantName || "").trim(),
     restaurantLogoUrl: String(restaurant?.logoUrl || existingTracking?.restaurantLogoUrl || "").trim(),
     publicTrackingToken: getOrderPublicTrackingToken(order),
     sourceOrderId: order.sourceOrderId,
@@ -1577,6 +1579,7 @@ function buildPublicTrackingRecord(order) {
 function normalizePublicTracking(trackingRecords) {
   return [...trackingRecords]
     .map((tracking) => ({
+      restaurantName: "",
       restaurantLogoUrl: "",
       publicTrackingToken: "",
       sourceOrderId: "",

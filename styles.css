@@ -227,9 +227,27 @@ body.celebration-active::after {
 
 .client-page-brand {
   display: flex;
+  align-items: center;
+  gap: 0.85rem;
   justify-content: flex-start;
   margin: 0 0 0.85rem;
   width: 100%;
+}
+
+.client-page-brand__copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.client-page-brand__copy .ticket__label {
+  margin: 0;
+}
+
+.client-page-brand__name {
+  margin: 0;
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(1.2rem, 4vw, 1.55rem);
+  line-height: 1;
 }
 
 .logo-upload-preview {

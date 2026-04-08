@@ -87,6 +87,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           "id",
           "restaurantId",
+          "restaurantName",
           "restaurantLogoUrl",
           "publicTrackingToken",
           "sourceOrderId",
@@ -102,6 +103,7 @@ service cloud.firestore {
         ])
         && request.resource.data.id == resource.data.id
         && request.resource.data.restaurantId == resource.data.restaurantId
+        && request.resource.data.restaurantName == resource.data.restaurantName
         && request.resource.data.restaurantLogoUrl == resource.data.restaurantLogoUrl
         && request.resource.data.publicTrackingToken == resource.data.publicTrackingToken
         && request.resource.data.sourceOrderId == resource.data.sourceOrderId

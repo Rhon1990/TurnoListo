@@ -15,6 +15,7 @@ const etaValue = document.querySelector("#clientEtaValue");
 const etaStat = document.querySelector("#clientEtaStat");
 const clientBrand = document.querySelector("#clientBrand");
 const clientBrandLogo = document.querySelector("#clientBrandLogo");
+const clientBrandName = document.querySelector("#clientBrandName");
 const qrImage = document.querySelector("#clientQrImage");
 const qrValue = document.querySelector("#clientQrValue");
 const qrHint = document.querySelector("#clientQrHint");
@@ -171,6 +172,7 @@ function renderClient() {
   const restaurant = getRestaurantById(order.restaurantId || sourceOrder?.restaurantId);
   const publicRestaurantBrand = {
     ...restaurant,
+    name: String(order.restaurantName || restaurant?.name || "").trim(),
     logoUrl: String(order.restaurantLogoUrl || restaurant?.logoUrl || "").trim(),
   };
 
@@ -259,15 +261,17 @@ function renderMissingOrder() {
 }
 
 function renderClientBrand(restaurant) {
+  const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
-  clientBrand.hidden = !logoUrl;
+  clientBrand.hidden = !logoUrl && !restaurantName;
 
   if (!logoUrl) {
     clientBrandLogo.removeAttribute("src");
-    return;
+  } else {
+    clientBrandLogo.src = logoUrl;
   }
 
-  clientBrandLogo.src = logoUrl;
+  clientBrandName.textContent = restaurantName;
 }
 
 function syncOrderInputValue(value) {
