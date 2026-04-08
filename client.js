@@ -31,6 +31,12 @@ const iosInstallText = document.querySelector("#clientIosInstallText");
 const iosInstallButton = document.querySelector("#clientIosInstallButton");
 const iosInstallSteps = document.querySelector("#clientIosInstallSteps");
 const copyLinkButton = document.querySelector("#clientCopyLinkButton");
+const iosStepReset = document.querySelector("#clientIosStepReset");
+const iosStepCopy = document.querySelector("#clientIosStepCopy");
+const iosStepSafari = document.querySelector("#clientIosStepSafari");
+const iosStepShare = document.querySelector("#clientIosStepShare");
+const iosStepInstall = document.querySelector("#clientIosStepInstall");
+const iosStepOpen = document.querySelector("#clientIosStepOpen");
 const alertsConfirmation = document.querySelector("#clientAlertsConfirmation");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
@@ -695,11 +701,58 @@ function renderIosInstallBanner() {
     return;
   }
 
+  const iosInstallMode = getIosInstallMode();
   iosInstallTitle.textContent = "Mejora los avisos en tu iPhone.";
-  iosInstallText.textContent = IS_IOS_CHROME
-    ? "Abre este pedido en Safari, borra cualquier icono anterior de TurnoListo y anadelo de nuevo a pantalla de inicio. Desde ahi podra avisarte mejor con sonido y notificaciones."
-    : "Borra cualquier icono anterior de TurnoListo, anade este pedido a pantalla de inicio y abrelo desde ese icono. Asi los avisos en iPhone funcionaran mejor.";
-  iosInstallButton.textContent = iosInstallSteps.hidden ? "Como activarlo en iPhone" : "Ocultar pasos";
+  iosInstallText.textContent =
+    iosInstallMode === "chrome"
+      ? "Si quieres que TurnoListo te avise mientras usas otras apps, primero abre este pedido en Safari."
+      : "Si quieres que TurnoListo te avise mientras usas otras apps, anade este pedido a pantalla de inicio y abrelo desde ese icono.";
+  iosInstallButton.textContent =
+    iosInstallSteps.hidden
+      ? iosInstallMode === "chrome"
+        ? "Abrir paso a paso en iPhone"
+        : "Como anadirlo a pantalla de inicio"
+      : "Ocultar pasos";
+
+  if (copyLinkButton) {
+    copyLinkButton.hidden = iosInstallMode !== "chrome";
+  }
+  if (iosStepReset) {
+    iosStepReset.hidden = false;
+    iosStepReset.textContent =
+      iosInstallMode === "chrome"
+        ? "1. Si ya tenias un icono de TurnoListo, borralo."
+        : "1. Si ya tenias un icono de TurnoListo, borralo.";
+  }
+  if (iosStepCopy) {
+    iosStepCopy.hidden = iosInstallMode !== "chrome";
+    iosStepCopy.textContent = "2. Copia el enlace de este pedido.";
+  }
+  if (iosStepSafari) {
+    iosStepSafari.hidden = iosInstallMode !== "chrome";
+    iosStepSafari.textContent = "3. Abre Safari y pega el enlace.";
+  }
+  if (iosStepShare) {
+    iosStepShare.hidden = false;
+    iosStepShare.textContent = iosInstallMode === "chrome" ? '4. Toca Compartir.' : '2. Toca Compartir.';
+  }
+  if (iosStepInstall) {
+    iosStepInstall.hidden = false;
+    iosStepInstall.textContent =
+      iosInstallMode === "chrome" ? '5. Elige "Anadir a pantalla de inicio".' : '3. Elige "Anadir a pantalla de inicio".';
+  }
+  if (iosStepOpen) {
+    iosStepOpen.hidden = false;
+    iosStepOpen.textContent =
+      iosInstallMode === "chrome"
+        ? '6. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".'
+        : '4. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".';
+  }
+}
+
+function getIosInstallMode() {
+  if (IS_IOS_CHROME) return "chrome";
+  return "safari";
 }
 
 function toggleIosInstallSteps() {
