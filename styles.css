@@ -1,4 +1,6 @@
 :root {
+  --font-sans: "Space Grotesk", sans-serif;
+  --font-display: "Instrument Serif", serif;
   --ink: #1d1a16;
   --muted: #6e6258;
   --card: rgba(255, 250, 243, 0.72);
@@ -10,6 +12,12 @@
   --shadow: 0 18px 45px rgba(105, 66, 28, 0.15);
   --radius-lg: 28px;
   --radius-md: 18px;
+  --type-kicker: 0.72rem;
+  --type-body: 0.98rem;
+  --type-h1: clamp(2.5rem, 6vw, 5rem);
+  --type-h2: clamp(1.55rem, 3vw, 2.05rem);
+  --type-h3: clamp(1.35rem, 2.4vw, 1.75rem);
+  --type-brand: clamp(1.5rem, 3vw, 2rem);
 }
 
 * {
@@ -27,7 +35,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-sans);
   color: var(--ink);
   background:
     radial-gradient(circle at top left, rgba(242, 211, 161, 0.9), transparent 30%),
@@ -40,6 +48,20 @@ body.client-view {
     radial-gradient(circle at top, rgba(255, 255, 255, 0.72), transparent 24%),
     radial-gradient(circle at bottom right, rgba(216, 95, 49, 0.14), transparent 22%),
     linear-gradient(180deg, #fbf5ec 0%, #f3e8d7 100%);
+}
+
+body,
+input,
+select,
+button,
+textarea {
+  font-family: var(--font-sans);
+}
+
+p {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: 1.58;
 }
 
 body::before {
@@ -99,10 +121,20 @@ body.celebration-active::after {
 }
 
 .hero h1 {
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(2.4rem, 6vw, 5.2rem);
-  line-height: 0.95;
+  font-family: var(--font-display);
+  font-size: var(--type-h1);
+  font-weight: 400;
+  line-height: 0.92;
   max-width: 10ch;
+}
+
+.panel h2,
+.ticket h3 {
+  font-family: var(--font-display);
+  font-size: var(--type-h2);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.015em;
 }
 
 .eyebrow,
@@ -112,8 +144,9 @@ body.celebration-active::after {
 .stat__label {
   margin: 0 0 0.4rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  font-size: var(--type-kicker);
+  font-weight: 500;
   color: var(--muted);
 }
 
@@ -121,7 +154,7 @@ body.celebration-active::after {
 .hero__hint,
 .scan-box__hint {
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.58;
 }
 
 .field__hint {
@@ -157,13 +190,13 @@ body.celebration-active::after {
 .hero-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 1rem;
   margin-bottom: 1rem;
-  padding: 0.55rem 0.75rem;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.52);
-  border: 1px solid rgba(29, 26, 22, 0.07);
-  box-shadow: 0 12px 28px rgba(105, 66, 28, 0.08);
+  padding: 0.7rem 0.85rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(252, 244, 234, 0.9));
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  box-shadow: 0 14px 34px rgba(105, 66, 28, 0.1);
 }
 
 .hero-brand__logo-wrap,
@@ -177,9 +210,9 @@ body.celebration-active::after {
 }
 
 .hero-brand__logo-wrap {
-  width: 72px;
-  height: 72px;
-  padding: 0.55rem;
+  width: 76px;
+  height: 76px;
+  padding: 0.65rem;
 }
 
 .hero-brand__logo,
@@ -190,11 +223,24 @@ body.celebration-active::after {
   object-fit: contain;
 }
 
+.hero-brand__copy {
+  display: grid;
+  gap: 0.18rem;
+  align-content: center;
+}
+
+.hero-brand__copy .eyebrow,
+.hero-brand__copy .ticket__label {
+  margin-bottom: 0;
+}
+
 .hero-brand__name {
   margin: 0;
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(1.35rem, 3vw, 1.8rem);
-  line-height: 0.95;
+  font-family: var(--font-display);
+  font-size: var(--type-brand);
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: -0.02em;
 }
 
 .hero__metric {
@@ -226,28 +272,8 @@ body.celebration-active::after {
 }
 
 .client-page-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  justify-content: flex-start;
   margin: 0 0 0.85rem;
   width: 100%;
-}
-
-.client-page-brand__copy {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.client-page-brand__copy .ticket__label {
-  margin: 0;
-}
-
-.client-page-brand__name {
-  margin: 0;
-  font-family: "Instrument Serif", serif;
-  font-size: clamp(1.2rem, 4vw, 1.55rem);
-  line-height: 1;
 }
 
 .logo-upload-preview {
