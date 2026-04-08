@@ -254,11 +254,11 @@ function maybeSendNotification(order) {
     return;
   }
 
-  if (!lastRenderedStatus || lastRenderedStatus === order.status) {
+  if (!lastRenderedStatus || lastRenderedStatus === order.status || order.status !== "ready") {
     return;
   }
 
-  new Notification(`Estado actualizado: ${statusMeta[order.status].label}`, {
+  new Notification("Tu pedido ya esta listo para recoger", {
     body: buildNotificationBody(order),
   });
 }
