@@ -1289,6 +1289,11 @@ button:hover,
   text-align: left;
 }
 
+.client-ios-install-steps .button-secondary {
+  width: 100%;
+  margin-bottom: 0.35rem;
+}
+
 .client-ios-install-steps p {
   margin: 0;
   color: var(--ink);

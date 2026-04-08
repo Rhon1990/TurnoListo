@@ -30,6 +30,7 @@ const iosInstallTitle = document.querySelector("#clientIosInstallTitle");
 const iosInstallText = document.querySelector("#clientIosInstallText");
 const iosInstallButton = document.querySelector("#clientIosInstallButton");
 const iosInstallSteps = document.querySelector("#clientIosInstallSteps");
+const copyLinkButton = document.querySelector("#clientCopyLinkButton");
 const alertsConfirmation = document.querySelector("#clientAlertsConfirmation");
 const clientTicket = document.querySelector("#clientTicket");
 const showQrButton = document.querySelector("#clientShowQrButton");
@@ -167,6 +168,7 @@ ratingActions.addEventListener("click", handleRatingClick);
 commentSaveButton.addEventListener("click", handleCommentSave);
 enableAlertsButton.addEventListener("click", handleEnableAlerts);
 iosInstallButton.addEventListener("click", toggleIosInstallSteps);
+copyLinkButton.addEventListener("click", handleCopyCurrentOrderLink);
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -620,6 +622,20 @@ function toggleIosInstallSteps() {
   if (!iosInstallSteps || iosInstallBanner.hidden) return;
   iosInstallSteps.hidden = !iosInstallSteps.hidden;
   renderIosInstallBanner();
+}
+
+async function handleCopyCurrentOrderLink() {
+  const orderId = currentOrder?.publicTrackingToken || currentOrder?.sourceOrderId || selectedOrderId;
+  const linkToCopy = buildClientUrl(orderId);
+
+  try {
+    await navigator.clipboard.writeText(linkToCopy);
+    showTurnoAlert("Enlace copiado. Ahora puedes pegarlo en Safari.", "success", { timeoutMs: 3200 });
+  } catch {
+    showTurnoAlert("No se pudo copiar automaticamente. Copia la URL desde la barra del navegador.", "warning", {
+      timeoutMs: 4200,
+    });
+  }
 }
 
 async function playReadyTone() {
