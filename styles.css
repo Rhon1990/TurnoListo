@@ -457,22 +457,16 @@ button:hover,
 .auth-brand__name {
   margin: 0;
   width: 100%;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  font-size: clamp(1.85rem, 3.6vw, 2.9rem);
+  font-size: clamp(2.2rem, 4.1vw, 3.35rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
   font-weight: 700;
+  color: #ff7a00;
   white-space: nowrap;
   text-align: left;
 }
 
-.auth-brand__name-turno {
-  color: #ff7a00;
-}
-
-.auth-brand__name-listo {
+.auth-brand__name span {
   color: #e7344c;
 }
 
