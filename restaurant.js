@@ -1086,10 +1086,22 @@ function buildEtaHintElement(order) {
 
   if (summary === "Sin ETA" || summary.startsWith("ETA ")) {
     element.className = "term-hint";
-    element.dataset.termHint =
+    const hint =
       summary === "Sin ETA"
         ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
         : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
+    element.dataset.termHint = hint;
+    element.title = hint;
+    element.tabIndex = 0;
+    element.addEventListener("mouseenter", () => showRestaurantTermTooltip(element));
+    element.addEventListener("mouseleave", hideRestaurantTermTooltip);
+    element.addEventListener("focus", () => showRestaurantTermTooltip(element));
+    element.addEventListener("blur", hideRestaurantTermTooltip);
+    ["click", "mousedown", "mouseup"].forEach((eventName) => {
+      element.addEventListener(eventName, (event) => {
+        event.stopPropagation();
+      });
+    });
   }
 
   return element;
