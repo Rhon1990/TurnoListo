@@ -5,9 +5,6 @@ const restaurantLoginFeedback = document.querySelector("#restaurantLoginFeedback
 const restaurantLoginUsername = document.querySelector("#restaurantLoginUsername");
 const restaurantLoginPassword = document.querySelector("#restaurantLoginPassword");
 const restaurantLoginTogglePassword = document.querySelector("#restaurantLoginTogglePassword");
-const restaurantBrand = document.querySelector("#restaurantBrand");
-const restaurantBrandLogo = document.querySelector("#restaurantBrandLogo");
-const restaurantBrandName = document.querySelector("#restaurantBrandName");
 const restaurantHeroEyebrow = document.querySelector("#restaurantHeroEyebrow");
 const restaurantSessionLabel = document.querySelector("#restaurantSessionLabel");
 const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
@@ -296,11 +293,11 @@ function syncRestaurantAccess() {
 
   if (restaurant) {
     restaurantSessionLabel.textContent = restaurant.name;
-    renderRestaurantBrand(restaurant);
+    restaurantHeroEyebrow.textContent = "Panel restaurante";
     return;
   }
 
-  renderRestaurantBrand(null);
+  restaurantHeroEyebrow.textContent = "Panel restaurante";
 }
 
 function renderRestaurant() {
@@ -311,7 +308,6 @@ function renderRestaurant() {
   }
 
   const restaurant = getRestaurantById(session.restaurantId);
-  renderRestaurantBrand(restaurant);
   renderRestaurantAccount(restaurant);
   renderRestaurantProfile(restaurant);
 
@@ -409,22 +405,6 @@ function hideRestaurantModeTooltip() {
   window.clearTimeout(restaurantModeTooltipTimer);
   restaurantModeTooltip.hidden = true;
   restaurantModeTooltip.textContent = "";
-}
-
-function renderRestaurantBrand(restaurant) {
-  const logoUrl = String(restaurant?.logoUrl || "").trim();
-  const hasLogo = Boolean(logoUrl);
-
-  restaurantBrand.hidden = !hasLogo;
-  restaurantHeroEyebrow.hidden = hasLogo;
-  restaurantBrandName.textContent = restaurant?.name || "";
-
-  if (!hasLogo) {
-    restaurantBrandLogo.removeAttribute("src");
-    return;
-  }
-
-  restaurantBrandLogo.src = logoUrl;
 }
 
 function renderRestaurantAccount(restaurant) {
