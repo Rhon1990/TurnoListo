@@ -331,9 +331,12 @@ async function refreshAdminUsers() {
   }
 
   try {
+    const authUser = backend.getCurrentUser?.() || null;
+    const currentProfile = buildAdminProfileViewModel(getCurrentUserProfile() || {}, authUser);
     const users = await backend.loadCollection("users");
     adminUsers = (Array.isArray(users) ? users : [])
       .filter((user) => String(user?.role || "").trim() === "admin")
+      .map((user) => normalizeAdminDirectoryUser(user, currentProfile, authUser))
       .sort((left, right) =>
         String(left.displayName || left.email || "").localeCompare(String(right.displayName || right.email || ""), "es"),
       );
@@ -343,6 +346,22 @@ async function refreshAdminUsers() {
     adminUsers = [];
     renderAdminUsersList("No se pudo cargar el equipo administrador por ahora.");
   }
+}
+
+function normalizeAdminDirectoryUser(user, currentProfile, authUser) {
+  const candidate = user && typeof user === "object" ? { ...user } : {};
+  const candidateId = String(candidate.id || candidate.uid || candidate.authUid || "").trim();
+  const authUid = String(authUser?.uid || "").trim();
+  if (candidateId && authUid && candidateId === authUid) {
+    return {
+      ...candidate,
+      ...currentProfile,
+      id: candidateId,
+      role: "admin",
+    };
+  }
+
+  return candidate;
 }
 
 function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo administrador con acceso activo.") {
