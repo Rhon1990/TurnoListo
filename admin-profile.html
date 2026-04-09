@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409m" />
+    <link rel="stylesheet" href="./styles.css?v=20260409n" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -72,7 +72,7 @@
         </div>
       </section>
 
-      <main class="contact-page__grid">
+      <main class="contact-page__grid admin-profile-layout">
         <section class="panel glass-card contact-form-panel">
           <div class="panel__heading">
             <div>
@@ -94,40 +94,79 @@
               </div>
             </article>
           </div>
-          <form class="quick-form admin-create-form" id="adminProfileForm">
-            <label class="field field--wide">
-              <span>Foto de perfil</span>
-              <input id="adminProfileAvatarInput" type="file" accept="image/*" />
-              <small class="field__hint">Tu foto se refleja en la cabecera y en la identificación interna del panel.</small>
-            </label>
-            <div class="logo-upload-preview" id="adminProfileAvatarPreview" hidden>
-              <img id="adminProfileAvatarPreviewImage" alt="Vista previa de la foto del administrador" />
-            </div>
-            <label class="field">
-              <span>Nombre</span>
-              <input id="adminProfileDisplayName" name="displayName" type="text" placeholder="Tu nombre visible" />
-            </label>
-            <label class="field">
-              <span>Correo</span>
-              <input id="adminProfileEmail" name="email" type="email" readonly />
-              <small class="field__hint">El correo es el identificador de acceso y se mantiene protegido.</small>
-            </label>
-            <label class="field">
-              <span>Teléfono</span>
-              <input id="adminProfilePhone" name="phone" type="text" placeholder="+34 ..." />
-            </label>
-            <label class="field">
-              <span>Cargo</span>
-              <input id="adminProfileTitle" name="title" type="text" placeholder="Ej. Founder / Operaciones" />
-            </label>
-            <label class="field">
-              <span>Creado</span>
-              <input id="adminProfileCreatedAt" type="text" readonly />
-            </label>
-            <label class="field">
-              <span>Última actualización</span>
-              <input id="adminProfileUpdatedAt" type="text" readonly />
-            </label>
+          <form class="quick-form admin-profile-form" id="adminProfileForm">
+            <section class="profile-form-section profile-form-section--media">
+              <div class="profile-form-section__header">
+                <p class="panel__kicker">Identidad visual</p>
+                <h3>Foto y presencia de cuenta</h3>
+                <p>Actualiza la imagen que verás en la cabecera y en la identificación interna del panel.</p>
+              </div>
+              <div class="profile-upload">
+                <div class="logo-upload-preview logo-upload-preview--profile" id="adminProfileAvatarPreview" hidden>
+                  <img id="adminProfileAvatarPreviewImage" alt="Vista previa de la foto del administrador" />
+                </div>
+                <label class="field field--wide">
+                  <span>Foto de perfil</span>
+                  <input id="adminProfileAvatarInput" type="file" accept="image/*" />
+                  <small class="field__hint">Usa una imagen limpia y reconocible para mantener consistencia en toda la operación.</small>
+                </label>
+              </div>
+            </section>
+
+            <section class="profile-form-section">
+              <div class="profile-form-section__header">
+                <p class="panel__kicker">Identidad</p>
+                <h3>Información principal</h3>
+                <p>Estos datos ayudan a identificar con claridad al responsable del panel.</p>
+              </div>
+              <div class="profile-form-grid">
+                <label class="field">
+                  <span>Nombre</span>
+                  <input id="adminProfileDisplayName" name="displayName" type="text" placeholder="Tu nombre visible" />
+                </label>
+                <label class="field">
+                  <span>Cargo</span>
+                  <input id="adminProfileTitle" name="title" type="text" placeholder="Ej. Founder / Operaciones" />
+                </label>
+              </div>
+            </section>
+
+            <section class="profile-form-section">
+              <div class="profile-form-section__header">
+                <p class="panel__kicker">Cuenta</p>
+                <h3>Contacto y acceso</h3>
+                <p>El correo queda protegido como identificador de acceso, mientras el resto puede mantenerse actualizado.</p>
+              </div>
+              <div class="profile-form-grid">
+                <label class="field">
+                  <span>Correo</span>
+                  <input id="adminProfileEmail" name="email" type="email" readonly />
+                  <small class="field__hint">Se usa para iniciar sesión y no se modifica desde esta pantalla.</small>
+                </label>
+                <label class="field">
+                  <span>Teléfono</span>
+                  <input id="adminProfilePhone" name="phone" type="text" placeholder="+34 ..." />
+                </label>
+              </div>
+            </section>
+
+            <section class="profile-form-section">
+              <div class="profile-form-section__header">
+                <p class="panel__kicker">Trazabilidad</p>
+                <h3>Historial de cuenta</h3>
+                <p>Fechas clave para saber cuándo se creó la cuenta y cuál fue la última actualización registrada.</p>
+              </div>
+              <div class="profile-form-grid profile-form-grid--meta">
+                <label class="field">
+                  <span>Creado</span>
+                  <input id="adminProfileCreatedAt" type="text" readonly />
+                </label>
+                <label class="field">
+                  <span>Última actualización</span>
+                  <input id="adminProfileUpdatedAt" type="text" readonly />
+                </label>
+              </div>
+            </section>
             <div class="quick-form__actions">
               <button type="button" class="button-tertiary" id="adminProfileResetButton">Restablecer</button>
               <button type="submit" class="launcher">Guardar perfil</button>
@@ -186,6 +225,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin-profile.js?v=20260409m"></script>
+    <script src="./admin-profile.js?v=20260409n"></script>
   </body>
 </html>

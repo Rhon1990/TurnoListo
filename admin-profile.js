@@ -73,11 +73,13 @@ function initializeAdminProfileAuth() {
       }
 
       await reconnectDataStoreToFirebase();
-      const profile = await loadCurrentUserProfileFromBackend();
-      if (profile?.role !== "admin") {
+      const storedProfile = await loadCurrentUserProfileFromBackend();
+      if (storedProfile?.role !== "admin") {
         redirectToAdmin();
         return;
       }
+
+      const profile = buildAdminProfileViewModel(storedProfile, user);
 
       initializeAdminInbox();
       renderAdminAccount(profile);
@@ -109,6 +111,35 @@ function renderAdminProfile(profile) {
   adminProfileUpdatedAt.value = formatProfileDateTime(adminProfileSnapshot.updatedAt);
   syncAdminAvatarPreview(selectedAdminAvatarUrl || adminProfileSnapshot.avatarUrl);
   renderAdminProfileSummary(profile);
+}
+
+function buildAdminProfileViewModel(profile, user) {
+  const authEmail = String(user?.email || "").trim();
+  const authDisplayName = String(user?.displayName || "").trim();
+  const authAvatarUrl = String(user?.photoURL || "").trim();
+  const authCreatedAt = normalizeProfileDateValue(user?.metadata?.creationTime);
+  const authUpdatedAt = normalizeProfileDateValue(user?.metadata?.lastSignInTime);
+
+  return {
+    ...profile,
+    email: String(profile?.email || authEmail).trim(),
+    displayName: String(profile?.displayName || authDisplayName || authEmail || "Administrador").trim(),
+    avatarUrl: String(profile?.avatarUrl || authAvatarUrl).trim(),
+    phone: String(profile?.phone || "").trim(),
+    title: String(profile?.title || "").trim(),
+    createdAt: normalizeProfileDateValue(profile?.createdAt) || authCreatedAt || "",
+    updatedAt: normalizeProfileDateValue(profile?.updatedAt) || authUpdatedAt || "",
+  };
+}
+
+function normalizeProfileDateValue(value) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value || "").trim();
+  }
+
+  return parsed.toISOString();
 }
 
 function renderAdminAccount(profile) {
@@ -209,13 +240,14 @@ async function handleAdminProfileSubmit(event) {
       title: adminProfileTitle?.value || "",
       avatarUrl: selectedAdminAvatarUrl || getCurrentUserProfile()?.avatarUrl || "",
     });
-    await loadCurrentUserProfileFromBackend();
+    const storedProfile = await loadCurrentUserProfileFromBackend();
+    const nextProfile = buildAdminProfileViewModel(storedProfile, backend.getCurrentUser?.() || null);
     selectedAdminAvatarUrl = "";
     adminProfileFeedback.textContent = "Perfil administrador actualizado correctamente.";
     adminProfileFeedback.className = "form-feedback form-feedback--success";
     adminProfileFeedback.hidden = false;
-    renderAdminAccount(getCurrentUserProfile() || {});
-    renderAdminProfile(getCurrentUserProfile() || {});
+    renderAdminAccount(nextProfile);
+    renderAdminProfile(nextProfile);
     await refreshAdminUsers();
   } catch (error) {
     console.error("No se pudo actualizar el perfil admin.", error);
