@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409l" />
+    <link rel="stylesheet" href="./styles.css?v=20260409m" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -80,31 +80,56 @@
               <h2>Perfil actual</h2>
             </div>
           </div>
+          <div class="contact-card__stack admin-profile-summary">
+            <article class="contact-item admin-profile-hero">
+              <div class="admin-user-card__top">
+                <span class="admin-user-card__avatar" id="adminProfileSummaryAvatar">
+                  <img id="adminProfileSummaryAvatarImage" alt="Avatar del administrador" hidden />
+                  <span id="adminProfileSummaryAvatarFallback">A</span>
+                </span>
+                <div class="admin-user-card__identity">
+                  <h4 id="adminProfileSummaryName">Administrador</h4>
+                  <p id="adminProfileSummaryTitle">Acceso verificado</p>
+                </div>
+              </div>
+            </article>
+          </div>
           <form class="quick-form admin-create-form" id="adminProfileForm">
             <label class="field field--wide">
               <span>Foto de perfil</span>
               <input id="adminProfileAvatarInput" type="file" accept="image/*" />
+              <small class="field__hint">Tu foto se refleja en la cabecera y en la identificación interna del panel.</small>
             </label>
             <div class="logo-upload-preview" id="adminProfileAvatarPreview" hidden>
               <img id="adminProfileAvatarPreviewImage" alt="Vista previa de la foto del administrador" />
             </div>
             <label class="field">
               <span>Nombre</span>
-              <input id="adminProfileDisplayName" name="displayName" type="text" />
+              <input id="adminProfileDisplayName" name="displayName" type="text" placeholder="Tu nombre visible" />
             </label>
             <label class="field">
               <span>Correo</span>
               <input id="adminProfileEmail" name="email" type="email" readonly />
+              <small class="field__hint">El correo es el identificador de acceso y se mantiene protegido.</small>
             </label>
             <label class="field">
               <span>Teléfono</span>
-              <input id="adminProfilePhone" name="phone" type="text" />
+              <input id="adminProfilePhone" name="phone" type="text" placeholder="+34 ..." />
             </label>
             <label class="field">
               <span>Cargo</span>
               <input id="adminProfileTitle" name="title" type="text" placeholder="Ej. Founder / Operaciones" />
             </label>
+            <label class="field">
+              <span>Creado</span>
+              <input id="adminProfileCreatedAt" type="text" readonly />
+            </label>
+            <label class="field">
+              <span>Última actualización</span>
+              <input id="adminProfileUpdatedAt" type="text" readonly />
+            </label>
             <div class="quick-form__actions">
+              <button type="button" class="button-tertiary" id="adminProfileResetButton">Restablecer</button>
               <button type="submit" class="launcher">Guardar perfil</button>
             </div>
           </form>
@@ -161,6 +186,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin-profile.js?v=20260409l"></script>
+    <script src="./admin-profile.js?v=20260409m"></script>
   </body>
 </html>

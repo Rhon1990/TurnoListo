@@ -6,7 +6,14 @@ const adminProfileDisplayName = document.querySelector("#adminProfileDisplayName
 const adminProfileEmail = document.querySelector("#adminProfileEmail");
 const adminProfilePhone = document.querySelector("#adminProfilePhone");
 const adminProfileTitle = document.querySelector("#adminProfileTitle");
+const adminProfileCreatedAt = document.querySelector("#adminProfileCreatedAt");
+const adminProfileUpdatedAt = document.querySelector("#adminProfileUpdatedAt");
+const adminProfileResetButton = document.querySelector("#adminProfileResetButton");
 const adminProfileFeedback = document.querySelector("#adminProfileFeedback");
+const adminProfileSummaryAvatarImage = document.querySelector("#adminProfileSummaryAvatarImage");
+const adminProfileSummaryAvatarFallback = document.querySelector("#adminProfileSummaryAvatarFallback");
+const adminProfileSummaryName = document.querySelector("#adminProfileSummaryName");
+const adminProfileSummaryTitle = document.querySelector("#adminProfileSummaryTitle");
 const adminCreateAdminForm = document.querySelector("#adminCreateAdminForm");
 const adminCreateAdminFeedback = document.querySelector("#adminCreateAdminFeedback");
 const adminUsersList = document.querySelector("#adminUsersList");
@@ -26,6 +33,7 @@ const adminMenuLogout = document.querySelector("#adminMenuLogout");
 let selectedAdminAvatarUrl = "";
 let adminUsers = [];
 let adminMessagesUnsubscribe = null;
+let adminProfileSnapshot = null;
 
 initializeAdminProfilePage();
 
@@ -33,6 +41,7 @@ function initializeAdminProfilePage() {
   adminProfileForm?.addEventListener("submit", handleAdminProfileSubmit);
   adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
   adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
+  adminProfileResetButton?.addEventListener("click", restoreAdminProfileSnapshot);
   adminMessagesShortcut?.addEventListener("click", () => {
     window.location.href = "./admin.html#messages";
   });
@@ -83,11 +92,23 @@ function redirectToAdmin() {
 }
 
 function renderAdminProfile(profile) {
-  adminProfileDisplayName.value = profile.displayName || "";
-  adminProfileEmail.value = profile.email || "";
-  adminProfilePhone.value = profile.phone || "";
-  adminProfileTitle.value = profile.title || "";
-  syncAdminAvatarPreview(selectedAdminAvatarUrl || profile.avatarUrl || "");
+  adminProfileSnapshot = {
+    displayName: profile.displayName || "",
+    email: profile.email || "",
+    phone: profile.phone || "",
+    title: profile.title || "",
+    avatarUrl: profile.avatarUrl || "",
+    createdAt: profile.createdAt || "",
+    updatedAt: profile.updatedAt || "",
+  };
+  adminProfileDisplayName.value = adminProfileSnapshot.displayName;
+  adminProfileEmail.value = adminProfileSnapshot.email;
+  adminProfilePhone.value = adminProfileSnapshot.phone;
+  adminProfileTitle.value = adminProfileSnapshot.title;
+  adminProfileCreatedAt.value = formatProfileDateTime(adminProfileSnapshot.createdAt);
+  adminProfileUpdatedAt.value = formatProfileDateTime(adminProfileSnapshot.updatedAt);
+  syncAdminAvatarPreview(selectedAdminAvatarUrl || adminProfileSnapshot.avatarUrl);
+  renderAdminProfileSummary(profile);
 }
 
 function renderAdminAccount(profile) {
@@ -106,6 +127,25 @@ function renderAdminAccount(profile) {
     adminAccountAvatarImage.hidden = true;
     adminAccountAvatarImage.removeAttribute("src");
     adminAccountAvatarFallback.hidden = false;
+  }
+}
+
+function renderAdminProfileSummary(profile) {
+  const displayName = String(profile?.displayName || profile?.email || "Administrador").trim();
+  const title = String(profile?.title || "Acceso verificado").trim();
+  const avatarUrl = String(selectedAdminAvatarUrl || profile?.avatarUrl || "").trim();
+  adminProfileSummaryName.textContent = displayName;
+  adminProfileSummaryTitle.textContent = title || "Acceso verificado";
+  adminProfileSummaryAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "A";
+
+  if (avatarUrl) {
+    adminProfileSummaryAvatarImage.src = avatarUrl;
+    adminProfileSummaryAvatarImage.hidden = false;
+    adminProfileSummaryAvatarFallback.hidden = true;
+  } else {
+    adminProfileSummaryAvatarImage.hidden = true;
+    adminProfileSummaryAvatarImage.removeAttribute("src");
+    adminProfileSummaryAvatarFallback.hidden = false;
   }
 }
 
@@ -133,6 +173,12 @@ async function handleAdminAvatarSelection(event) {
   try {
     selectedAdminAvatarUrl = await optimizeAccountImage(file);
     syncAdminAvatarPreview(selectedAdminAvatarUrl);
+    renderAdminProfileSummary({
+      displayName: adminProfileDisplayName?.value || adminProfileSnapshot?.displayName || "",
+      email: adminProfileEmail?.value || adminProfileSnapshot?.email || "",
+      title: adminProfileTitle?.value || adminProfileSnapshot?.title || "",
+      avatarUrl: selectedAdminAvatarUrl,
+    });
     adminProfileFeedback.hidden = true;
     adminProfileFeedback.textContent = "";
   } catch (error) {
@@ -155,6 +201,8 @@ async function handleAdminProfileSubmit(event) {
   }
 
   try {
+    const submitButton = adminProfileForm?.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
     await backend.updateCurrentAdminProfile({
       displayName: adminProfileDisplayName?.value || "",
       phone: adminProfilePhone?.value || "",
@@ -175,7 +223,28 @@ async function handleAdminProfileSubmit(event) {
     adminProfileFeedback.className = "form-feedback form-feedback--error";
     adminProfileFeedback.hidden = false;
     showTurnoAlert("No se pudo guardar el perfil administrador.", "error");
+  } finally {
+    const submitButton = adminProfileForm?.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = false;
   }
+}
+
+function restoreAdminProfileSnapshot() {
+  if (!adminProfileSnapshot) return;
+  selectedAdminAvatarUrl = "";
+  adminProfileDisplayName.value = adminProfileSnapshot.displayName;
+  adminProfileEmail.value = adminProfileSnapshot.email;
+  adminProfilePhone.value = adminProfileSnapshot.phone;
+  adminProfileTitle.value = adminProfileSnapshot.title;
+  adminProfileCreatedAt.value = formatProfileDateTime(adminProfileSnapshot.createdAt);
+  adminProfileUpdatedAt.value = formatProfileDateTime(adminProfileSnapshot.updatedAt);
+  syncAdminAvatarPreview(adminProfileSnapshot.avatarUrl);
+  renderAdminProfileSummary(adminProfileSnapshot);
+  if (adminProfileAvatarInput) {
+    adminProfileAvatarInput.value = "";
+  }
+  adminProfileFeedback.hidden = true;
+  adminProfileFeedback.textContent = "";
 }
 
 async function handleCreateAdminAccount(event) {
@@ -289,6 +358,17 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
 
 function buildAdminAccessUrl() {
   return new URL("./admin.html", window.location.href).toString();
+}
+
+function formatProfileDateTime(value) {
+  if (!value) return "Sin fecha";
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function navigateToAdminSection(section) {
