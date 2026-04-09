@@ -81,9 +81,6 @@ const adminAccountAvatarFallback = document.querySelector("#adminAccountAvatarFa
 const adminAccountName = document.querySelector("#adminAccountName");
 const adminAccountMeta = document.querySelector("#adminAccountMeta");
 const adminMenuProfile = document.querySelector("#adminMenuProfile");
-const adminMenuDashboard = document.querySelector("#adminMenuDashboard");
-const adminMenuRestaurants = document.querySelector("#adminMenuRestaurants");
-const adminMenuMessages = document.querySelector("#adminMenuMessages");
 const adminMenuLogout = document.querySelector("#adminMenuLogout");
 const adminProfileForm = document.querySelector("#adminProfileForm");
 const adminProfileAvatarInput = document.querySelector("#adminProfileAvatarInput");
@@ -153,9 +150,6 @@ adminTabs.forEach((button) => {
   control.addEventListener("change", renderAdminMessagesPanel);
 });
 adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
-adminMenuDashboard?.addEventListener("click", () => navigateAdminSection("dashboard"));
-adminMenuRestaurants?.addEventListener("click", () => navigateAdminSection("restaurants"));
-adminMenuMessages?.addEventListener("click", () => navigateAdminSection("messages"));
 adminMenuLogout?.addEventListener("click", async () => {
   closeAdminAccountMenu();
   await handleAdminLogout();
