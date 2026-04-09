@@ -208,7 +208,7 @@ body.celebration-active::after {
   width: min(1240px, calc(100% - 2rem));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.25rem;
   align-items: center;
 }
@@ -273,47 +273,33 @@ body.celebration-active::after {
   letter-spacing: -0.01em;
 }
 
-.workspace-contact {
-  display: grid;
-  gap: 0.25rem;
-  padding: 1rem 1.1rem;
-  border-radius: 28px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(252, 244, 234, 0.92));
-  border: 1px solid rgba(29, 26, 22, 0.08);
-  box-shadow: 0 14px 30px rgba(105, 66, 28, 0.08);
-  justify-self: end;
+.workspace-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.workspace-contact__label {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.72rem;
-  font-weight: 600;
+.workspace-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(29, 26, 22, 0.06);
   color: var(--muted);
-}
-
-.workspace-contact__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
-  line-height: 1.05;
+  font-size: 0.82rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.workspace-contact__text {
-  margin: 0;
-  color: var(--muted);
-  max-width: 34ch;
-  font-size: 0.92rem;
-}
-
-.workspace-contact__link {
+.workspace-contact-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: fit-content;
-  margin-top: 0.25rem;
   padding: 0.72rem 0.95rem;
   border-radius: 999px;
   background: var(--brand);
@@ -323,9 +309,116 @@ body.celebration-active::after {
   box-shadow: 0 12px 24px rgba(236, 124, 13, 0.22);
 }
 
-.workspace-contact__link:hover,
-.workspace-contact__link:focus-visible {
+.workspace-contact-button:hover,
+.workspace-contact-button:focus-visible {
   transform: translateY(-1px);
+}
+
+.contact-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.contact-hero {
+  display: grid;
+  gap: 1.1rem;
+  padding: 1.4rem;
+}
+
+.contact-hero__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contact-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.78rem 1rem;
+  border-radius: 999px;
+  background: rgba(29, 26, 22, 0.06);
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.contact-page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 1rem;
+}
+
+.contact-card,
+.contact-map {
+  padding: 1.2rem;
+}
+
+.contact-card__stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.contact-item {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.95rem 1rem;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.contact-item__label {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.contact-item__value {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.contact-item__text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.contact-item__link {
+  color: var(--brand-accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.contact-map {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.contact-map__frame {
+  min-height: 320px;
+  border-radius: 28px;
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  background:
+    linear-gradient(135deg, rgba(236, 124, 13, 0.08), rgba(185, 29, 43, 0.08)),
+    rgba(255, 255, 255, 0.58);
+  overflow: hidden;
+}
+
+.contact-map__placeholder {
+  height: 100%;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  padding: 1.4rem;
+  text-align: center;
+  color: var(--muted);
 }
 
 .hero-brand {
@@ -2530,8 +2623,12 @@ button:hover,
     padding: 1rem 1.05rem;
   }
 
-  .workspace-contact {
-    justify-self: stretch;
+  .workspace-actions {
+    justify-content: flex-start;
+  }
+
+  .contact-page__grid {
+    grid-template-columns: 1fr;
   }
 
   .auth-layout,
@@ -2678,13 +2775,30 @@ button:hover,
     padding: 0.8rem 0.75rem;
   }
 
-  .workspace-contact {
-    padding: 0.9rem;
-    border-radius: 22px;
+  .workspace-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .workspace-contact__link {
+  .workspace-contact-button,
+  .contact-back {
     width: 100%;
+  }
+
+  .workspace-status {
+    width: 100%;
+  }
+
+  .contact-hero,
+  .contact-card,
+  .contact-map {
+    padding: 0.95rem;
+  }
+
+  .contact-map__frame,
+  .contact-map__placeholder {
+    min-height: 260px;
   }
 
   .auth-showcase__copy h2,
