@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409c" />
+    <link rel="stylesheet" href="./styles.css?v=20260409d" />
   </head>
   <body>
     <div class="app-shell" id="restaurantLoginView" hidden>
@@ -312,6 +312,21 @@
                   <strong class="dashboard-card__value" id="dashboardFeedbackCountCard">0</strong>
                   <p class="dashboard-card__hint">Feedback útil para mejorar</p>
                 </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label">Riesgo IA</p>
+                  <strong class="dashboard-card__value" id="dashboardAiHighRisk">0</strong>
+                  <p class="dashboard-card__hint">Pedidos con riesgo alto detectado por TurnoListo Intelligence</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label">Presión IA</p>
+                  <strong class="dashboard-card__value" id="dashboardAiPressure">Baja</strong>
+                  <p class="dashboard-card__hint">Lectura en vivo del ritmo operativo del local</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label">Desvío ETA IA</p>
+                  <strong class="dashboard-card__value" id="dashboardAiEtaGap">0 min</strong>
+                  <p class="dashboard-card__hint">Minutos extra sobre la promesa actual</p>
+                </article>
               </div>
               <div class="dashboard-subsection">
                 <div class="dashboard-subsection__top">
@@ -368,6 +383,10 @@
                     <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalCancellation">
                       <span class="dashboard-signal__label">Tasa de cancelación</span>
                       <strong class="dashboard-signal__value" id="dashboardCancellationRate">0%</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--ai">
+                      <span class="dashboard-signal__label">Pedido a priorizar</span>
+                      <strong class="dashboard-signal__value" id="dashboardAiFocusOrder">Sin datos</strong>
                     </div>
                   </div>
                 </article>
@@ -500,7 +519,7 @@
     </script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260408a"></script>
-    <script src="./shared.js?v=20260408a"></script>
-    <script src="./restaurant.js?v=20260408a"></script>
+    <script src="./shared.js?v=20260409d"></script>
+    <script src="./restaurant.js?v=20260409d"></script>
   </body>
 </html>

@@ -899,6 +899,137 @@ function getRemainingEstimatedMinutes(order) {
   return Math.ceil((new Date(promisedReadyAt).getTime() - Date.now()) / 60000);
 }
 
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getPeakDemandLoad(dateLike = new Date()) {
+  const hour = new Date(dateLike).getHours();
+  if ([12, 13, 14, 20, 21].includes(hour)) return 2;
+  if ([11, 15, 19, 22].includes(hour)) return 1;
+  return 0;
+}
+
+function enrichOrdersWithIntelligence(orders, options = {}) {
+  const safeOrders = Array.isArray(orders) ? [...orders] : [];
+  const allOrders = Array.isArray(options.allOrders) ? options.allOrders : loadOrders();
+  const groupedByRestaurant = safeOrders.reduce((accumulator, order) => {
+    const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
+    if (!accumulator.has(restaurantId)) accumulator.set(restaurantId, []);
+    accumulator.get(restaurantId).push(order);
+    return accumulator;
+  }, new Map());
+
+  return safeOrders.map((order) => {
+    const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
+    const restaurantOrders = groupedByRestaurant.get(restaurantId) || [];
+    const history = allOrders.filter((item) => String(item?.restaurantId || DEFAULT_RESTAURANT_ID) === restaurantId);
+    const intelligence = buildOrderIntelligence(order, restaurantOrders, history);
+    return {
+      ...order,
+      aiEtaMinutes: intelligence.aiEtaMinutes,
+      aiRiskLevel: intelligence.aiRiskLevel,
+      aiPriorityScore: intelligence.aiPriorityScore,
+      aiReason: intelligence.aiReason,
+      aiPressureScore: intelligence.aiPressureScore,
+      aiPressureLabel: intelligence.aiPressureLabel,
+      aiUpdatedAt: intelligence.aiUpdatedAt,
+    };
+  });
+}
+
+function buildOrderIntelligence(order, activeOrders = [], history = []) {
+  const status = String(order?.status || "");
+  const elapsedMinutes = getOrderDurationMinutes(order);
+  const estimatedReadyMinutes = Number.parseInt(String(order?.estimatedReadyMinutes || ""), 10);
+  const safeEstimatedReadyMinutes = Number.isFinite(estimatedReadyMinutes) && estimatedReadyMinutes > 0 ? estimatedReadyMinutes : null;
+  const promisedRemainingMinutes = getRemainingEstimatedMinutes(order);
+  const currentActiveOrders = activeOrders.filter((item) => !item?.archivedAt && !["delivered", "cancelled"].includes(item?.status));
+  const preparingOrders = currentActiveOrders.filter((item) => item.status === "preparing").length;
+  const overdueOrders = currentActiveOrders.filter((item) => {
+    const remaining = getRemainingEstimatedMinutes(item);
+    return remaining !== null ? remaining <= 0 : getOrderDurationMinutes(item) >= 16;
+  }).length;
+  const deliveredHistory = history.filter((item) => item?.status === "delivered");
+  const historicalDelayMinutes = deliveredHistory.length
+    ? Math.round(
+        deliveredHistory.reduce((total, item) => {
+          const estimatedMinutes = Number.parseInt(String(item?.estimatedReadyMinutes || ""), 10);
+          if (!Number.isFinite(estimatedMinutes) || estimatedMinutes <= 0) return total;
+          return total + Math.max(0, getOrderDurationMinutes(item) - estimatedMinutes);
+        }, 0) / deliveredHistory.length,
+      )
+    : 0;
+  const peakDemandLoad = getPeakDemandLoad(new Date());
+  const loadPressure = currentActiveOrders.length >= 8 ? 4 : currentActiveOrders.length >= 6 ? 3 : currentActiveOrders.length >= 4 ? 2 : currentActiveOrders.length >= 2 ? 1 : 0;
+  const prepPressure = preparingOrders >= 4 ? 2 : preparingOrders >= 2 ? 1 : 0;
+  const overduePressure = overdueOrders >= 3 ? 3 : overdueOrders >= 1 ? 1 : 0;
+  const historyPressure = clampNumber(Math.round(historicalDelayMinutes * 0.6), 0, 6);
+  const queuePressure = loadPressure + prepPressure + overduePressure + peakDemandLoad + historyPressure;
+  const fallbackRemaining = safeEstimatedReadyMinutes ? Math.max(1, safeEstimatedReadyMinutes - elapsedMinutes) : 6;
+  const baseRemainingMinutes =
+    promisedRemainingMinutes === null ? fallbackRemaining : Math.max(0, promisedRemainingMinutes);
+  let aiEtaMinutes = status === "ready" ? 0 : Math.max(1, baseRemainingMinutes + queuePressure + (status === "received" ? 1 : 0));
+  let aiRiskLevel = "low";
+  let aiReason = "Va dentro de una ventana operativa estable.";
+
+  if (status === "ready") {
+    aiReason = "Pedido listo para retirar; conviene entregarlo cuanto antes.";
+  } else if (promisedRemainingMinutes !== null && promisedRemainingMinutes <= 0) {
+    aiRiskLevel = "high";
+    aiReason = "Ya supero el tiempo prometido y necesita atencion inmediata.";
+  } else if (
+    aiEtaMinutes >= 20 ||
+    overduePressure >= 2 ||
+    (safeEstimatedReadyMinutes && elapsedMinutes >= safeEstimatedReadyMinutes + 8)
+  ) {
+    aiRiskLevel = "high";
+    aiReason = "Se detecta acumulacion de pedidos y este ticket esta entrando en zona critica.";
+  } else if (
+    aiEtaMinutes >= 12 ||
+    (promisedRemainingMinutes !== null && promisedRemainingMinutes <= 5) ||
+    historyPressure >= 3 ||
+    loadPressure >= 2
+  ) {
+    aiRiskLevel = "medium";
+    aiReason =
+      loadPressure >= 2
+        ? "La carga del local esta subiendo y conviene vigilar este pedido de cerca."
+        : promisedRemainingMinutes !== null && promisedRemainingMinutes <= 5
+          ? "Esta cerca de la hora comprometida y puede desviarse si entra mas carga."
+          : "El local viene cerrando pedidos por encima de lo prometido.";
+  } else if (peakDemandLoad >= 2) {
+    aiReason = "Esta dentro de una franja de alta demanda, aunque por ahora va en ventana.";
+  }
+
+  if (!["received", "preparing", "ready"].includes(status)) {
+    aiEtaMinutes = 0;
+    aiRiskLevel = "low";
+    aiReason = status === "delivered" ? "Pedido ya entregado." : "Pedido fuera de la cola operativa.";
+  }
+
+  const aiPriorityScore =
+    (aiRiskLevel === "high" ? 120 : aiRiskLevel === "medium" ? 70 : 25) +
+    Math.min(elapsedMinutes, 45) +
+    Math.max(0, 8 - (promisedRemainingMinutes ?? 8)) * 4 +
+    queuePressure * 6 +
+    (status === "ready" ? 35 : 0) +
+    (status === "preparing" ? 8 : 0);
+
+  const aiPressureScore = clampNumber(queuePressure, 0, 15);
+  const aiPressureLabel = aiPressureScore >= 8 ? "Alta" : aiPressureScore >= 4 ? "Media" : "Baja";
+
+  return {
+    aiEtaMinutes,
+    aiRiskLevel,
+    aiPriorityScore,
+    aiReason,
+    aiPressureScore,
+    aiPressureLabel,
+    aiUpdatedAt: new Date().toISOString(),
+  };
+}
+
 function createOrder(orderData) {
   const orders = loadOrders();
   const normalizedSourceOrderId = normalizeSourceOrderId(orderData.sourceOrderId);
@@ -1188,6 +1319,7 @@ function getDashboardStats() {
   const deliveredOrders = todayOrders.filter((order) => order.status === "delivered");
   const archivedOrders = todayOrders.filter((order) => Boolean(order.archivedAt));
   const activeOrders = todayOrders.filter((order) => !order.archivedAt);
+  const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders: loadOrders() });
   const ratedOrders = todayOrders.filter((order) => order.rating && order.rating.score);
   const delayedActiveOrders = activeOrders.filter((order) => getOrderDurationMinutes(order) >= 16);
   const onTimeDeliveredOrders = deliveredOrders.filter((order) => getOrderDurationMinutes(order) <= 15);
@@ -1259,6 +1391,31 @@ function getDashboardStats() {
       .filter((item) => item.count > 0)
       .sort((left, right) => right.averageMinutes - left.averageMinutes)[0] || null;
 
+  const aiHighRiskOrders = intelligentActiveOrders.filter((order) => order.aiRiskLevel === "high");
+  const aiAttentionOrders = intelligentActiveOrders.filter((order) => order.aiRiskLevel === "medium");
+  const aiAverageExtraMinutes = intelligentActiveOrders.length
+    ? Math.round(
+        intelligentActiveOrders.reduce((total, order) => {
+          const promisedRemainingMinutes = getRemainingEstimatedMinutes(order);
+          const baseline =
+            promisedRemainingMinutes === null
+              ? Number.parseInt(String(order.estimatedReadyMinutes || ""), 10) || 0
+              : Math.max(0, promisedRemainingMinutes);
+          return total + Math.max(0, Number(order.aiEtaMinutes || 0) - baseline);
+        }, 0) / intelligentActiveOrders.length,
+      )
+    : 0;
+  const aiPressureScore = intelligentActiveOrders.length
+    ? Math.round(
+        intelligentActiveOrders.reduce((total, order) => total + Number(order.aiPressureScore || 0), 0) /
+          intelligentActiveOrders.length,
+      )
+    : 0;
+  const aiPressureLabel = aiPressureScore >= 8 ? "Alta" : aiPressureScore >= 4 ? "Media" : "Baja";
+  const aiFocusOrder =
+    [...intelligentActiveOrders].sort((left, right) => Number(right.aiPriorityScore || 0) - Number(left.aiPriorityScore || 0))[0] ||
+    null;
+
   return {
     totalToday: todayOrders.length,
     activeNow: activeOrders.length,
@@ -1276,6 +1433,12 @@ function getDashboardStats() {
     feedbackCount: commentedOrders.length,
     peakHour,
     slowestStatus,
+    aiHighRiskCount: aiHighRiskOrders.length,
+    aiAttentionCount: aiAttentionOrders.length,
+    aiAverageExtraMinutes,
+    aiPressureScore,
+    aiPressureLabel,
+    aiFocusOrder,
     ratedCount: ratedOrders.length,
     deliveredCount: deliveredOrders.length,
     statusPerformance,

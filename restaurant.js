@@ -49,11 +49,15 @@ const dashboardSlowestOrderHint = document.querySelector("#dashboardSlowestOrder
 const dashboardSlowestStatus = document.querySelector("#dashboardSlowestStatus");
 const dashboardSlowestStatusHint = document.querySelector("#dashboardSlowestStatusHint");
 const dashboardFeedbackCountCard = document.querySelector("#dashboardFeedbackCountCard");
+const dashboardAiHighRisk = document.querySelector("#dashboardAiHighRisk");
+const dashboardAiPressure = document.querySelector("#dashboardAiPressure");
+const dashboardAiEtaGap = document.querySelector("#dashboardAiEtaGap");
 const dashboardFeedbackCount = document.querySelector("#dashboardFeedbackCount");
 const dashboardLowRatingCount = document.querySelector("#dashboardLowRatingCount");
 const dashboardPeakHour = document.querySelector("#dashboardPeakHour");
 const dashboardCancellationRate = document.querySelector("#dashboardCancellationRate");
 const dashboardAvgResolution = document.querySelector("#dashboardAvgResolution");
+const dashboardAiFocusOrder = document.querySelector("#dashboardAiFocusOrder");
 const dashboardHeroLeadMetric = document.querySelector("#dashboardHeroLeadMetric");
 const dashboardHeroLeadHint = document.querySelector("#dashboardHeroLeadHint");
 const dashboardHeroActiveNow = document.querySelector("#dashboardHeroActiveNow");
@@ -271,7 +275,11 @@ function renderRestaurant() {
   const restaurant = getRestaurantById(session.restaurantId);
   renderRestaurantBrand(restaurant);
 
-  const orders = [...getOperationalOrders()].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+  const allOrders = loadOrders();
+  const orders = enrichOrdersWithIntelligence(
+    [...getOperationalOrders()].sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt)),
+    { allOrders },
+  );
   const archivedOrders = getArchivedOrders();
   const filteredOrders = orders
     .filter((order) => matchesActiveFilters(order))
@@ -539,11 +547,17 @@ function renderDashboard(stats) {
     ? `Promedio ${formatStatusDurationLabel(stats.slowestStatus.averageMinutes)}`
     : "Promedio por estado";
   dashboardFeedbackCountCard.textContent = stats.feedbackCount;
+  dashboardAiHighRisk.textContent = stats.aiHighRiskCount;
+  dashboardAiPressure.textContent = stats.aiPressureLabel;
+  dashboardAiEtaGap.textContent = `${stats.aiAverageExtraMinutes} min`;
   dashboardFeedbackCount.textContent = stats.feedbackCount;
   dashboardLowRatingCount.textContent = stats.lowRatingCount;
   dashboardPeakHour.textContent = `Hora pico ${stats.peakHour}`;
   dashboardCancellationRate.textContent = `${stats.cancellationRate}%`;
   dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
+  dashboardAiFocusOrder.textContent = stats.aiFocusOrder
+    ? `${stats.aiFocusOrder.orderNumber} · ${formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel)}`
+    : "Sin datos";
   dashboardHeroLeadMetric.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
   dashboardHeroLeadHint.textContent = stats.deliveredCount
     ? `${stats.onTimeRate}% de pedidos entregados en 15 min o menos`
@@ -696,6 +710,18 @@ function renderDashboardDonut(container, items, centerLabel) {
 function buildImprovementInsights(stats) {
   const insights = [];
 
+  if (stats.aiHighRiskCount >= 1) {
+    insights.push(
+      `TurnoListo Intelligence detecta ${stats.aiHighRiskCount} pedido${stats.aiHighRiskCount === 1 ? "" : "s"} en riesgo alto. Conviene actuar antes de que impacten en experiencia o cancelaciones.`,
+    );
+  } else if (stats.aiAttentionCount >= 2) {
+    insights.push("La IA ve varios pedidos bajo presión. Aun no están fuera de tiempo, pero la cola se está tensando.");
+  }
+
+  if (stats.aiAverageExtraMinutes >= 4) {
+    insights.push("La predicción inteligente ya añade varios minutos sobre la promesa actual. Hay señales de saturación en cocina o entrega.");
+  }
+
   if (stats.avgDeliveredMinutes >= 20) {
     insights.push("El tiempo medio de entrega está alto. Conviene revisar preparación y retirada para bajar la espera.");
   } else if (stats.deliveredCount > 0) {
@@ -787,6 +813,9 @@ function compareActiveOrders(left, right) {
     return new Date(left.createdAt) - new Date(right.createdAt);
   }
 
+  const aiPriorityDiff = Number(right.aiPriorityScore || 0) - Number(left.aiPriorityScore || 0);
+  if (aiPriorityDiff !== 0) return aiPriorityDiff;
+
   const urgencyDiff = getOrderUrgencyRank(left) - getOrderUrgencyRank(right);
   if (urgencyDiff !== 0) return urgencyDiff;
 
@@ -873,6 +902,11 @@ function buildOrderCard(order, isArchived) {
   const compactTitle = document.createElement("strong");
   const compactLine = document.createElement("span");
   const compactTime = document.createElement("span");
+  const intelligence = document.createElement("div");
+  const intelligenceLabel = document.createElement("span");
+  const intelligenceBadge = document.createElement("span");
+  const intelligenceEta = document.createElement("span");
+  const intelligenceReason = document.createElement("p");
   const compactSide = document.createElement("div");
   const qrCode = document.createElement("strong");
   const ratingRow = document.createElement("div");
@@ -906,6 +940,11 @@ function buildOrderCard(order, isArchived) {
   compactMeta.className = "order-card__summary-meta";
   compactTop.className = "order-card__summary-top";
   compactTime.className = "order-card__summary-time";
+  intelligence.className = "order-card__intelligence";
+  intelligenceLabel.className = "order-card__intelligence-label";
+  intelligenceBadge.className = `order-card__intelligence-badge order-card__intelligence-badge--${order.aiRiskLevel || "low"}`;
+  intelligenceEta.className = "order-card__intelligence-eta";
+  intelligenceReason.className = "order-card__intelligence-reason";
   compactSide.className = "order-card__summary-side";
   ratingRow.className = "order-card__rating-row";
   badge.className = "status-pill";
@@ -922,6 +961,10 @@ function buildOrderCard(order, isArchived) {
     document.createTextNode(`${order.items} · ${order.pickupPoint} · `),
     buildEtaHintElement(order),
   );
+  intelligenceLabel.textContent = "TurnoListo Intelligence";
+  intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
+  intelligenceEta.textContent = formatAiEta(order);
+  intelligenceReason.textContent = order.aiReason || "Sin lectura inteligente todavía.";
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
@@ -941,7 +984,12 @@ function buildOrderCard(order, isArchived) {
   badge.style.color = statusMeta[order.status].color;
 
   compactTop.append(elapsedTime);
-  compactMeta.append(compactTop, compactTitle, compactLine, compactTime);
+  compactMeta.append(compactTop, compactTitle, compactLine);
+  if (!isArchived) {
+    intelligence.append(intelligenceLabel, intelligenceBadge, intelligenceEta);
+    compactMeta.append(intelligence, intelligenceReason);
+  }
+  compactMeta.append(compactTime);
   buildQuickStatusButtons(order, quickStatusActions, isArchived, isCounterMode);
   compactMain.append(compactMeta);
   ratingRow.append(rating, commentButton);
@@ -1078,6 +1126,19 @@ function formatOrderEtaSummary(order) {
   if (remainingMinutes <= 0) return "Retrasado";
   if (remainingMinutes === 1) return "ETA 1 min";
   return `ETA ${remainingMinutes} min`;
+}
+
+function formatAiRiskLabel(level) {
+  if (level === "high") return "Riesgo alto";
+  if (level === "medium") return "Atención";
+  return "Estable";
+}
+
+function formatAiEta(order) {
+  if (order.status === "ready") return "ETA IA 0 min";
+  const eta = Number(order.aiEtaMinutes || 0);
+  if (!Number.isFinite(eta) || eta <= 0) return "ETA IA --";
+  return `ETA IA ${eta} min`;
 }
 
 function buildEtaHintElement(order) {
