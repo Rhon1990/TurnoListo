@@ -190,13 +190,36 @@ body.celebration-active::after {
   justify-self: start;
 }
 
+.workspace-topbar {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.4rem;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 252, 248, 0.96), rgba(252, 244, 234, 0.94)),
+    rgba(255, 250, 243, 0.82);
+}
+
+.workspace-topbar__inner {
+  width: min(1240px, calc(100% - 2rem));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+  gap: 1.25rem;
+  align-items: center;
+}
+
 .workspace-brand {
   display: inline-flex;
   align-items: center;
   gap: 0.85rem;
-  width: min(100%, 720px);
+  width: 100%;
   max-width: 100%;
-  margin-bottom: 1.15rem;
+  margin-bottom: 0;
   padding: 0.95rem 1.15rem 0.95rem 0.95rem;
   border-radius: 34px;
   background:
@@ -248,6 +271,61 @@ body.celebration-active::after {
   color: var(--brand);
   white-space: nowrap;
   letter-spacing: -0.01em;
+}
+
+.workspace-contact {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(252, 244, 234, 0.92));
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  box-shadow: 0 14px 30px rgba(105, 66, 28, 0.08);
+  justify-self: end;
+}
+
+.workspace-contact__label {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.workspace-contact__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.workspace-contact__text {
+  margin: 0;
+  color: var(--muted);
+  max-width: 34ch;
+  font-size: 0.92rem;
+}
+
+.workspace-contact__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-top: 0.25rem;
+  padding: 0.72rem 0.95rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff7f1;
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(236, 124, 13, 0.22);
+}
+
+.workspace-contact__link:hover,
+.workspace-contact__link:focus-visible {
+  transform: translateY(-1px);
 }
 
 .hero-brand {
@@ -2437,10 +2515,23 @@ button:hover,
     width: 100%;
   }
 
+  .workspace-topbar {
+    padding: 0.9rem 1rem;
+  }
+
+  .workspace-topbar__inner {
+    width: min(100%, 1000px);
+    grid-template-columns: 1fr;
+  }
+
   .workspace-brand {
     width: 100%;
     justify-content: center;
     padding: 1rem 1.05rem;
+  }
+
+  .workspace-contact {
+    justify-self: stretch;
   }
 
   .auth-layout,
@@ -2581,6 +2672,19 @@ button:hover,
     font-size: 0.8rem;
     white-space: normal;
     max-width: 24ch;
+  }
+
+  .workspace-topbar {
+    padding: 0.8rem 0.75rem;
+  }
+
+  .workspace-contact {
+    padding: 0.9rem;
+    border-radius: 22px;
+  }
+
+  .workspace-contact__link {
+    width: 100%;
   }
 
   .auth-showcase__copy h2,

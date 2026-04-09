@@ -94,8 +94,8 @@
 
     <div class="app-shell" id="restaurantWorkspace" hidden>
       <div class="floating-tooltip floating-tooltip--fixed" id="restaurantTermTooltip" hidden></div>
-      <header class="hero hero--compact">
-        <div class="hero__copy">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+        <div class="workspace-topbar__inner">
           <div class="workspace-brand" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
             <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
             <div class="workspace-brand__copy">
@@ -103,6 +103,16 @@
               <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
             </div>
           </div>
+          <aside class="workspace-contact" aria-label="Contáctenos">
+            <p class="workspace-contact__label">Contáctenos</p>
+            <p class="workspace-contact__title">Soporte comercial y operativo</p>
+            <p class="workspace-contact__text">¿Necesitas ayuda con activación, uso diario o acompañamiento del producto?</p>
+            <a class="workspace-contact__link" href="mailto:rhonal.delgado@gmail.com">rhonal.delgado@gmail.com</a>
+          </aside>
+        </div>
+      </section>
+      <header class="hero hero--compact">
+        <div class="hero__copy">
           <div class="hero-brand" id="restaurantBrand" hidden>
             <div class="hero-brand__logo-wrap">
               <img class="hero-brand__logo" id="restaurantBrandLogo" alt="Logo del restaurante" />
