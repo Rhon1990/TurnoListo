@@ -179,6 +179,25 @@
             <button class="section-switcher__button" type="button" data-section="dashboard">Dashboard</button>
             <button class="section-switcher__button" type="button" data-section="history">Archivados</button>
           </div>
+          <div class="dashboard-subsection" id="restaurantPlaybook" hidden>
+            <div class="dashboard-subsection__top">
+              <div>
+                <p class="panel__kicker" id="restaurantPlaybookEyebrow">Playbook operativo</p>
+                <h3 id="restaurantPlaybookTitle">Cómo activar más valor en menos de 10 minutos</h3>
+              </div>
+              <button
+                class="playbook-dismiss"
+                id="restaurantPlaybookDismiss"
+                type="button"
+                aria-label="Cerrar recorrido demo"
+                title="Cerrar recorrido demo"
+                hidden
+              >
+                ×
+              </button>
+            </div>
+            <div class="dashboard-insights" id="restaurantPlaybookList"></div>
+          </div>
           <section class="restaurant-section restaurant-section--active" data-section-panel="orders">
             <p class="hero__hint">
               Vista rápida para cocina y mostrador. Aquí aparecen los pedidos activos con señales adaptativas para priorizar mejor y aprender más rápido del servicio real.
@@ -258,25 +277,6 @@
             <div class="restaurant-grid" id="restaurantOrders"></div>
           </section>
           <section class="restaurant-section" data-section-panel="create" hidden>
-            <div class="dashboard-subsection" id="restaurantPlaybook" hidden>
-              <div class="dashboard-subsection__top">
-                <div>
-                  <p class="panel__kicker" id="restaurantPlaybookEyebrow">Playbook operativo</p>
-                  <h3 id="restaurantPlaybookTitle">Cómo activar más valor en menos de 10 minutos</h3>
-                </div>
-                <button
-                  class="playbook-dismiss"
-                  id="restaurantPlaybookDismiss"
-                  type="button"
-                  aria-label="Cerrar recorrido demo"
-                  title="Cerrar recorrido demo"
-                  hidden
-                >
-                  ×
-                </button>
-              </div>
-              <div class="dashboard-insights" id="restaurantPlaybookList"></div>
-            </div>
             <form class="quick-form" id="quickCreateForm">
               <label class="field">
                 <span>Código de factura / ticket</span>
