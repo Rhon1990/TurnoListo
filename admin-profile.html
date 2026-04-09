@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo | Perfil admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260409h" />
+  </head>
+  <body>
+    <div class="app-shell contact-page">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+        <div class="workspace-topbar__inner">
+          <div class="workspace-brand" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
+            <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+            <div class="workspace-brand__copy">
+              <p class="workspace-brand__name">Turno<span>Listo</span></p>
+              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+            </div>
+          </div>
+          <div class="workspace-actions" aria-label="Acciones de cabecera">
+            <span class="workspace-status">Perfil administrador</span>
+            <a class="workspace-contact-button" href="./admin.html">Volver al admin</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel glass-card contact-hero">
+        <div class="contact-hero__top">
+          <div>
+            <p class="panel__kicker">Perfil admin</p>
+            <h1>Gestiona tu cuenta y el equipo administrador</h1>
+          </div>
+        </div>
+        <p class="hero__text">
+          Esta pantalla concentra la información del administrador actual y el alta de nuevos usuarios con rol admin.
+        </p>
+        <div class="contact-signal-strip">
+          <span class="contact-signal">Cuenta privada</span>
+          <span class="contact-signal">Equipo administrador</span>
+          <span class="contact-signal">Gestión segura</span>
+        </div>
+      </section>
+
+      <main class="contact-page__grid">
+        <section class="panel glass-card contact-form-panel">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Mi cuenta</p>
+              <h2>Perfil actual</h2>
+            </div>
+          </div>
+          <form class="quick-form admin-create-form" id="adminProfileForm">
+            <label class="field field--wide">
+              <span>Foto de perfil</span>
+              <input id="adminProfileAvatarInput" type="file" accept="image/*" />
+            </label>
+            <div class="logo-upload-preview" id="adminProfileAvatarPreview" hidden>
+              <img id="adminProfileAvatarPreviewImage" alt="Vista previa de la foto del administrador" />
+            </div>
+            <label class="field">
+              <span>Nombre</span>
+              <input id="adminProfileDisplayName" name="displayName" type="text" />
+            </label>
+            <label class="field">
+              <span>Correo</span>
+              <input id="adminProfileEmail" name="email" type="email" readonly />
+            </label>
+            <label class="field">
+              <span>Teléfono</span>
+              <input id="adminProfilePhone" name="phone" type="text" />
+            </label>
+            <label class="field">
+              <span>Cargo</span>
+              <input id="adminProfileTitle" name="title" type="text" placeholder="Ej. Founder / Operaciones" />
+            </label>
+            <div class="quick-form__actions">
+              <button type="submit" class="launcher">Guardar perfil</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="adminProfileFeedback" hidden></p>
+        </section>
+
+        <div class="contact-side-stack">
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Equipo admin</p>
+                <h2>Agregar administradores</h2>
+              </div>
+            </div>
+            <form class="quick-form admin-create-form" id="adminCreateAdminForm">
+              <label class="field">
+                <span>Nombre</span>
+                <input name="displayName" type="text" required />
+              </label>
+              <label class="field">
+                <span>Correo</span>
+                <input name="email" type="email" required />
+              </label>
+              <label class="field">
+                <span>Teléfono</span>
+                <input name="phone" type="text" />
+              </label>
+              <label class="field">
+                <span>Cargo</span>
+                <input name="title" type="text" placeholder="Ej. Comercial / Operaciones" />
+              </label>
+              <div class="quick-form__actions">
+                <button type="submit" class="launcher">Agregar admin</button>
+              </div>
+            </form>
+            <p class="form-feedback" id="adminCreateAdminFeedback" hidden></p>
+          </section>
+
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Usuarios</p>
+                <h2>Equipo con acceso admin</h2>
+              </div>
+            </div>
+            <div class="dashboard-insights" id="adminUsersList"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script>
+      window.TURNO_LISTO_PRIVATE_ROLE = "admin";
+    </script>
+    <script src="./firebase-config.js?v=20260408a"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
+    <script src="./shared.js?v=20260409e"></script>
+    <script src="./admin-profile.js?v=20260409h"></script>
+  </body>
+</html>

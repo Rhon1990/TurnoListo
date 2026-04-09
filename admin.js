@@ -154,7 +154,6 @@ adminTabs.forEach((button) => {
   control.addEventListener("change", renderAdminMessagesPanel);
 });
 adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
-adminMenuProfile?.addEventListener("click", () => navigateAdminSection("profile"));
 adminMenuDashboard?.addEventListener("click", () => navigateAdminSection("dashboard"));
 adminMenuRestaurants?.addEventListener("click", () => navigateAdminSection("restaurants"));
 adminMenuMessages?.addEventListener("click", () => navigateAdminSection("messages"));

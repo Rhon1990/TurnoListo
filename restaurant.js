@@ -146,10 +146,6 @@ restaurantLoginTogglePassword.addEventListener("click", (event) => {
   togglePasswordVisibility(restaurantLoginPassword, restaurantLoginTogglePassword);
 });
 restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
-restaurantMenuProfile?.addEventListener("click", () => {
-  closeRestaurantAccountMenu();
-  setActiveSection("profile");
-});
 restaurantMenuOrders?.addEventListener("click", () => {
   closeRestaurantAccountMenu();
   setActiveSection("orders");

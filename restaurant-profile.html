@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo | Perfil restaurante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260409h" />
+  </head>
+  <body>
+    <div class="app-shell contact-page">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+        <div class="workspace-topbar__inner">
+          <div class="workspace-brand" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
+            <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+            <div class="workspace-brand__copy">
+              <p class="workspace-brand__name">Turno<span>Listo</span></p>
+              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+            </div>
+          </div>
+          <div class="workspace-actions" aria-label="Acciones de cabecera">
+            <span class="workspace-status" id="restaurantProfileTopStatus">Perfil restaurante</span>
+            <a class="workspace-contact-button" href="./restaurant.html">Volver al restaurante</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel glass-card contact-hero">
+        <div class="contact-hero__top">
+          <div>
+            <p class="panel__kicker">Perfil</p>
+            <h1>Administra la identidad operativa de tu restaurante</h1>
+          </div>
+        </div>
+        <p class="hero__text">
+          Aquí puedes actualizar el logo, los datos del local y la información principal que usa TurnoListo para operar tu cuenta.
+        </p>
+        <div class="contact-signal-strip">
+          <span class="contact-signal">Cuenta verificada</span>
+          <span class="contact-signal">Logo editable</span>
+          <span class="contact-signal">Datos operativos</span>
+        </div>
+      </section>
+
+      <main class="contact-page__grid">
+        <section class="panel glass-card contact-form-panel">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Mi restaurante</p>
+              <h2>Datos del local</h2>
+            </div>
+          </div>
+          <form class="quick-form admin-create-form" id="restaurantProfileForm">
+            <label class="field field--wide">
+              <span>Foto / logo del restaurante</span>
+              <input id="restaurantProfileLogoInput" type="file" accept="image/*" />
+              <small class="field__hint">Puedes cambiar el logo que verán tu equipo y los clientes.</small>
+            </label>
+            <div class="logo-upload-preview" id="restaurantProfileLogoPreview" hidden>
+              <img id="restaurantProfileLogoPreviewImage" alt="Vista previa del logo del restaurante" />
+            </div>
+            <label class="field">
+              <span>Nombre del restaurante</span>
+              <input id="restaurantProfileName" name="name" type="text" required />
+            </label>
+            <label class="field">
+              <span>Responsable</span>
+              <input id="restaurantProfileOwnerName" name="ownerName" type="text" />
+            </label>
+            <label class="field">
+              <span>Correo</span>
+              <input id="restaurantProfileEmail" name="email" type="email" readonly />
+            </label>
+            <label class="field">
+              <span>Teléfono</span>
+              <input id="restaurantProfilePhone" name="phone" type="text" />
+            </label>
+            <label class="field">
+              <span>Ciudad</span>
+              <input id="restaurantProfileCity" name="city" type="text" />
+            </label>
+            <label class="field field--wide">
+              <span>Dirección</span>
+              <input id="restaurantProfileAddress" name="address" type="text" />
+            </label>
+            <label class="field field--wide">
+              <span>Notas internas</span>
+              <input id="restaurantProfileNotes" name="notes" type="text" />
+            </label>
+            <div class="quick-form__actions">
+              <button type="submit" class="launcher">Guardar perfil</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="restaurantProfileFeedback" hidden></p>
+        </section>
+
+        <div class="contact-side-stack">
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Cuenta</p>
+                <h2>Resumen operativo</h2>
+              </div>
+            </div>
+            <div class="contact-card__stack">
+              <article class="contact-item">
+                <p class="contact-item__label">Plan actual</p>
+                <p class="contact-item__value" id="restaurantProfilePlanName">Sin plan</p>
+                <p class="contact-item__text">Plan comercial activo para la cuenta del restaurante.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Acceso hasta</p>
+                <p class="contact-item__value" id="restaurantProfileActivatedUntil">Sin fecha</p>
+                <p class="contact-item__text">Fecha hasta la que el acceso del local permanece operativo.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Estado</p>
+                <p class="contact-item__value">Acceso verificado</p>
+                <p class="contact-item__text">Si necesitas soporte o cambios comerciales, puedes usar la pantalla de contacto.</p>
+              </article>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script>
+      window.TURNO_LISTO_PRIVATE_ROLE = "restaurant";
+    </script>
+    <script src="./firebase-config.js?v=20260408a"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
+    <script src="./shared.js?v=20260409e"></script>
+    <script src="./restaurant-profile.js?v=20260409h"></script>
+  </body>
+</html>
