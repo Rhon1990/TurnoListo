@@ -1263,7 +1263,7 @@ button:hover,
 
 .list-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) repeat(2, minmax(180px, 0.7fr));
+  grid-template-columns: minmax(280px, 1.2fr) repeat(3, minmax(170px, 0.62fr));
   gap: 0.8rem;
   margin-top: 1rem;
   margin-bottom: 1rem;
