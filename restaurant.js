@@ -1211,7 +1211,7 @@ function buildOrderCard(order, isArchived) {
     document.createTextNode(`${order.items} · ${order.pickupPoint} · `),
     buildEtaHintElement(order),
   );
-  intelligenceLabel.textContent = "TurnoListo Intelligence";
+  intelligenceLabel.textContent = "IA TurnoListo";
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
   const shouldShowIntelligenceReason = Boolean(order.aiReason || order.aiRecommendation) && !(order.aiRiskLevel === "low" && order.status !== "ready");
