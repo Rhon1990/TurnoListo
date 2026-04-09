@@ -946,12 +946,17 @@ function buildOrderCard(order, isArchived) {
     "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
   intelligenceBadge.dataset.termHint =
     order.aiRiskLevel === "high"
-      ? "Riesgo alto significa que este pedido necesita atencion inmediata porque puede desviarse o ya esta comprometido."
+      ? `${intelligenceBadge.textContent}: este pedido necesita atencion inmediata porque puede desviarse o ya esta comprometido.`
       : order.aiRiskLevel === "medium"
-        ? "Atencion significa que el pedido aun esta controlado, pero ya muestra señales de tension operativa."
-        : "Estable significa que el pedido va dentro de una ventana saludable segun la lectura actual del local.";
-  intelligenceEta.dataset.termHint =
-    "ETA IA es la estimacion inteligente de minutos restantes segun carga actual, historico del local y riesgo de retraso.";
+        ? `${intelligenceBadge.textContent}: el pedido aun esta controlado, pero ya muestra señales de tension operativa.`
+        : `${intelligenceBadge.textContent}: el pedido va dentro de una ventana saludable segun la lectura actual del local.`;
+  intelligenceEta.dataset.termHint = buildAiEtaHint(order, intelligenceEta.textContent);
+  intelligenceLabel.setAttribute("title", intelligenceLabel.dataset.termHint);
+  intelligenceLabel.setAttribute("aria-label", intelligenceLabel.dataset.termHint);
+  intelligenceBadge.setAttribute("title", intelligenceBadge.dataset.termHint);
+  intelligenceBadge.setAttribute("aria-label", intelligenceBadge.dataset.termHint);
+  intelligenceEta.setAttribute("title", intelligenceEta.dataset.termHint);
+  intelligenceEta.setAttribute("aria-label", intelligenceEta.dataset.termHint);
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
@@ -1126,6 +1131,19 @@ function formatAiEta(order) {
   const eta = Number(order.aiEtaMinutes || 0);
   if (!Number.isFinite(eta) || eta <= 0) return "ETA IA --";
   return `ETA IA ${eta} min`;
+}
+
+function buildAiEtaHint(order, visibleLabel) {
+  if (order.status === "ready") {
+    return `${visibleLabel}: el pedido ya esta listo para recoger.`;
+  }
+
+  const eta = Number(order.aiEtaMinutes || 0);
+  if (!Number.isFinite(eta) || eta <= 0) {
+    return `${visibleLabel}: TurnoListo todavia no tiene una estimacion fiable para este pedido.`;
+  }
+
+  return `${visibleLabel}: TurnoListo estima este tiempo restante segun la carga actual, el historico del local y el riesgo de retraso.`;
 }
 
 function buildEtaHintElement(order) {
