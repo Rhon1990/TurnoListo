@@ -20,6 +20,8 @@
   --type-h2: clamp(1.35rem, 2.5vw, 1.8rem);
   --type-h3: clamp(1.2rem, 2vw, 1.45rem);
   --type-brand: clamp(1.2rem, 2.4vw, 1.6rem);
+  --space-kicker-title: 0.35rem;
+  --space-title-body: 0.55rem;
 }
 
 * {
@@ -60,10 +62,25 @@ textarea {
   font-family: var(--font-sans);
 }
 
+input::placeholder,
+textarea::placeholder,
+label,
+small,
+input::file-selector-button {
+  font-family: var(--font-sans);
+}
+
 p {
   margin: 0;
   font-size: var(--type-body);
   line-height: 1.58;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
 }
 
 body::before {
@@ -145,12 +162,35 @@ body.celebration-active::after {
 .ticket__label,
 .hero__metric-label,
 .stat__label {
-  margin: 0 0 0.4rem;
+  margin: 0 0 var(--space-kicker-title);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: var(--type-kicker);
   font-weight: 500;
   color: var(--muted);
+}
+
+.panel__heading > div,
+.contact-hero__top > div,
+.admin-profile-block__header,
+.auth-showcase__copy,
+.auth-entry .panel__heading > div,
+.dashboard-panel__top > div,
+.dashboard-subsection__top > div,
+.admin-inbox-group__heading > div {
+  display: grid;
+  align-content: start;
+}
+
+.panel__heading h2 + p,
+.contact-hero__top h1 + p,
+.admin-profile-block__header h3 + p,
+.auth-showcase__copy h2 + p,
+.auth-entry .panel__heading h2 + p,
+.dashboard-panel__top h3 + p,
+.dashboard-subsection__top h3 + p,
+.admin-inbox-group__heading h3 + p {
+  margin-top: var(--space-title-body);
 }
 
 .hero__text,
@@ -306,6 +346,7 @@ body.celebration-active::after {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-family: var(--font-sans);
 }
 
 .workspace-contact-button {
@@ -349,6 +390,7 @@ body.celebration-active::after {
 
 .workspace-mail-button__label {
   font-size: 0.92rem;
+  font-family: var(--font-sans);
 }
 
 .account-menu {
@@ -429,6 +471,7 @@ body.celebration-active::after {
   margin: 0;
   color: var(--muted);
   font-size: 0.92rem;
+  font-family: var(--font-sans);
 }
 
 .account-menu__actions {
@@ -447,6 +490,7 @@ body.celebration-active::after {
   border: 1px solid rgba(29, 26, 22, 0.06);
   color: var(--ink);
   font-weight: 700;
+  font-family: var(--font-sans);
   text-decoration: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
@@ -548,6 +592,7 @@ body.celebration-active::after {
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: 700;
+  font-family: var(--font-sans);
 }
 
 .contact-form {
@@ -851,6 +896,7 @@ body.celebration-active::after {
   background: rgba(29, 26, 22, 0.06);
   color: var(--muted);
   font-size: 0.9rem;
+  font-family: var(--font-sans);
 }
 
 .panel__heading,
@@ -862,12 +908,21 @@ body.celebration-active::after {
   gap: 0.75rem;
 }
 
+.panel__heading {
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
 button,
 input,
 select {
   font: inherit;
   border: none;
   outline: none;
+}
+
+input::file-selector-button {
+  font: inherit;
 }
 
 button {
@@ -1395,6 +1450,7 @@ button:hover,
   color: var(--muted);
   font-size: 0.9rem;
   line-height: 1.4;
+  font-family: var(--font-sans);
 }
 
 .admin-profile-layout {
@@ -1583,6 +1639,7 @@ button:hover,
 .field span {
   font-size: 0.85rem;
   color: var(--muted);
+  font-family: var(--font-sans);
 }
 
 .field input,
