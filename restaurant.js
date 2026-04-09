@@ -373,15 +373,15 @@ function renderRestaurantHeroSignals(stats) {
   if (stats.aiHighRiskCount >= 1) {
     restaurantHeroMetricLabel.textContent = "Pedidos en riesgo";
     restaurantHeroMetricValue.textContent = String(stats.aiHighRiskCount);
-    restaurantHeroMetricHint.textContent = "Requieren atención antes de que afecten la espera o la retirada.";
+    restaurantHeroMetricHint.textContent = "Requieren intervención antes de impactar espera, recogida o experiencia.";
   } else if (stats.deliveredCount > 0) {
-    restaurantHeroMetricLabel.textContent = "Entregas a tiempo";
+    restaurantHeroMetricLabel.textContent = "Rendimiento a tiempo";
     restaurantHeroMetricValue.textContent = `${stats.onTimeRate}%`;
-    restaurantHeroMetricHint.textContent = "Lectura diaria del porcentaje de pedidos entregados en 15 min o menos.";
+    restaurantHeroMetricHint.textContent = "Lectura diaria del porcentaje de pedidos resueltos en una ventana competitiva.";
   } else {
     restaurantHeroMetricLabel.textContent = "Pedidos activos";
     restaurantHeroMetricValue.textContent = String(stats.activeNow);
-    restaurantHeroMetricHint.textContent = "Recibido, en preparación o listo para recoger.";
+    restaurantHeroMetricHint.textContent = "Recibido, en preparación o listos para recoger con lectura adaptativa.";
   }
 
   renderRestaurantSpotlight(stats);
@@ -402,8 +402,8 @@ function renderRestaurantSpotlight(stats) {
     restaurantSpotlightTitle.textContent = `Prioriza ${stats.aiFocusOrder.orderNumber} ahora`;
     restaurantSpotlightBody.textContent =
       stats.aiFocusOrder.aiRiskLevel === "high"
-        ? "TurnoListo detecta que este pedido puede impactar experiencia o tiempo prometido si no entra primero en foco."
-        : "Es el pedido con mejor retorno operativo inmediato segun carga actual, riesgo y aprendizaje historico del local.";
+        ? "La IA detecta que este pedido puede deteriorar la experiencia o romper la promesa de tiempo si no entra primero en foco."
+        : "Es el pedido con mayor retorno operativo inmediato segun carga actual, riesgo y aprendizaje historico del local.";
     restaurantSpotlightChipPrimary.textContent = formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel);
     restaurantSpotlightChipSecondary.textContent = formatAiEta(stats.aiFocusOrder);
     return;
@@ -411,11 +411,11 @@ function renderRestaurantSpotlight(stats) {
 
   if (stats.activeNow > 0) {
     restaurantSpotlightTitle.textContent =
-      stats.aiModelSampleSize >= 8 ? "La IA ya se esta adaptando a este local" : "La operación va estable";
+      stats.aiModelSampleSize >= 8 ? "La IA ya se esta adaptando a este local" : "La operacion mantiene buen pulso";
     restaurantSpotlightBody.textContent =
       stats.aiModelSampleSize >= 8
-        ? `El modelo ya aprende de ${stats.aiModelSampleSize} cierres reales y ahora ajusta ETAs segun el comportamiento de este restaurante.`
-        : "No hay pedidos en riesgo alto ahora mismo. Puedes usar esta vista para mantener ritmo y anticiparte antes de la siguiente hora pico.";
+        ? `El modelo ya aprende de ${stats.aiModelSampleSize} cierres reales y ahora ajusta ETAs, riesgo y prioridades segun el comportamiento de este restaurante.`
+        : "No hay pedidos en riesgo alto ahora mismo. Puedes usar esta vista para mantener ritmo y anticiparte antes del siguiente pico de demanda.";
     restaurantSpotlightChipPrimary.textContent =
       stats.aiModelSampleSize >= 8 ? `IA ${stats.aiModelConfidenceLabel}` : `Activos ${stats.activeNow}`;
     restaurantSpotlightChipSecondary.textContent =
@@ -425,9 +425,9 @@ function renderRestaurantSpotlight(stats) {
 
   restaurantSpotlightTitle.textContent = "Listo para recibir más pedidos";
   restaurantSpotlightBody.textContent =
-    "La operación está despejada. Cuando entren nuevos pedidos, TurnoListo mostrará aquí la siguiente mejor acción para el equipo.";
-  restaurantSpotlightChipPrimary.textContent = "Operación estable";
-  restaurantSpotlightChipSecondary.textContent = "Sin fricción en mostrador";
+    "La operacion esta despejada. Cuando entren nuevos pedidos, TurnoListo mostrara aqui la siguiente mejor accion para el equipo y seguira aprendiendo del servicio.";
+  restaurantSpotlightChipPrimary.textContent = "Operacion estable";
+  restaurantSpotlightChipSecondary.textContent = "Listo para escalar";
 }
 
 function setRestaurantDisplayMode(mode) {
@@ -812,8 +812,8 @@ function renderDashboard(stats) {
     : "Sin datos";
   dashboardHeroLeadMetric.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
   dashboardHeroLeadHint.textContent = stats.deliveredCount
-    ? `${stats.onTimeRate}% de pedidos entregados en 15 min o menos · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`
-    : "En cuanto cierres pedidos aqui veras la velocidad real del local";
+    ? `${stats.onTimeRate}% de pedidos resueltos en 15 min o menos · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`
+    : "En cuanto cierres pedidos aqui veras la velocidad real y el aprendizaje del local";
   dashboardHeroActiveNow.textContent = stats.activeNow;
   dashboardHeroReadyNow.textContent = stats.readyNow;
   dashboardHeroRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : "Sin datos";
@@ -967,7 +967,7 @@ function buildImprovementInsights(stats) {
       `La IA ya aprende de ${stats.aiModelSampleSize} cierres reales del local y opera con confianza ${stats.aiModelConfidenceLabel.toLowerCase()}.`,
     );
   } else {
-    insights.push("La IA todavia esta aprendiendo este restaurante. Cuantos mas pedidos cierres, mejor ajustara ETAs y prioridades.");
+    insights.push("La IA todavia esta aprendiendo este restaurante. Cuantos mas pedidos cierres, mejor ajustara ETAs, prioridades y decisiones de servicio.");
   }
 
   if (stats.aiDominantBottleneck) {
@@ -978,20 +978,20 @@ function buildImprovementInsights(stats) {
 
   if (stats.aiHighRiskCount >= 1) {
     insights.push(
-      `TurnoListo Intelligence detecta ${stats.aiHighRiskCount} pedido${stats.aiHighRiskCount === 1 ? "" : "s"} en riesgo alto. Conviene actuar antes de que impacten en experiencia o cancelaciones.`,
+      `La IA adaptativa detecta ${stats.aiHighRiskCount} pedido${stats.aiHighRiskCount === 1 ? "" : "s"} en riesgo alto. Conviene actuar antes de que impacten en experiencia o cancelaciones.`,
     );
   } else if (stats.aiAttentionCount >= 2) {
-    insights.push("La IA ve varios pedidos bajo presión. Aun no están fuera de tiempo, pero la cola se está tensando.");
+    insights.push("La IA ve varios pedidos bajo presion. Aun no estan fuera de tiempo, pero la cola empieza a tensarse.");
   }
 
   if (stats.aiAverageExtraMinutes >= 4) {
-    insights.push("La predicción inteligente ya añade varios minutos sobre la promesa actual. Hay señales de saturación en cocina o entrega.");
+    insights.push("La prediccion adaptativa ya añade varios minutos sobre la promesa actual. Hay señales de saturacion en cocina o recogida.");
   }
 
   if (stats.avgDeliveredMinutes >= 20) {
-    insights.push("El tiempo medio de entrega está alto. Conviene revisar preparación y retirada para bajar la espera.");
+    insights.push("El tiempo medio de entrega esta alto. Conviene revisar preparacion y retirada para bajar la espera.");
   } else if (stats.deliveredCount > 0) {
-    insights.push("El promedio de entrega va bien. Mantener este ritmo ayuda a reducir colas y mejorar percepción.");
+    insights.push("El promedio de entrega va bien. Mantener este ritmo ayuda a reducir colas, reforzar experiencia y sostener valor percibido.");
   }
 
   if (stats.delayedActive >= 2) {
