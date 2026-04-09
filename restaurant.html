@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409p" />
+    <link rel="stylesheet" href="./styles.css?v=20260409q" />
   </head>
   <body>
     <div class="app-shell" id="restaurantLoginView" hidden>
@@ -545,12 +545,29 @@
       </div>
     </div>
 
+    <div class="qr-modal" id="restaurantAiModal" hidden>
+      <div class="qr-modal__backdrop" id="restaurantAiBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="restaurantAiClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">TurnoListo Intelligence</p>
+          <h3 id="restaurantAiTitle">Pedido</h3>
+          <p class="comment-modal__meta" id="restaurantAiMeta"></p>
+          <div class="comment-modal__quote">
+            <p id="restaurantAiBody"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       window.TURNO_LISTO_PRIVATE_ROLE = "restaurant";
     </script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./restaurant.js?v=20260409k"></script>
+    <script src="./restaurant.js?v=20260409l"></script>
   </body>
 </html>

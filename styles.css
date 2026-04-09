@@ -2448,11 +2448,36 @@ button:hover,
   color: #0c5b75;
 }
 
-.order-card__intelligence-reason {
-  margin: 0;
-  font-size: 0.86rem;
-  color: var(--muted);
-  line-height: 1.45;
+.order-card__intelligence-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid rgba(185, 29, 43, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 248, 0.96);
+  color: #b42318;
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.order-card__intelligence-info:hover,
+.order-card__intelligence-info:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(185, 29, 43, 0.28);
+  box-shadow: 0 8px 18px rgba(180, 35, 24, 0.12);
+}
+
+.order-card__intelligence-info:focus-visible {
+  outline: 2px solid rgba(185, 29, 43, 0.18);
+  outline-offset: 2px;
 }
 
 .order-card__summary-time {

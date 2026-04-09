@@ -117,6 +117,12 @@ const cancelClose = document.querySelector("#restaurantCancelClose");
 const cancelBack = document.querySelector("#restaurantCancelBack");
 const cancelConfirm = document.querySelector("#restaurantCancelConfirm");
 const cancelMeta = document.querySelector("#restaurantCancelMeta");
+const aiModal = document.querySelector("#restaurantAiModal");
+const aiBackdrop = document.querySelector("#restaurantAiBackdrop");
+const aiClose = document.querySelector("#restaurantAiClose");
+const aiTitle = document.querySelector("#restaurantAiTitle");
+const aiMeta = document.querySelector("#restaurantAiMeta");
+const aiBody = document.querySelector("#restaurantAiBody");
 
 let expandedOrderId = null;
 let editingOrderId = null;
@@ -182,6 +188,8 @@ cancelBackdrop.addEventListener("click", closeCancelModal);
 cancelClose.addEventListener("click", closeCancelModal);
 cancelBack.addEventListener("click", closeCancelModal);
 cancelConfirm.addEventListener("click", confirmCancelOrder);
+aiBackdrop.addEventListener("click", closeAiModal);
+aiClose.addEventListener("click", closeAiModal);
 bindDashboardAction(dashboardCardActiveNowHero, () => goToOrdersView({ status: "all", priority: "all", search: "" }));
 bindDashboardAction(dashboardCardReadyNowHero, () => goToOrdersView({ status: "ready", priority: "all", search: "" }));
 bindDashboardAction(dashboardCardDelayedActive, () => goToOrdersView({ status: "all", priority: "delayed", search: "" }));
@@ -1146,7 +1154,7 @@ function buildOrderCard(order, isArchived) {
   const intelligenceLabel = document.createElement("span");
   const intelligenceBadge = document.createElement("span");
   const intelligenceEta = document.createElement("span");
-  const intelligenceReason = document.createElement("p");
+  const intelligenceInfo = document.createElement("button");
   const compactSide = document.createElement("div");
   const qrCode = document.createElement("strong");
   const ratingRow = document.createElement("div");
@@ -1184,7 +1192,7 @@ function buildOrderCard(order, isArchived) {
   intelligenceLabel.className = "order-card__intelligence-label term-hint";
   intelligenceBadge.className = `order-card__intelligence-badge order-card__intelligence-badge--${order.aiRiskLevel || "low"} term-hint`;
   intelligenceEta.className = "order-card__intelligence-eta term-hint";
-  intelligenceReason.className = "order-card__intelligence-reason";
+  intelligenceInfo.className = "order-card__intelligence-info";
   compactSide.className = "order-card__summary-side";
   ratingRow.className = "order-card__rating-row";
   badge.className = "status-pill";
@@ -1205,9 +1213,15 @@ function buildOrderCard(order, isArchived) {
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
   const shouldShowIntelligenceReason = Boolean(order.aiReason || order.aiRecommendation) && !(order.aiRiskLevel === "low" && order.status !== "ready");
-  intelligenceReason.textContent = shouldShowIntelligenceReason
-    ? [order.aiReason, order.aiRecommendation].filter(Boolean).join(" ")
-    : "";
+  intelligenceInfo.type = "button";
+  intelligenceInfo.textContent = "!";
+  intelligenceInfo.setAttribute("aria-label", "Ver detalle de TurnoListo Intelligence");
+  intelligenceInfo.setAttribute("title", "Ver detalle de TurnoListo Intelligence");
+  intelligenceInfo.hidden = !shouldShowIntelligenceReason;
+  intelligenceInfo.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openAiModal(order);
+  });
   intelligenceLabel.dataset.termHint =
     "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
   intelligenceBadge.dataset.termHint =
@@ -1246,11 +1260,8 @@ function buildOrderCard(order, isArchived) {
   compactTop.append(elapsedTime);
   compactMeta.append(compactTop, compactTitle, compactLine);
   if (!isArchived) {
-    intelligence.append(intelligenceLabel, intelligenceBadge, intelligenceEta);
+    intelligence.append(intelligenceLabel, intelligenceBadge, intelligenceEta, intelligenceInfo);
     compactMeta.append(intelligence);
-    if (shouldShowIntelligenceReason) {
-      compactMeta.append(intelligenceReason);
-    }
   }
   compactMeta.append(compactTime);
   buildQuickStatusButtons(order, quickStatusActions, isArchived, isCounterMode);
@@ -1487,6 +1498,19 @@ function openCommentModal(order) {
 
 function closeCommentModal() {
   commentModal.hidden = true;
+}
+
+function openAiModal(order) {
+  aiTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
+  aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `Cuello: ${order.aiBottleneckLabel}` : ""]
+    .filter(Boolean)
+    .join(" · ");
+  aiBody.textContent = [order.aiReason, order.aiRecommendation].filter(Boolean).join(" ");
+  aiModal.hidden = false;
+}
+
+function closeAiModal() {
+  aiModal.hidden = true;
 }
 
 function openCancelModal(order) {
