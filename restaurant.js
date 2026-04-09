@@ -1118,7 +1118,8 @@ function buildOrderCard(order, isArchived) {
   intelligenceLabel.textContent = "TurnoListo Intelligence";
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
-  intelligenceReason.textContent = order.aiReason || "Sin lectura inteligente todavía.";
+  const shouldShowIntelligenceReason = Boolean(order.aiReason) && !(order.aiRiskLevel === "low" && order.status !== "ready");
+  intelligenceReason.textContent = shouldShowIntelligenceReason ? order.aiReason : "";
   intelligenceLabel.dataset.termHint =
     "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
   intelligenceBadge.dataset.termHint =
@@ -1156,7 +1157,10 @@ function buildOrderCard(order, isArchived) {
   compactMeta.append(compactTop, compactTitle, compactLine);
   if (!isArchived) {
     intelligence.append(intelligenceLabel, intelligenceBadge, intelligenceEta);
-    compactMeta.append(intelligence, intelligenceReason);
+    compactMeta.append(intelligence);
+    if (shouldShowIntelligenceReason) {
+      compactMeta.append(intelligenceReason);
+    }
   }
   compactMeta.append(compactTime);
   buildQuickStatusButtons(order, quickStatusActions, isArchived, isCounterMode);

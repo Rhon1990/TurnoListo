@@ -2694,7 +2694,7 @@ button:hover,
 }
 
 .status-action--counter {
-  min-width: 120px;
+  min-width: 0;
   min-height: 56px;
   padding: 0.7rem 0.85rem;
   border-radius: 18px;
@@ -2709,7 +2709,18 @@ button:hover,
 }
 
 .restaurant-workspace--counter .order-card__summary-side {
-  min-width: 360px;
+  min-width: 0;
+  width: 100%;
+}
+
+.restaurant-workspace--counter .status-actions--compact {
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.restaurant-workspace--counter .status-action--counter {
+  flex: 1 1 0;
 }
 
 .status-action {
