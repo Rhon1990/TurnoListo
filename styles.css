@@ -966,7 +966,8 @@ button:hover,
 }
 
 .auth-showcase__copy h2 {
-  max-width: 20ch;
+  max-width: 58ch;
+  width: 100%;
   text-wrap: balance;
 }
 
