@@ -126,7 +126,7 @@ body.celebration-active::after {
 }
 
 .hero--compact {
-  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.7fr);
 }
 
 .hero--landing {
@@ -146,6 +146,18 @@ body.celebration-active::after {
   line-height: 1.02;
   letter-spacing: -0.035em;
   max-width: 13ch;
+}
+
+.hero--compact .hero__copy {
+  max-width: none;
+}
+
+.hero--compact .hero__copy h1 {
+  max-width: 18ch;
+}
+
+.hero--compact .hero__text {
+  max-width: 60ch;
 }
 
 .panel h2,
