@@ -1416,7 +1416,7 @@ button:hover,
 .admin-profile-form {
   grid-template-columns: 1fr;
   gap: 1rem;
-  padding: 1.1rem 0;
+  padding: 1.15rem 0.7rem 0.35rem;
 }
 
 .admin-profile-block {
@@ -1475,6 +1475,7 @@ button:hover,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem 0.95rem;
+  align-items: start;
 }
 
 .profile-form-grid--meta input[readonly] {
@@ -1484,6 +1485,7 @@ button:hover,
 
 .admin-profile-form .field {
   gap: 0.4rem;
+  align-content: start;
 }
 
 .admin-profile-form .field input {
@@ -1504,6 +1506,12 @@ button:hover,
 
 .admin-profile-form .field input[readonly] {
   background: rgba(247, 241, 232, 0.84);
+}
+
+.admin-profile-form .field__hint {
+  margin-top: 0.05rem;
+  line-height: 1.45;
+  max-width: 32ch;
 }
 
 .admin-profile-form .quick-form__actions {
@@ -3239,6 +3247,10 @@ button:hover,
 
   .admin-profile-form .quick-form__actions {
     justify-content: stretch;
+  }
+
+  .admin-profile-form {
+    padding-inline: 0.2rem;
   }
 
   .auth-layout,

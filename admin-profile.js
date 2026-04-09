@@ -251,10 +251,13 @@ async function handleAdminProfileSubmit(event) {
     await refreshAdminUsers();
   } catch (error) {
     console.error("No se pudo actualizar el perfil admin.", error);
-    adminProfileFeedback.textContent = "No se pudo guardar el perfil administrador.";
+    const message =
+      String(error?.message || "").trim() ||
+      "No se pudo guardar el perfil administrador.";
+    adminProfileFeedback.textContent = message;
     adminProfileFeedback.className = "form-feedback form-feedback--error";
     adminProfileFeedback.hidden = false;
-    showTurnoAlert("No se pudo guardar el perfil administrador.", "error");
+    showTurnoAlert(message, "error");
   } finally {
     const submitButton = adminProfileForm?.querySelector('button[type="submit"]');
     if (submitButton) submitButton.disabled = false;

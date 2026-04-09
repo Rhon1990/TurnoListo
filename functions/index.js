@@ -46,6 +46,15 @@ function normalizeProfileImage(value) {
   return normalizeLogoUrl(value);
 }
 
+function toAuthPhotoUrl(value) {
+  const avatarUrl = String(value || "").trim();
+  if (!avatarUrl || avatarUrl.startsWith("data:image/")) {
+    return undefined;
+  }
+
+  return avatarUrl;
+}
+
 function normalizeAppUrl(value) {
   const appUrl = trimValue(value);
   if (!appUrl) return "";
@@ -275,7 +284,7 @@ exports.updateCurrentAdminProfile = onCall(async (request) => {
 
   await auth.updateUser(authUid, {
     displayName: displayName || undefined,
-    photoURL: avatarUrl || undefined,
+    photoURL: toAuthPhotoUrl(avatarUrl),
   });
 
   const updatedProfile = await firestore.collection("users").doc(authUid).get();
@@ -312,7 +321,7 @@ exports.createAdminAccount = onCall(async (request) => {
       email,
       password,
       displayName,
-      photoURL: avatarUrl || undefined,
+      photoURL: toAuthPhotoUrl(avatarUrl),
     });
   } catch (error) {
     if (error?.code === "auth/email-already-exists") {
