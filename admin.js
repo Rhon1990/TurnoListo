@@ -580,7 +580,6 @@ function buildAdminInquiryCard(item) {
   const footer = document.createElement("div");
   const submitted = document.createElement("p");
   const actions = document.createElement("div");
-  const reply = document.createElement("a");
   const toggle = document.createElement("button");
 
   card.className = `admin-inbox-card${item.isRead ? "" : " is-unread"}`;
@@ -599,10 +598,6 @@ function buildAdminInquiryCard(item) {
   body.textContent = item.message || "Sin mensaje";
   submitted.textContent = `Recibido ${formatAdminDateTime(item.submittedAt)}`;
 
-  reply.className = "comment-button";
-  reply.href = buildInquiryReplyMailto(item);
-  reply.textContent = "Responder";
-
   toggle.type = "button";
   toggle.className = "comment-button";
   toggle.textContent = item.isRead ? "Marcar sin leer" : "Marcar leído";
@@ -613,18 +608,10 @@ function buildAdminInquiryCard(item) {
   identity.append(title, meta);
   statusWrap.append(interest, state);
   top.append(identity, statusWrap);
-  actions.append(reply, toggle);
+  actions.append(toggle);
   footer.append(submitted, actions);
   card.append(top, body, footer);
   return card;
-}
-
-function buildInquiryReplyMailto(item) {
-  const subject = encodeURIComponent(`Re: ${item.interest} · TurnoListo`);
-  const body = encodeURIComponent(
-    `Hola ${item.name},\n\nGracias por escribirnos desde TurnoListo.\n\n`,
-  );
-  return `mailto:${encodeURIComponent(item.email)}?subject=${subject}&body=${body}`;
 }
 
 async function toggleAdminInquiryRead(item) {
