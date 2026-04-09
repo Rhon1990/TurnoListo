@@ -134,6 +134,7 @@ let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-d
 let restaurantModeTooltipTimer = 0;
 let restaurantTermTooltipTimer = 0;
 let selectedRestaurantProfileLogoUrl = "";
+let lastAiTriggerButton = null;
 
 initializeRestaurantFirebaseAuth();
 waitForDataReady().then(bootRestaurantPage);
@@ -190,6 +191,7 @@ cancelBack.addEventListener("click", closeCancelModal);
 cancelConfirm.addEventListener("click", confirmCancelOrder);
 aiBackdrop.addEventListener("click", closeAiModal);
 aiClose.addEventListener("click", closeAiModal);
+window.addEventListener("keydown", handleRestaurantGlobalKeydown);
 bindDashboardAction(dashboardCardActiveNowHero, () => goToOrdersView({ status: "all", priority: "all", search: "" }));
 bindDashboardAction(dashboardCardReadyNowHero, () => goToOrdersView({ status: "ready", priority: "all", search: "" }));
 bindDashboardAction(dashboardCardDelayedActive, () => goToOrdersView({ status: "all", priority: "delayed", search: "" }));
@@ -1220,7 +1222,7 @@ function buildOrderCard(order, isArchived) {
   intelligenceInfo.hidden = !shouldShowIntelligenceReason;
   intelligenceInfo.addEventListener("click", (event) => {
     event.stopPropagation();
-    openAiModal(order);
+    openAiModal(order, intelligenceInfo);
   });
   intelligenceLabel.dataset.termHint =
     "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
@@ -1500,17 +1502,21 @@ function closeCommentModal() {
   commentModal.hidden = true;
 }
 
-function openAiModal(order) {
+function openAiModal(order, triggerButton = null) {
+  lastAiTriggerButton = triggerButton;
   aiTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
   aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `Cuello: ${order.aiBottleneckLabel}` : ""]
     .filter(Boolean)
     .join(" · ");
-  aiBody.textContent = [order.aiReason, order.aiRecommendation].filter(Boolean).join(" ");
+  aiBody.textContent = [order.aiReason, "", order.aiRecommendation].filter(Boolean).join("\n");
   aiModal.hidden = false;
+  aiClose.focus();
 }
 
 function closeAiModal() {
   aiModal.hidden = true;
+  lastAiTriggerButton?.focus?.();
+  lastAiTriggerButton = null;
 }
 
 function openCancelModal(order) {
@@ -1531,4 +1537,19 @@ function confirmCancelOrder() {
   updateOrderStatus(pendingCancelOrderId, "cancelled");
   closeCancelModal();
   renderRestaurant();
+}
+
+function handleRestaurantGlobalKeydown(event) {
+  if (event.key !== "Escape") return;
+  if (!aiModal.hidden) {
+    closeAiModal();
+    return;
+  }
+  if (!commentModal.hidden) {
+    closeCommentModal();
+    return;
+  }
+  if (!cancelModal.hidden) {
+    closeCancelModal();
+  }
 }
