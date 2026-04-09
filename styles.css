@@ -1267,25 +1267,8 @@ button:hover,
   gap: 0.8rem;
 }
 
-.admin-create-form__demo-toggle {
-  gap: 0.55rem;
-}
-
-.admin-create-form__demo-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  min-height: 52px;
-  padding: 0.9rem 1rem;
-  border-radius: 18px;
-  background: rgba(255, 249, 241, 0.92);
-  border: 1px solid rgba(236, 124, 13, 0.14);
-}
-
-.admin-create-form__demo-control input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
+.admin-create-form__plan-stack[hidden] {
+  display: none;
 }
 
 .list-toolbar {

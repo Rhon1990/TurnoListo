@@ -12,7 +12,6 @@ const adminRestaurantLogoPreview = document.querySelector("#adminRestaurantLogoP
 const adminRestaurantLogoPreviewImage = document.querySelector("#adminRestaurantLogoPreviewImage");
 const adminPlanSelect = document.querySelector("#adminPlanSelect");
 const adminActivationDays = document.querySelector("#adminActivationDays");
-const adminDemoMode = document.querySelector("#adminDemoMode");
 const adminCreateRestaurantName = adminCreateRestaurantForm.querySelector('[name="name"]');
 const adminCreateRestaurantOwner = adminCreateRestaurantForm.querySelector('[name="ownerName"]');
 const adminCreateRestaurantPhone = adminCreateRestaurantForm.querySelector('[name="phone"]');
@@ -135,7 +134,6 @@ adminLoginTogglePassword.addEventListener("click", (event) => {
 adminCreateRestaurantForm.addEventListener("submit", handleCreateRestaurant);
 adminRestaurantLogoInput.addEventListener("change", handleRestaurantLogoSelection);
 adminPlanSelect.addEventListener("change", syncActivationDaysWithPlan);
-adminDemoMode?.addEventListener("change", syncDemoModeState);
 adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
@@ -179,7 +177,6 @@ function bootAdminPage() {
   syncAdminSectionFromHash();
   initializeTermHints(document.querySelector("#adminWorkspace"));
   syncAdminAccess();
-  syncDemoModeState();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
     initializeAdminInbox();
@@ -200,31 +197,21 @@ function initializeTermHints(root) {
 }
 
 function syncActivationDaysWithPlan() {
-  if (adminDemoMode?.checked) {
-    adminPlanSelect.value = "Demo";
-    adminActivationDays.value = PLAN_DURATIONS.Demo;
-    return;
-  }
-
   const plan = adminPlanSelect.value || "Mensual";
-  adminActivationDays.value = PLAN_DURATIONS[plan] || 30;
-}
+  const isDemo = plan === "Demo";
 
-function syncDemoModeState() {
-  const isDemo = Boolean(adminDemoMode?.checked);
-  if (adminPlanSelect) {
-    adminPlanSelect.disabled = isDemo;
-    if (isDemo) adminPlanSelect.value = "Demo";
+  if (isDemo) {
+    adminActivationDays.value = PLAN_DURATIONS.Demo;
   }
-  if (adminActivationDays) {
-    adminActivationDays.readOnly = isDemo;
-    if (isDemo) adminActivationDays.value = PLAN_DURATIONS.Demo;
+
+  if (!isDemo) {
+    adminActivationDays.value = PLAN_DURATIONS[plan] || 30;
   }
+
+  adminActivationDays.readOnly = true;
   if (adminCreateRestaurantOwner) adminCreateRestaurantOwner.required = !isDemo;
   if (adminCreateRestaurantPhone) adminCreateRestaurantPhone.required = !isDemo;
-  if (adminCreateRestaurantName) {
-    adminCreateRestaurantName.placeholder = isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro";
-  }
+  if (adminCreateRestaurantName) adminCreateRestaurantName.placeholder = isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro";
 }
 
 function isAdminAuthenticated() {
@@ -324,7 +311,7 @@ async function handleCreateRestaurant(event) {
       city: formData.get("city"),
       address: formData.get("address"),
       logoUrl: selectedRestaurantLogoUrl,
-      demoMode: adminDemoMode?.checked || false,
+      demoMode: String(formData.get("planName") || "") === "Demo",
       planName: formData.get("planName"),
       activationDays: formData.get("activationDays"),
       notes: formData.get("notes"),
@@ -337,7 +324,6 @@ async function handleCreateRestaurant(event) {
 
     adminCreateRestaurantForm.reset();
     resetRestaurantLogoPreview();
-    syncDemoModeState();
     syncActivationDaysWithPlan();
     await reconnectDataStoreToFirebase();
     adminCreateFeedback.textContent =

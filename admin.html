@@ -391,18 +391,10 @@
                 <input id="adminRestaurantLogoInput" name="logo" type="file" accept="image/*" />
                 <span class="field__hint">Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.</span>
               </label>
-              <label class="field field--wide admin-create-form__demo-toggle">
-                <span>Modo de alta</span>
-                <span class="admin-create-form__demo-control">
-                  <input id="adminDemoMode" name="demoMode" type="checkbox" />
-                  <strong>Crear en modo DEMO comercial</strong>
-                </span>
-                <span class="field__hint">Genera una cuenta lista para probar pedidos, QR e IA adaptativa con límites pensados para cerrar la venta.</span>
-              </label>
               <div class="logo-upload-preview" id="adminRestaurantLogoPreview" hidden>
                 <img id="adminRestaurantLogoPreviewImage" alt="Vista previa del logo del restaurante" />
               </div>
-              <div class="admin-create-form__plan-stack">
+              <div class="admin-create-form__plan-stack" id="adminPlanStack">
                 <label class="field">
                   <span>Plan</span>
                   <select id="adminPlanSelect" name="planName">
@@ -413,6 +405,7 @@
                     <option value="Semestral">Semestral</option>
                     <option value="Anual">Anual</option>
                   </select>
+                  <span class="field__hint">Elige Demo para una prueba comercial guiada con límites pensados para cerrar la venta.</span>
                 </label>
                 <label class="field">
                   <span>Días de activación</span>
