@@ -3190,6 +3190,11 @@ button:hover,
     grid-template-columns: 1fr;
   }
 
+  .hero--compact .hero__copy h1,
+  .hero--compact .hero__text {
+    max-width: none;
+  }
+
   .panel__heading,
   .ticket__top,
   .scan-box__row,
@@ -3277,24 +3282,29 @@ button:hover,
 
   .workspace-brand {
     width: 100%;
-    justify-content: center;
-    padding: 1rem 1.05rem;
+    justify-content: flex-start;
+    padding: 0.4rem 0;
   }
 
   .workspace-actions {
-    justify-content: flex-start;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
   }
 
   .workspace-mail-button {
     justify-content: center;
+    flex: 1 1 auto;
   }
 
   .account-menu {
-    width: 100%;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .account-menu__trigger {
-    margin-left: auto;
+    margin-left: 0;
   }
 
   .account-menu__panel {
@@ -3447,25 +3457,26 @@ button:hover,
   }
 
   .workspace-brand {
-    flex-direction: column;
-    gap: 0.33rem;
-    padding: 0.54rem 0.48rem;
-    text-align: center;
-    border-radius: 18px;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.15rem 0;
+    text-align: left;
+    border-radius: 0;
   }
 
   .workspace-brand__image {
-    width: min(100%, 64px);
+    width: 54px;
   }
 
   .workspace-brand__copy {
-    justify-items: center;
-    padding-left: 0;
+    justify-items: start;
+    padding-left: 0.18rem;
   }
 
   .workspace-brand__name {
-    font-size: clamp(1.14rem, 5.88vw, 1.68rem);
-    white-space: normal;
+    font-size: clamp(1.2rem, 6vw, 1.7rem);
+    white-space: nowrap;
   }
 
   .auth-brand__tagline {
@@ -3476,9 +3487,9 @@ button:hover,
   }
 
   .workspace-brand__tagline {
-    font-size: 0.48rem;
-    white-space: normal;
-    max-width: 24ch;
+    font-size: 0.54rem;
+    white-space: nowrap;
+    max-width: none;
   }
 
   .workspace-topbar {
@@ -3487,14 +3498,33 @@ button:hover,
 
   .workspace-actions {
     width: 100%;
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.55rem;
   }
 
   .workspace-mail-button,
   .workspace-contact-button,
   .contact-back {
-    width: 100%;
+    width: auto;
+  }
+
+  .workspace-mail-button {
+    min-width: 0;
+    padding-inline: 0.85rem;
+  }
+
+  .workspace-mail-button__label {
+    font-size: 0.88rem;
+  }
+
+  .account-menu {
+    margin-left: 0;
+  }
+
+  .account-menu__trigger {
+    width: 52px;
+    height: 52px;
   }
 
   .account-menu__panel {
@@ -3529,6 +3559,16 @@ button:hover,
   .auth-entry .panel__heading h2 {
     font-size: clamp(1.45rem, 7.2vw, 1.9rem);
     line-height: 1.03;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.9rem, 9vw, 2.7rem);
+    line-height: 0.98;
+  }
+
+  .hero__text {
+    font-size: 1rem;
+    line-height: 1.5;
   }
 
   .auth-proof-grid {
