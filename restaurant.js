@@ -173,25 +173,13 @@ function bootRestaurantPage() {
 }
 
 function initializeRestaurantTermHints(root = document) {
-  if (!root || !restaurantTermTooltip) return;
+  if (!root) return;
   root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
     const hint = String(element.dataset.termHint || "").trim();
     if (hint) {
       element.setAttribute("title", hint);
       element.setAttribute("aria-label", hint);
     }
-    if (element.dataset.termHintBound === "true") return;
-    element.dataset.termHintBound = "true";
-    if (!element.closest("button")) {
-      element.tabIndex = 0;
-    }
-    element.addEventListener("mouseenter", () => {
-      window.clearTimeout(restaurantTermTooltipTimer);
-      showRestaurantTermTooltip(element);
-    });
-    element.addEventListener("mouseleave", hideRestaurantTermTooltip);
-    element.addEventListener("focus", () => showRestaurantTermTooltip(element));
-    element.addEventListener("blur", hideRestaurantTermTooltip);
   });
 }
 
@@ -376,24 +364,6 @@ function hideRestaurantModeTooltip() {
   window.clearTimeout(restaurantModeTooltipTimer);
   restaurantModeTooltip.hidden = true;
   restaurantModeTooltip.textContent = "";
-}
-
-function showRestaurantTermTooltip(element) {
-  const hint = String(element?.dataset.termHint || "").trim();
-  if (!hint || !restaurantTermTooltip) return;
-  const rect = element.getBoundingClientRect();
-  restaurantTermTooltip.textContent = hint;
-  restaurantTermTooltip.hidden = false;
-  restaurantTermTooltip.style.left = `${rect.left + rect.width / 2}px`;
-  restaurantTermTooltip.style.top = `${rect.bottom + 8}px`;
-}
-
-function hideRestaurantTermTooltip() {
-  window.clearTimeout(restaurantTermTooltipTimer);
-  restaurantTermTooltipTimer = 0;
-  if (!restaurantTermTooltip) return;
-  restaurantTermTooltip.hidden = true;
-  restaurantTermTooltip.textContent = "";
 }
 
 function renderRestaurantBrand(restaurant) {

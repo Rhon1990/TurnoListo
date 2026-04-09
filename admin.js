@@ -126,9 +126,7 @@ adminTabs.forEach((button) => {
 });
 
 function bootAdminPage() {
-  initializeTermHints(document.querySelector("#adminWorkspace"), adminTermTooltip, () => adminTermTooltipTimer, (value) => {
-    adminTermTooltipTimer = value;
-  });
+  initializeTermHints(document.querySelector("#adminWorkspace"));
   syncAdminAccess();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
@@ -137,45 +135,15 @@ function bootAdminPage() {
   }
 }
 
-function initializeTermHints(root, tooltip, getTimer, setTimer) {
-  if (!root || !tooltip) return;
+function initializeTermHints(root) {
+  if (!root) return;
   root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
     const hint = String(element.dataset.termHint || "").trim();
     if (hint) {
       element.setAttribute("title", hint);
       element.setAttribute("aria-label", hint);
     }
-    if (element.dataset.termHintBound === "true") return;
-    element.dataset.termHintBound = "true";
-    if (!element.closest("button")) {
-      element.tabIndex = 0;
-    }
-    element.addEventListener("mouseenter", () => {
-      window.clearTimeout(getTimer());
-      showTermTooltip(element, tooltip);
-    });
-    element.addEventListener("mouseleave", () => hideTermTooltip(tooltip, getTimer, setTimer));
-    element.addEventListener("focus", () => showTermTooltip(element, tooltip));
-    element.addEventListener("blur", () => hideTermTooltip(tooltip, getTimer, setTimer));
   });
-}
-
-function showTermTooltip(element, tooltip) {
-  const hint = String(element?.dataset.termHint || "").trim();
-  if (!hint || !tooltip) return;
-  const rect = element.getBoundingClientRect();
-  tooltip.textContent = hint;
-  tooltip.hidden = false;
-  tooltip.style.left = `${rect.left + rect.width / 2}px`;
-  tooltip.style.top = `${rect.bottom + 8}px`;
-}
-
-function hideTermTooltip(tooltip, getTimer, setTimer) {
-  window.clearTimeout(getTimer());
-  setTimer(0);
-  if (!tooltip) return;
-  tooltip.hidden = true;
-  tooltip.textContent = "";
 }
 
 function syncActivationDaysWithPlan() {
