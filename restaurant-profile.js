@@ -80,6 +80,7 @@ function redirectToRestaurant() {
 
 function renderRestaurantProfile(restaurant) {
   if (!restaurant) return;
+  const demoUsage = getRestaurantDemoUsage(restaurant);
   renderRestaurantAccount(restaurant);
   restaurantProfileName.value = restaurant.name || "";
   restaurantProfileOwnerName.value = restaurant.ownerName || "";
@@ -94,7 +95,11 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfileActivatedUntil.value = activatedUntil;
   if (restaurantProfilePlanNameCard) restaurantProfilePlanNameCard.textContent = planName;
   if (restaurantProfileActivatedUntilCard) restaurantProfileActivatedUntilCard.textContent = activatedUntil;
-  if (restaurantProfileStatus) restaurantProfileStatus.value = "Acceso verificado";
+  if (restaurantProfileStatus) {
+    restaurantProfileStatus.value = isDemoRestaurant(restaurant)
+      ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos`
+      : "Acceso verificado";
+  }
   syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl || restaurant.logoUrl || "");
   renderRestaurantProfileSummary(restaurant);
 }
@@ -102,8 +107,11 @@ function renderRestaurantProfile(restaurant) {
 function renderRestaurantAccount(restaurant) {
   const restaurantName = String(restaurant?.name || "Restaurante").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
+  const demoUsage = getRestaurantDemoUsage(restaurant);
   restaurantAccountName.textContent = restaurantName;
-  restaurantAccountMeta.textContent = "Acceso verificado";
+  restaurantAccountMeta.textContent = isDemoRestaurant(restaurant)
+    ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
+    : "Acceso verificado";
   restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
 
   if (logoUrl) {
@@ -122,8 +130,11 @@ function renderRestaurantProfileSummary(restaurant) {
   const restaurantName = String(restaurant?.name || "Restaurante").trim();
   const ownerName = String(restaurant?.ownerName || "").trim();
   const logoUrl = String(selectedRestaurantProfileLogoUrl || restaurant?.logoUrl || "").trim();
+  const demoUsage = getRestaurantDemoUsage(restaurant);
   restaurantProfileSummaryName.textContent = restaurantName;
-  restaurantProfileSummaryTitle.textContent = ownerName || "Acceso verificado";
+  restaurantProfileSummaryTitle.textContent = isDemoRestaurant(restaurant)
+    ? `Demo activa · ${demoUsage.remainingOrders} pedidos disponibles`
+    : ownerName || "Acceso verificado";
   restaurantProfileSummaryAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
 
   if (logoUrl) {

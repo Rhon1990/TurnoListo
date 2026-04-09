@@ -9,6 +9,9 @@ const FIREBASE_ORDERS_COLLECTION = "orders";
 const FIREBASE_RESTAURANTS_COLLECTION = "restaurants";
 const FIREBASE_TRACKING_COLLECTION = "tracking";
 const FIREBASE_USERS_COLLECTION = "users";
+const DEMO_PLAN_NAME = "Demo";
+const DEMO_DEFAULT_DAYS = 7;
+const DEMO_DEFAULT_MAX_ORDERS = 8;
 
 const ORDER_STATUSES = ["received", "preparing", "ready", "delivered", "cancelled"];
 const QUEUE_ACTIVE_STATUSES = ["received", "preparing"];
@@ -512,6 +515,8 @@ function normalizeRestaurants(restaurants) {
       address: "",
       logoUrl: "",
       planName: "Mensual",
+      demoMode: false,
+      demoConfig: null,
       notes: "",
       aiModelSummary: null,
       activatedAt: restaurant?.createdAt || new Date().toISOString(),
@@ -552,6 +557,44 @@ function clearCurrentRestaurantSession() {
 
 function getRestaurantById(restaurantId) {
   return loadRestaurants().find((restaurant) => restaurant.id === restaurantId) || null;
+}
+
+function isDemoRestaurant(restaurant) {
+  return Boolean(restaurant?.demoMode) || String(restaurant?.planName || "").trim() === DEMO_PLAN_NAME;
+}
+
+function getRestaurantDemoConfig(restaurant) {
+  if (!isDemoRestaurant(restaurant)) {
+    return {
+      enabled: false,
+      maxOrders: Number.POSITIVE_INFINITY,
+      activationDays: null,
+    };
+  }
+
+  const maxOrders = Math.max(1, Number.parseInt(String(restaurant?.demoConfig?.maxOrders || DEMO_DEFAULT_MAX_ORDERS), 10) || DEMO_DEFAULT_MAX_ORDERS);
+  const activationDays =
+    Math.max(1, Number.parseInt(String(restaurant?.demoConfig?.activationDays || DEMO_DEFAULT_DAYS), 10) || DEMO_DEFAULT_DAYS);
+
+  return {
+    enabled: true,
+    maxOrders,
+    activationDays,
+  };
+}
+
+function getRestaurantDemoUsage(restaurant, orders = loadOrders()) {
+  const config = getRestaurantDemoConfig(restaurant);
+  const restaurantId = String(restaurant?.id || "");
+  const usedOrders = orders.filter((order) => String(order?.restaurantId || "") === restaurantId).length;
+
+  return {
+    enabled: config.enabled,
+    usedOrders,
+    maxOrders: config.maxOrders,
+    remainingOrders: config.enabled ? Math.max(0, config.maxOrders - usedOrders) : Number.POSITIVE_INFINITY,
+    activationDays: config.activationDays,
+  };
 }
 
 function isRestaurantAccessActive(restaurant) {
@@ -595,7 +638,10 @@ function restaurantUsernameExists(username) {
 
 function createRestaurantAccount(accountData) {
   const restaurants = loadRestaurants();
-  const activationDays = Math.max(1, Number.parseInt(String(accountData.activationDays || "30"), 10) || 30);
+  const isDemo = Boolean(accountData.demoMode);
+  const activationDays = isDemo
+    ? DEMO_DEFAULT_DAYS
+    : Math.max(1, Number.parseInt(String(accountData.activationDays || "30"), 10) || 30);
   const activatedAt = new Date().toISOString();
   const activatedUntil = new Date(Date.now() + activationDays * 24 * 60 * 60000).toISOString();
   const restaurantId = `rest-${Date.now()}`;
@@ -617,7 +663,14 @@ function createRestaurantAccount(accountData) {
     city: String(accountData.city || "").trim(),
     address: String(accountData.address || "").trim(),
     logoUrl: String(accountData.logoUrl || "").trim(),
-    planName: String(accountData.planName || "").trim() || "Mensual",
+    planName: isDemo ? DEMO_PLAN_NAME : String(accountData.planName || "").trim() || "Mensual",
+    demoMode: isDemo,
+    demoConfig: isDemo
+      ? {
+          maxOrders: DEMO_DEFAULT_MAX_ORDERS,
+          activationDays: DEMO_DEFAULT_DAYS,
+        }
+      : null,
     notes: String(accountData.notes || "").trim(),
     activatedAt,
     activatedUntil,
@@ -1554,6 +1607,12 @@ function createOrder(orderData) {
   const normalizedSourceOrderId = normalizeSourceOrderId(orderData.sourceOrderId);
   const currentRestaurantId =
     String(orderData.restaurantId || "").trim() || getCurrentRestaurantSession()?.restaurantId || DEFAULT_RESTAURANT_ID;
+  const currentRestaurant = getRestaurantById(currentRestaurantId);
+  const demoUsage = getRestaurantDemoUsage(currentRestaurant, orders);
+
+  if (demoUsage.enabled && demoUsage.usedOrders >= demoUsage.maxOrders) {
+    throw new Error("demo-order-limit");
+  }
 
   if (!normalizedSourceOrderId) {
     throw new Error("missing-source-order");
@@ -2082,10 +2141,12 @@ function getAdminDashboardStats() {
   const orders = loadOrders();
   const activeRestaurants = restaurants.filter((restaurant) => isRestaurantAccessActive(restaurant));
   const expiredRestaurants = restaurants.filter((restaurant) => !isRestaurantAccessActive(restaurant));
+  const demoRestaurants = restaurants.filter((restaurant) => isDemoRestaurant(restaurant));
   const restaurantsWithOrders = restaurants.map((restaurant) => {
     const restaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
     const deliveredOrders = restaurantOrders.filter((order) => order.status === "delivered");
     const adaptiveModel = buildAdaptiveRestaurantModel(restaurant.id, orders);
+    const demoUsage = getRestaurantDemoUsage(restaurant, orders);
     const avgDeliveryMinutes = deliveredOrders.length
       ? Math.round(
           deliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) / deliveredOrders.length,
@@ -2099,6 +2160,7 @@ function getAdminDashboardStats() {
       activeOrderCount: restaurantOrders.filter((order) => !order.archivedAt).length,
       deliveredCount: deliveredOrders.length,
       avgDeliveryMinutes,
+      demoUsage,
       adaptiveModel,
     };
   });
@@ -2131,6 +2193,10 @@ function getAdminDashboardStats() {
       Number(item.adaptiveModel?.sampleCount || 0) >= 8 &&
       !item.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 7)),
   );
+  const demoReadyToConvert = restaurantsWithOrders.filter((item) => {
+    if (!item.demoUsage?.enabled) return false;
+    return item.demoUsage.usedOrders >= Math.max(3, Math.ceil(item.demoUsage.maxOrders * 0.6));
+  });
   const averageModelError = trainedRestaurants.length
     ? Math.round(
         trainedRestaurants.reduce((total, item) => total + Number(item.adaptiveModel?.meanAbsoluteError || 0), 0) /
@@ -2186,6 +2252,8 @@ function getAdminDashboardStats() {
     totalRestaurants: restaurants.length,
     activeRestaurants: activeRestaurants.length,
     expiredRestaurants: expiredRestaurants.length,
+    demoRestaurantCount: demoRestaurants.length,
+    demoReadyToConvertCount: demoReadyToConvert.length,
     totalOrders: orders.length,
     activeOrders: orders.filter((order) => !order.archivedAt).length,
     deliveredOrders: orders.filter((order) => order.status === "delivered").length,
@@ -2299,6 +2367,40 @@ function buildRestaurantRenewalEmail(restaurant, options = {}) {
     accessUrl,
     "",
     "Si confirmas la renovacion, dejamos el acceso activo y continuas sin interrupciones.",
+  ].join("\n");
+
+  return {
+    to: restaurant.email,
+    subject,
+    body,
+    href: `mailto:${encodeURIComponent(restaurant.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+  };
+}
+
+function buildRestaurantDemoUpgradeEmail(restaurant, options = {}) {
+  const accessUrl = String(options.accessUrl || "./restaurant.html").trim() || "./restaurant.html";
+  const demoUsage = getRestaurantDemoUsage(restaurant);
+  const subject = `Activa TurnoListo completo - ${restaurant.name}`;
+  const body = [
+    `Hola ${restaurant.ownerName || restaurant.name},`,
+    "",
+    "Tu demo de TurnoListo ya ha servido para probar pedidos, seguimiento al cliente y lectura operativa con IA adaptativa.",
+    "",
+    `Uso de la demo: ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos.`,
+    demoUsage.remainingOrders > 0
+      ? `Aun quedan ${demoUsage.remainingOrders} pedidos de prueba, pero este es un buen momento para activar el entorno real sin esperar al limite.`
+      : "La demo ya ha alcanzado su limite comercial y está lista para convertirse en operacion real.",
+    "",
+    "Al activar el plan completo mantendras:",
+    "- pedidos sin limite",
+    "- historico operativo del local",
+    "- IA adaptativa con aprendizaje continuo",
+    "- seguimiento QR y visibilidad para el cliente",
+    "",
+    "Acceso al panel:",
+    accessUrl,
+    "",
+    "Si nos confirmas, dejamos el restaurante activo en el plan completo y seguimos con onboarding real del equipo.",
   ].join("\n");
 
   return {

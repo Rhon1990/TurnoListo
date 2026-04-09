@@ -231,9 +231,10 @@ exports.createRestaurantAccount = onCall(async (request) => {
   const city = trimValue(data.city);
   const address = trimValue(data.address);
   const logoUrl = normalizeLogoUrl(data.logoUrl);
-  const planName = trimValue(data.planName) || "Mensual";
+  const demoMode = Boolean(data.demoMode);
+  const planName = demoMode ? "Demo" : trimValue(data.planName) || "Mensual";
   const notes = trimValue(data.notes);
-  const activationDays = Math.max(1, Number.parseInt(String(data.activationDays || "30"), 10) || 30);
+  const activationDays = demoMode ? 7 : Math.max(1, Number.parseInt(String(data.activationDays || "30"), 10) || 30);
   const appUrl = normalizeAppUrl(data.appUrl);
 
   const username = email;
@@ -277,6 +278,13 @@ exports.createRestaurantAccount = onCall(async (request) => {
     address,
     logoUrl,
     planName,
+    demoMode,
+    demoConfig: demoMode
+      ? {
+          maxOrders: 8,
+          activationDays: 7,
+        }
+      : null,
     notes,
     activatedAt,
     activatedUntil,

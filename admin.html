@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409m" />
+    <link rel="stylesheet" href="./styles.css?v=20260409u" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -220,6 +220,16 @@
                   <strong class="dashboard-card__value" id="adminStatExpiredRestaurants">0</strong>
                   <p class="dashboard-card__hint">Cuentas vencidas o en pausa</p>
                 </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Demos activas</p>
+                  <strong class="dashboard-card__value" id="adminStatDemoRestaurants">0</strong>
+                  <p class="dashboard-card__hint">Pruebas comerciales vivas en cartera</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label">Demos listas para convertir</p>
+                  <strong class="dashboard-card__value" id="adminStatDemoReady">0</strong>
+                  <p class="dashboard-card__hint">Locales que ya vieron valor suficiente para upgrade</p>
+                </article>
               </div>
               <div class="dashboard-subsection">
                 <div class="dashboard-subsection__top">
@@ -381,6 +391,14 @@
                 <input id="adminRestaurantLogoInput" name="logo" type="file" accept="image/*" />
                 <span class="field__hint">Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.</span>
               </label>
+              <label class="field field--wide admin-create-form__demo-toggle">
+                <span>Modo de alta</span>
+                <span class="admin-create-form__demo-control">
+                  <input id="adminDemoMode" name="demoMode" type="checkbox" />
+                  <strong>Crear en modo DEMO comercial</strong>
+                </span>
+                <span class="field__hint">Genera una cuenta lista para probar pedidos, QR e IA adaptativa con límites pensados para cerrar la venta.</span>
+              </label>
               <div class="logo-upload-preview" id="adminRestaurantLogoPreview" hidden>
                 <img id="adminRestaurantLogoPreviewImage" alt="Vista previa del logo del restaurante" />
               </div>
@@ -388,6 +406,7 @@
                 <label class="field">
                   <span>Plan</span>
                   <select id="adminPlanSelect" name="planName">
+                    <option value="Demo">Demo</option>
                     <option value="Quincenal">Quincenal</option>
                     <option value="Mensual" selected>Mensual</option>
                     <option value="Trimestral">Trimestral</option>
@@ -539,6 +558,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin.js?v=20260409j"></script>
+    <script src="./admin.js?v=20260409l"></script>
   </body>
 </html>

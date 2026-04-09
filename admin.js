@@ -12,6 +12,10 @@ const adminRestaurantLogoPreview = document.querySelector("#adminRestaurantLogoP
 const adminRestaurantLogoPreviewImage = document.querySelector("#adminRestaurantLogoPreviewImage");
 const adminPlanSelect = document.querySelector("#adminPlanSelect");
 const adminActivationDays = document.querySelector("#adminActivationDays");
+const adminDemoMode = document.querySelector("#adminDemoMode");
+const adminCreateRestaurantName = adminCreateRestaurantForm.querySelector('[name="name"]');
+const adminCreateRestaurantOwner = adminCreateRestaurantForm.querySelector('[name="ownerName"]');
+const adminCreateRestaurantPhone = adminCreateRestaurantForm.querySelector('[name="phone"]');
 const adminRestaurantList = document.querySelector("#adminRestaurantList");
 const adminRestaurantCount = document.querySelector("#adminRestaurantCount");
 const adminTabs = document.querySelectorAll("[data-admin-section]");
@@ -25,6 +29,8 @@ const adminStatExpiredRestaurants = document.querySelector("#adminStatExpiredRes
 const adminStatTotalOrders = document.querySelector("#adminStatTotalOrders");
 const adminStatActiveOrders = document.querySelector("#adminStatActiveOrders");
 const adminStatDelivered = document.querySelector("#adminStatDelivered");
+const adminStatDemoRestaurants = document.querySelector("#adminStatDemoRestaurants");
+const adminStatDemoReady = document.querySelector("#adminStatDemoReady");
 const adminHeroActiveBase = document.querySelector("#adminHeroActiveBase");
 const adminHeroActiveBaseHint = document.querySelector("#adminHeroActiveBaseHint");
 const adminHeroWeeklyActivity = document.querySelector("#adminHeroWeeklyActivity");
@@ -107,6 +113,7 @@ let adminContactInquiries = [];
 let adminMessagesUnsubscribe = null;
 let adminUsers = [];
 const PLAN_DURATIONS = {
+  Demo: 7,
   Quincenal: 15,
   Mensual: 30,
   Trimestral: 90,
@@ -128,6 +135,7 @@ adminLoginTogglePassword.addEventListener("click", (event) => {
 adminCreateRestaurantForm.addEventListener("submit", handleCreateRestaurant);
 adminRestaurantLogoInput.addEventListener("change", handleRestaurantLogoSelection);
 adminPlanSelect.addEventListener("change", syncActivationDaysWithPlan);
+adminDemoMode?.addEventListener("change", syncDemoModeState);
 adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
@@ -171,6 +179,7 @@ function bootAdminPage() {
   syncAdminSectionFromHash();
   initializeTermHints(document.querySelector("#adminWorkspace"));
   syncAdminAccess();
+  syncDemoModeState();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
     initializeAdminInbox();
@@ -191,8 +200,31 @@ function initializeTermHints(root) {
 }
 
 function syncActivationDaysWithPlan() {
+  if (adminDemoMode?.checked) {
+    adminPlanSelect.value = "Demo";
+    adminActivationDays.value = PLAN_DURATIONS.Demo;
+    return;
+  }
+
   const plan = adminPlanSelect.value || "Mensual";
   adminActivationDays.value = PLAN_DURATIONS[plan] || 30;
+}
+
+function syncDemoModeState() {
+  const isDemo = Boolean(adminDemoMode?.checked);
+  if (adminPlanSelect) {
+    adminPlanSelect.disabled = isDemo;
+    if (isDemo) adminPlanSelect.value = "Demo";
+  }
+  if (adminActivationDays) {
+    adminActivationDays.readOnly = isDemo;
+    if (isDemo) adminActivationDays.value = PLAN_DURATIONS.Demo;
+  }
+  if (adminCreateRestaurantOwner) adminCreateRestaurantOwner.required = !isDemo;
+  if (adminCreateRestaurantPhone) adminCreateRestaurantPhone.required = !isDemo;
+  if (adminCreateRestaurantName) {
+    adminCreateRestaurantName.placeholder = isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro";
+  }
 }
 
 function isAdminAuthenticated() {
@@ -292,6 +324,7 @@ async function handleCreateRestaurant(event) {
       city: formData.get("city"),
       address: formData.get("address"),
       logoUrl: selectedRestaurantLogoUrl,
+      demoMode: adminDemoMode?.checked || false,
       planName: formData.get("planName"),
       activationDays: formData.get("activationDays"),
       notes: formData.get("notes"),
@@ -304,12 +337,21 @@ async function handleCreateRestaurant(event) {
 
     adminCreateRestaurantForm.reset();
     resetRestaurantLogoPreview();
+    syncDemoModeState();
     syncActivationDaysWithPlan();
     await reconnectDataStoreToFirebase();
-    adminCreateFeedback.textContent = `Acceso creado para ${restaurant.name}. Se preparó un enlace seguro para definir la contraseña.`;
+    adminCreateFeedback.textContent =
+      restaurant.demoMode
+        ? `DEMO creada para ${restaurant.name}. Queda lista para probar pedidos, QR e IA adaptativa con límites comerciales.`
+        : `Acceso creado para ${restaurant.name}. Se preparó un enlace seguro para definir la contraseña.`;
     adminCreateFeedback.className = "form-feedback form-feedback--success";
     adminCreateFeedback.hidden = false;
-    showTurnoAlert(`Restaurante ${restaurant.name} creado correctamente.`, "success");
+    showTurnoAlert(
+      restaurant.demoMode
+        ? `Demo comercial de ${restaurant.name} creada correctamente.`
+        : `Restaurante ${restaurant.name} creado correctamente.`,
+      "success",
+    );
     await openCredentialsEmail(restaurant);
     activeAdminSection = "restaurants";
     renderAdminWorkspace();
@@ -955,6 +997,8 @@ function renderAdminDashboard(stats) {
   adminStatTotalOrders.textContent = stats.totalOrders;
   adminStatActiveOrders.textContent = stats.activeOrders;
   adminStatDelivered.textContent = stats.deliveredOrders;
+  if (adminStatDemoRestaurants) adminStatDemoRestaurants.textContent = stats.demoRestaurantCount;
+  if (adminStatDemoReady) adminStatDemoReady.textContent = stats.demoReadyToConvertCount;
   const activeBaseRate = stats.totalRestaurants
     ? Math.round((stats.activeRestaurants / stats.totalRestaurants) * 100)
     : 0;
@@ -1205,6 +1249,12 @@ function buildAdminInsights(stats) {
     insights.push(`${stats.restaurantsWithoutOrders} restaurantes aún no han hecho su primer pedido. Necesitan onboarding o seguimiento comercial.`);
   }
 
+  if (stats.demoRestaurantCount > 0) {
+    insights.push(
+      `${stats.demoRestaurantCount} demo${stats.demoRestaurantCount === 1 ? "" : "s"} activas y ${stats.demoReadyToConvertCount} listas para empujar conversion a plan completo.`,
+    );
+  }
+
   if (stats.dormantRestaurants > 0) {
     insights.push(`${stats.dormantRestaurants} restaurantes llevan más de 14 días sin actividad. Aquí puede haber riesgo de churn.`);
   }
@@ -1298,6 +1348,7 @@ function renderRestaurantDirectory(restaurants) {
   }
 
   restaurants.forEach((restaurant) => {
+    const demoUsage = getRestaurantDemoUsage(restaurant);
     const card = document.createElement("article");
     const top = document.createElement("div");
     const brand = document.createElement("div");
@@ -1309,6 +1360,7 @@ function renderRestaurantDirectory(restaurants) {
     const meta = document.createElement("div");
     const status = document.createElement("span");
     const health = document.createElement("span");
+    const demoBadge = document.createElement("span");
     const grid = document.createElement("div");
     const owner = document.createElement("p");
     const contact = document.createElement("p");
@@ -1337,6 +1389,7 @@ function renderRestaurantDirectory(restaurants) {
     const resend = document.createElement("button");
     const onboardingEmail = document.createElement("button");
     const renewalEmail = document.createElement("button");
+    const demoUpgradeEmail = document.createElement("button");
     const renew30 = document.createElement("button");
     const renew90 = document.createElement("button");
     const remove = document.createElement("button");
@@ -1353,6 +1406,7 @@ function renderRestaurantDirectory(restaurants) {
     actions.className = "admin-card__actions";
     status.className = "status-pill";
     health.className = "status-pill admin-card__health-pill";
+    demoBadge.className = "status-pill admin-card__demo-pill";
     playbook.className = "admin-card__playbook";
     playbookLabel.className = "admin-card__playbook-label";
     playbookText.className = "admin-card__playbook-text";
@@ -1360,6 +1414,8 @@ function renderRestaurantDirectory(restaurants) {
     status.style.background = restaurant.status === "active" ? "rgba(31, 122, 99, 0.12)" : "rgba(127, 29, 29, 0.12)";
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
     syncRestaurantHealthPill(health, restaurant.healthSegment);
+    demoBadge.hidden = !isDemoRestaurant(restaurant);
+    demoBadge.textContent = isDemoRestaurant(restaurant) ? `DEMO ${demoUsage.usedOrders}/${demoUsage.maxOrders}` : "";
     grid.className = "admin-card__grid";
     brandFallback.className = "admin-card__brand-fallback";
     accountStack.className = "admin-card__account-stack";
@@ -1371,17 +1427,36 @@ function renderRestaurantDirectory(restaurants) {
     owner.textContent = `Responsable: ${restaurant.ownerName || "Sin definir"}`;
     contact.textContent = `Contacto: ${restaurant.email || "Sin correo"} · ${restaurant.phone || "Sin móvil"}`;
     address.textContent = `Dirección: ${restaurant.address || "Sin dirección"} · ${restaurant.city || "Sin ciudad"}`;
-    activation.textContent =
-      `Activado hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${buildRemainingAccessLabel(restaurant)}`;
+    activation.textContent = isDemoRestaurant(restaurant)
+      ? `Demo activa hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${demoUsage.remainingOrders} pedidos disponibles`
+      : `Activado hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${buildRemainingAccessLabel(restaurant)}`;
     orders.textContent =
       `Pedidos: ${restaurant.orderCount} · Activos: ${restaurant.activeOrderCount} · Entregados: ${restaurant.deliveredCount}`;
-    usage.textContent = restaurant.orderCount
-      ? `Uso: ${restaurant.recent7dOrderCount} pedidos en 7 días · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`
-      : "Uso: todavía sin pedidos. Conviene activar el onboarding del local.";
-    onboarding.textContent = `Onboarding: ${buildOnboardingSummary(restaurant)}`;
-    notes.textContent = restaurant.notes ? `Notas: ${restaurant.notes}` : "Notas: sin observaciones";
+    usage.textContent = isDemoRestaurant(restaurant)
+      ? restaurant.orderCount
+        ? `Uso demo: ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos consumidos · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`
+        : `Uso demo: aún sin pedidos. Conviene guiar el primer flujo para que vea valor en menos de 10 minutos.`
+      : restaurant.orderCount
+        ? `Uso: ${restaurant.recent7dOrderCount} pedidos en 7 días · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`
+        : "Uso: todavía sin pedidos. Conviene activar el onboarding del local.";
+    onboarding.textContent = isDemoRestaurant(restaurant)
+      ? `Onboarding demo: ${restaurant.orderCount ? "ya esta probando el flujo real y la IA adaptativa." : "pendiente del primer pedido para disparar el momento wow."}`
+      : `Onboarding: ${buildOnboardingSummary(restaurant)}`;
+    notes.textContent = isDemoRestaurant(restaurant)
+      ? restaurant.notes
+        ? `Notas demo: ${restaurant.notes}`
+        : "Notas demo: enfocada en enseñar pedidos, QR e IA adaptativa con limite comercial."
+      : restaurant.notes
+        ? `Notas: ${restaurant.notes}`
+        : "Notas: sin observaciones";
     playbookLabel.textContent = "Siguiente paso";
-    playbookText.textContent = buildRestaurantPlaybook(restaurant);
+    playbookText.textContent = isDemoRestaurant(restaurant)
+      ? demoUsage.usedOrders >= demoUsage.maxOrders
+        ? "Cerrar conversion al plan completo: ya probo valor y ha llegado al limite comercial."
+        : demoUsage.usedOrders > 0
+          ? "Acompanarlo hasta completar un ciclo y cerrar upgrade antes de que termine la demo."
+          : "Lanzar primer pedido guiado para activar el momento wow en la primera sesion."
+      : buildRestaurantPlaybook(restaurant);
     logoFieldLabel.textContent = "Logo del restaurante";
     logoHint.textContent = "Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.";
     accessLabel.textContent = "Acceso:";
@@ -1440,6 +1515,13 @@ function renderRestaurantDirectory(restaurants) {
     renewalEmail.addEventListener("click", () => {
       openRenewalEmail(restaurant);
     });
+    demoUpgradeEmail.type = "button";
+    demoUpgradeEmail.className = "comment-button";
+    demoUpgradeEmail.textContent = "Email upgrade demo";
+    demoUpgradeEmail.hidden = !isDemoRestaurant(restaurant);
+    demoUpgradeEmail.addEventListener("click", () => {
+      openDemoUpgradeEmail(restaurant);
+    });
     renew30.type = "button";
     renew30.className = "comment-button";
     renew30.textContent = "+30 días";
@@ -1485,10 +1567,10 @@ function renderRestaurantDirectory(restaurants) {
     }
     brandText.append(title, meta);
     brand.append(brandLogoWrap, brandText);
-    meta.append(status, health);
+    meta.append(status, health, demoBadge);
     logoField.append(logoFieldLabel, logoInput, logoHint);
     accessWrap.append(accessLabel, accessValue);
-    actions.append(link, resend, onboardingEmail, renewalEmail, renew30, renew90, remove);
+    actions.append(link, resend, onboardingEmail, renewalEmail, demoUpgradeEmail, renew30, renew90, remove);
     accountStack.append(logoField, logoPreview, login, accessWrap);
     playbook.append(playbookLabel, playbookText);
     grid.append(owner, contact, address, activation, orders, usage, onboarding, playbook, notes, accountStack);
@@ -1754,6 +1836,14 @@ async function openOnboardingEmail(restaurant) {
 function openRenewalEmail(restaurant) {
   if (!restaurant.email) return;
   const email = buildRestaurantRenewalEmail(restaurant, {
+    accessUrl: buildRestaurantAccessUrl(),
+  });
+  window.location.href = email.href;
+}
+
+function openDemoUpgradeEmail(restaurant) {
+  if (!restaurant.email) return;
+  const email = buildRestaurantDemoUpgradeEmail(restaurant, {
     accessUrl: buildRestaurantAccessUrl(),
   });
   window.location.href = email.href;

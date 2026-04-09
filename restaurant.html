@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409r" />
+    <link rel="stylesheet" href="./styles.css?v=20260409u" />
   </head>
   <body>
     <div class="app-shell" id="restaurantLoginView" hidden>
@@ -258,6 +258,15 @@
             <div class="restaurant-grid" id="restaurantOrders"></div>
           </section>
           <section class="restaurant-section" data-section-panel="create" hidden>
+            <div class="dashboard-subsection" id="restaurantPlaybook" hidden>
+              <div class="dashboard-subsection__top">
+                <div>
+                  <p class="panel__kicker" id="restaurantPlaybookEyebrow">Playbook operativo</p>
+                  <h3 id="restaurantPlaybookTitle">Cómo activar más valor en menos de 10 minutos</h3>
+                </div>
+              </div>
+              <div class="dashboard-insights" id="restaurantPlaybookList"></div>
+            </div>
             <form class="quick-form" id="quickCreateForm">
               <label class="field">
                 <span>Código de factura / ticket</span>
@@ -276,6 +285,7 @@
               </div>
             </form>
             <p class="form-feedback" id="quickCreateFeedback" hidden></p>
+            <p class="hero__hint" id="restaurantCreateDemoHint" hidden></p>
             <p class="hero__hint">
               Pega el codigo de factura o ticket de tu sistema actual y TurnoListo se encarga del seguimiento al cliente.
             </p>
@@ -569,6 +579,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./restaurant.js?v=20260409p"></script>
+    <script src="./restaurant.js?v=20260409t"></script>
   </body>
 </html>

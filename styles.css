@@ -1267,6 +1267,27 @@ button:hover,
   gap: 0.8rem;
 }
 
+.admin-create-form__demo-toggle {
+  gap: 0.55rem;
+}
+
+.admin-create-form__demo-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 52px;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 249, 241, 0.92);
+  border: 1px solid rgba(236, 124, 13, 0.14);
+}
+
+.admin-create-form__demo-control input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
 .list-toolbar {
   display: grid;
   grid-template-columns: minmax(280px, 1.2fr) repeat(3, minmax(170px, 0.62fr));
@@ -2557,6 +2578,12 @@ button:hover,
   justify-content: flex-start;
   gap: 0.45rem;
   flex-wrap: wrap;
+}
+
+.admin-card__demo-pill {
+  background: rgba(236, 124, 13, 0.16);
+  color: #9a4d00;
+  border: 1px solid rgba(236, 124, 13, 0.14);
 }
 
 .admin-card__top {

@@ -28,6 +28,11 @@ const restaurantSpotlightChipSecondary = document.querySelector("#restaurantSpot
 const archivedList = document.querySelector("#restaurantArchivedOrders");
 const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
+const restaurantCreateDemoHint = document.querySelector("#restaurantCreateDemoHint");
+const restaurantPlaybook = document.querySelector("#restaurantPlaybook");
+const restaurantPlaybookEyebrow = document.querySelector("#restaurantPlaybookEyebrow");
+const restaurantPlaybookTitle = document.querySelector("#restaurantPlaybookTitle");
+const restaurantPlaybookList = document.querySelector("#restaurantPlaybookList");
 const restaurantModeStrip = document.querySelector(".mode-strip");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
@@ -297,7 +302,7 @@ function syncRestaurantAccess() {
 
   if (restaurant) {
     restaurantSessionLabel.textContent = restaurant.name;
-    restaurantHeroEyebrow.textContent = "Panel restaurante";
+    restaurantHeroEyebrow.textContent = isDemoRestaurant(restaurant) ? "Demo restaurante" : "Panel restaurante";
     return;
   }
 
@@ -330,7 +335,9 @@ function renderRestaurant() {
 
   restaurantList.innerHTML = "";
   archivedList.innerHTML = "";
-  renderRestaurantHeroSignals(dashboard);
+  renderRestaurantHeroSignals(dashboard, restaurant, allOrders);
+  renderRestaurantCreateHints(restaurant, allOrders);
+  renderRestaurantPlaybook(restaurant, allOrders);
   readyCount.textContent = `${dashboard.readyNow} listos hoy`;
   archivedCount.textContent = `${dashboard.archivedToday} archivados hoy`;
   syncRestaurantDisplayMode();
@@ -367,10 +374,18 @@ function renderRestaurant() {
   }
 }
 
-function renderRestaurantHeroSignals(stats) {
+function renderRestaurantHeroSignals(stats, restaurant = null, allOrders = loadOrders()) {
   if (!restaurantHeroMetricValue || !restaurantHeroMetricLabel || !restaurantHeroMetricHint) return;
 
-  if (stats.aiHighRiskCount >= 1) {
+  if (isDemoRestaurant(restaurant)) {
+    const demoUsage = getRestaurantDemoUsage(restaurant, allOrders);
+    restaurantHeroMetricLabel.textContent = "Demo en uso";
+    restaurantHeroMetricValue.textContent = `${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
+    restaurantHeroMetricHint.textContent =
+      demoUsage.remainingOrders > 0
+        ? "Esta demo ya permite probar pedidos reales, lectura inteligente e IA adaptativa con un limite comercial."
+        : "La demo ha alcanzado su limite de pedidos. Es el momento perfecto para activar el plan completo.";
+  } else if (stats.aiHighRiskCount >= 1) {
     restaurantHeroMetricLabel.textContent = "Pedidos en riesgo";
     restaurantHeroMetricValue.textContent = String(stats.aiHighRiskCount);
     restaurantHeroMetricHint.textContent = "Requieren intervención antes de impactar espera, recogida o experiencia.";
@@ -384,11 +399,37 @@ function renderRestaurantHeroSignals(stats) {
     restaurantHeroMetricHint.textContent = "Recibido, en preparación o listos para recoger con lectura adaptativa.";
   }
 
-  renderRestaurantSpotlight(stats);
+  renderRestaurantSpotlight(stats, restaurant, allOrders);
 }
 
-function renderRestaurantSpotlight(stats) {
+function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrders()) {
   if (!restaurantSpotlightTitle || !restaurantSpotlightBody) return;
+  if (isDemoRestaurant(restaurant)) {
+    const demoUsage = getRestaurantDemoUsage(restaurant, allOrders);
+    const confidenceLabel =
+      stats.aiModelSampleSize >= 8 ? `IA ${stats.aiModelConfidenceLabel}` : "IA aprendiendo del local";
+
+    if (demoUsage.remainingOrders <= 0) {
+      restaurantSpotlightTitle.textContent = "La demo ya demostro el valor";
+      restaurantSpotlightBody.textContent =
+        "Ya has probado el flujo de pedidos, la lectura inteligente de la cola y el aprendizaje adaptativo del restaurante. Activa el plan completo para seguir operando sin limite y convertir esta prueba en rutina.";
+      restaurantSpotlightChipPrimary.textContent = `Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
+      restaurantSpotlightChipSecondary.textContent = "Activa el plan completo";
+      return;
+    }
+
+    restaurantSpotlightTitle.textContent =
+      demoUsage.usedOrders >= Math.max(2, demoUsage.maxOrders - 2)
+        ? "Estas a un paso de cerrar la demo"
+        : "Demo lista para impresionar al equipo";
+    restaurantSpotlightBody.textContent =
+      demoUsage.usedOrders >= Math.max(2, demoUsage.maxOrders - 2)
+        ? `Ya has consumido ${demoUsage.usedOrders} de ${demoUsage.maxOrders} pedidos. Aprovecha esta recta final para mostrar como TurnoListo reduce esperas, prioriza mejor y aprende del ritmo real del local.`
+        : `Puedes crear hasta ${demoUsage.maxOrders} pedidos de prueba con QR, priorizacion e inteligencia adaptativa. La demo esta pensada para que el restaurante vea valor desde el primer servicio y quiera escalar al plan real.`;
+    restaurantSpotlightChipPrimary.textContent = `Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
+    restaurantSpotlightChipSecondary.textContent = confidenceLabel;
+    return;
+  }
 
   if (stats.aiNextAction) {
     restaurantSpotlightTitle.textContent = stats.aiNextAction.title;
@@ -428,6 +469,107 @@ function renderRestaurantSpotlight(stats) {
     "La operacion esta despejada. Cuando entren nuevos pedidos, TurnoListo mostrara aqui la siguiente mejor accion para el equipo y seguira aprendiendo del servicio.";
   restaurantSpotlightChipPrimary.textContent = "Operacion estable";
   restaurantSpotlightChipSecondary.textContent = "Listo para escalar";
+}
+
+function renderRestaurantCreateHints(restaurant, allOrders = loadOrders()) {
+  if (!restaurantCreateDemoHint) return;
+  if (!isDemoRestaurant(restaurant)) {
+    restaurantCreateDemoHint.hidden = true;
+    restaurantCreateDemoHint.textContent = "";
+    return;
+  }
+
+  const demoUsage = getRestaurantDemoUsage(restaurant, allOrders);
+  restaurantCreateDemoHint.hidden = false;
+  restaurantCreateDemoHint.textContent =
+    demoUsage.remainingOrders > 0
+      ? `Demo comercial activa: te quedan ${demoUsage.remainingOrders} de ${demoUsage.maxOrders} pedidos para enseñar QR, seguimiento e IA adaptativa en una prueba real.`
+      : `Demo comercial completada: ya has consumido ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos. Activa el plan completo para seguir operando sin limite.`;
+}
+
+function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
+  if (!restaurantPlaybook || !restaurantPlaybookList) return;
+
+  const restaurantId = String(restaurant?.id || "");
+  const restaurantOrders = allOrders.filter((order) => String(order.restaurantId || "") === restaurantId);
+  const hasCreatedOrder = restaurantOrders.length > 0;
+  const hasReadyOrder = restaurantOrders.some((order) => order.status === "ready" || order.status === "delivered");
+  const hasClosedLoop = restaurantOrders.some((order) => order.status === "delivered" || order.archivedAt);
+  const hasRatedOrder = restaurantOrders.some((order) => Number(order.rating?.score || 0) > 0);
+  const isDemo = isDemoRestaurant(restaurant);
+
+  if (restaurantPlaybookEyebrow) {
+    restaurantPlaybookEyebrow.textContent = isDemo ? "Recorrido demo" : "Playbook operativo";
+  }
+
+  if (restaurantPlaybookTitle) {
+    restaurantPlaybookTitle.textContent = isDemo
+      ? "Cómo enseñar valor en menos de 10 minutos"
+      : "Cómo activar más valor en el flujo diario";
+  }
+
+  const steps = isDemo
+    ? [
+        {
+          done: hasCreatedOrder,
+          text: hasCreatedOrder
+            ? "Primer pedido creado. Ya puedes enseñar cómo TurnoListo captura el pedido y genera seguimiento QR."
+            : "1. Crea el primer pedido de prueba para activar el QR y empezar a enseñar el flujo real.",
+        },
+        {
+          done: hasReadyOrder,
+          text: hasReadyOrder
+            ? "Pedido movido a listo. El restaurante ya puede mostrar cómo baja la fricción en recogida."
+            : "2. Cambia un pedido a Listo para recoger y enseña cómo el equipo gana visibilidad en mostrador.",
+        },
+        {
+          done: hasClosedLoop,
+          text: hasClosedLoop
+            ? "Ciclo operativo completado. Ya tienes una demostración real de principio a fin."
+            : "3. Completa un pedido hasta entregado para demostrar el ciclo entero y alimentar el aprendizaje del local.",
+        },
+        {
+          done: hasRatedOrder,
+          text: hasRatedOrder
+            ? "Feedback capturado. Ya puedes enseñar cómo el producto conecta operación y experiencia cliente."
+            : "4. Si puedes, recoge una valoración para mostrar el cierre de experiencia y el valor analítico.",
+        },
+      ]
+    : [
+        {
+          done: hasCreatedOrder,
+          text: hasCreatedOrder
+            ? "Ya hay pedidos creados. El equipo tiene el flujo base activo."
+            : "1. Crea el primer pedido desde tu operativa real para activar el flujo completo en TurnoListo.",
+        },
+        {
+          done: hasReadyOrder,
+          text: hasReadyOrder
+            ? "Ya gestionas pedidos listos para recoger con visibilidad operativa."
+            : "2. Mueve pedidos a Listo para recoger para reducir fricción en mostrador y ordenar mejor la retirada.",
+        },
+        {
+          done: hasClosedLoop,
+          text: hasClosedLoop
+            ? "Ya existe histórico cerrado. La IA puede aprender mejor del ritmo real del local."
+            : "3. Completa varios pedidos de principio a fin para mejorar histórico, métricas e IA adaptativa.",
+        },
+        {
+          done: hasRatedOrder,
+          text: hasRatedOrder
+            ? "Ya tienes feedback de clientes para detectar mejora de experiencia."
+            : "4. Recoge valoraciones para conectar operación, experiencia cliente y oportunidades de mejora.",
+        },
+      ];
+
+  restaurantPlaybook.hidden = false;
+  restaurantPlaybookList.innerHTML = "";
+  steps.forEach((step) => {
+    const item = document.createElement("article");
+    item.className = "dashboard-insight";
+    item.textContent = `${step.done ? "Completado" : "Pendiente"} · ${step.text}`;
+    restaurantPlaybookList.append(item);
+  });
 }
 
 function setRestaurantDisplayMode(mode) {
@@ -478,8 +620,11 @@ function renderRestaurantAccount(restaurant) {
   if (!restaurantAccountName) return;
   const restaurantName = String(restaurant?.name || "Restaurante").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
+  const demoUsage = getRestaurantDemoUsage(restaurant);
   restaurantAccountName.textContent = restaurantName;
-  restaurantAccountMeta.textContent = "Acceso verificado";
+  restaurantAccountMeta.textContent = isDemoRestaurant(restaurant)
+    ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
+    : "Acceso verificado";
   restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
 
   if (logoUrl) {
@@ -495,6 +640,7 @@ function renderRestaurantAccount(restaurant) {
 
 function renderRestaurantProfile(restaurant) {
   if (!restaurantProfileForm || !restaurant) return;
+  const demoUsage = getRestaurantDemoUsage(restaurant);
   restaurantProfileName.value = restaurant.name || "";
   restaurantProfileOwnerName.value = restaurant.ownerName || "";
   restaurantProfileEmail.value = restaurant.email || "";
@@ -504,6 +650,9 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfileNotes.value = restaurant.notes || "";
   restaurantProfilePlanName.value = restaurant.planName || "Sin plan";
   restaurantProfileActivatedUntil.value = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : "Sin fecha";
+  if (isDemoRestaurant(restaurant) && restaurantProfileNotes && !restaurantProfileNotes.value.trim()) {
+    restaurantProfileNotes.value = `Demo comercial activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados.`;
+  }
   syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl || restaurant.logoUrl || "");
 }
 
@@ -1495,12 +1644,34 @@ function handleCreateOrder(event) {
       return;
     }
 
+    if (error instanceof Error && error.message === "demo-order-limit") {
+      const session = getCurrentRestaurantSession();
+      const restaurant = session ? getRestaurantById(session.restaurantId) : null;
+      const demoUsage = getRestaurantDemoUsage(restaurant);
+      quickCreateFeedback.textContent = `Has alcanzado el limite de la demo (${demoUsage.maxOrders} pedidos). Activa el plan completo para seguir operando con pedidos reales, historico e IA sin tope.`;
+      quickCreateFeedback.className = "form-feedback form-feedback--error";
+      quickCreateFeedback.hidden = false;
+      return;
+    }
+
     throw error;
   }
 
   quickCreateForm.reset();
-  quickCreateFeedback.hidden = true;
-  quickCreateFeedback.textContent = "";
+  const session = getCurrentRestaurantSession();
+  const restaurant = session ? getRestaurantById(session.restaurantId) : null;
+  if (isDemoRestaurant(restaurant)) {
+    const demoUsage = getRestaurantDemoUsage(restaurant);
+    quickCreateFeedback.textContent =
+      demoUsage.remainingOrders > 0
+        ? `Pedido creado. La demo ya va por ${demoUsage.usedOrders}/${demoUsage.maxOrders}. Quedan ${demoUsage.remainingOrders} pedidos para seguir mostrando el valor del producto.`
+        : `Pedido creado. Has completado ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos de demo. Es un gran momento para activar el plan completo.`;
+    quickCreateFeedback.className = "form-feedback form-feedback--success";
+    quickCreateFeedback.hidden = false;
+  } else {
+    quickCreateFeedback.hidden = true;
+    quickCreateFeedback.textContent = "";
+  }
   expandedOrderId = order.id;
   editingOrderId = null;
   activeSection = "orders";
