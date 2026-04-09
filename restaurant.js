@@ -177,6 +177,7 @@ function initializeRestaurantTermHints(root = document) {
   root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
     const hint = String(element.dataset.termHint || "").trim();
     if (hint) {
+      element.setAttribute("title", hint);
       element.setAttribute("aria-label", hint);
     }
     if (element.dataset.termHintBound === "true") return;
@@ -1169,6 +1170,7 @@ function buildEtaHintElement(order) {
         ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
         : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
     element.dataset.termHint = hint;
+    element.setAttribute("title", hint);
     element.setAttribute("aria-label", hint);
   }
 
