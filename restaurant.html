@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409h" />
+    <link rel="stylesheet" href="./styles.css?v=20260409j" />
   </head>
   <body>
     <div class="app-shell" id="restaurantLoginView" hidden>
@@ -97,13 +97,13 @@
       <div class="floating-tooltip floating-tooltip--fixed" id="restaurantTermTooltip" hidden></div>
       <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
         <div class="workspace-topbar__inner">
-          <div class="workspace-brand" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
+          <a class="workspace-brand workspace-brand--link" href="./index.html" aria-label="Ir al inicio de TurnoListo">
             <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
             <div class="workspace-brand__copy">
               <p class="workspace-brand__name">Turno<span>Listo</span></p>
               <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
             </div>
-          </div>
+          </a>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
             <div class="account-menu" id="restaurantAccountMenu">
               <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
@@ -119,8 +119,6 @@
                 </div>
                 <div class="account-menu__actions">
                   <a class="account-menu__item" id="restaurantMenuProfile" href="./restaurant-profile.html">Perfil</a>
-                  <button class="account-menu__item" id="restaurantMenuOrders" type="button">Pedidos</button>
-                  <button class="account-menu__item" id="restaurantMenuDashboard" type="button">Dashboard</button>
                   <a class="account-menu__item" href="./contact.html">Contáctenos</a>
                   <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">Cerrar sesión</button>
                 </div>
@@ -530,6 +528,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./restaurant.js?v=20260409h"></script>
+    <script src="./restaurant.js?v=20260409j"></script>
   </body>
 </html>

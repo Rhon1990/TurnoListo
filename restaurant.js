@@ -14,8 +14,6 @@ const restaurantAccountAvatarFallback = document.querySelector("#restaurantAccou
 const restaurantAccountName = document.querySelector("#restaurantAccountName");
 const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
 const restaurantMenuProfile = document.querySelector("#restaurantMenuProfile");
-const restaurantMenuOrders = document.querySelector("#restaurantMenuOrders");
-const restaurantMenuDashboard = document.querySelector("#restaurantMenuDashboard");
 const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
 const restaurantList = document.querySelector("#restaurantOrders");
 const activeCount = document.querySelector("#restaurantActiveCount");
@@ -146,14 +144,6 @@ restaurantLoginTogglePassword.addEventListener("click", (event) => {
   togglePasswordVisibility(restaurantLoginPassword, restaurantLoginTogglePassword);
 });
 restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
-restaurantMenuOrders?.addEventListener("click", () => {
-  closeRestaurantAccountMenu();
-  setActiveSection("orders");
-});
-restaurantMenuDashboard?.addEventListener("click", () => {
-  closeRestaurantAccountMenu();
-  setActiveSection("dashboard");
-});
 restaurantMenuLogout?.addEventListener("click", async () => {
   closeRestaurantAccountMenu();
   await handleRestaurantLogout();
