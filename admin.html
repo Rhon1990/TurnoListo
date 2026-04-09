@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409a" />
+    <link rel="stylesheet" href="./styles.css?v=20260409d" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -105,6 +105,11 @@
           </div>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
             <span class="workspace-status">Panel privado</span>
+            <button class="workspace-mail-button" type="button" data-admin-section="messages" aria-label="Abrir bandeja de mensajes">
+              <span class="workspace-mail-button__icon" aria-hidden="true">✉</span>
+              <span class="workspace-mail-button__label">Mensajes</span>
+              <span class="workspace-mail-button__badge" id="adminUnreadMessagesBadge" hidden>0</span>
+            </button>
             <a class="workspace-contact-button" href="./contact.html">Contáctenos</a>
           </div>
         </div>
@@ -138,6 +143,7 @@
             <button class="section-switcher__button is-active" type="button" data-admin-section="dashboard">Dashboard</button>
             <button class="section-switcher__button" type="button" data-admin-section="create">Alta</button>
             <button class="section-switcher__button" type="button" data-admin-section="restaurants">Restaurantes</button>
+            <button class="section-switcher__button" type="button" data-admin-section="messages">Mensajes</button>
           </div>
 
           <section class="restaurant-section restaurant-section--active" data-admin-panel="dashboard">
@@ -404,6 +410,57 @@
               </label>
             </div>
             <div class="admin-list" id="adminRestaurantList"></div>
+          </section>
+
+          <section class="restaurant-section" data-admin-panel="messages" hidden>
+            <section class="dashboard-block">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Bandeja</p>
+                  <h2>Mensajes de Contáctenos</h2>
+                </div>
+                <div class="summary-strip">
+                  <span class="summary-chip" id="adminMessagesTotalChip">0 mensajes</span>
+                  <span class="summary-chip" id="adminMessagesUnreadChip">0 sin leer</span>
+                  <span class="summary-chip" id="adminMessagesReadChip">0 leídos</span>
+                </div>
+              </div>
+
+              <div class="list-toolbar admin-inbox-toolbar">
+                <label class="list-toolbar__search">
+                  <span>Buscar</span>
+                  <input id="adminMessageSearchInput" type="search" placeholder="Nombre, empresa, correo o mensaje" />
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Estado</span>
+                  <select id="adminMessageStatusFilter">
+                    <option value="all">Todos</option>
+                    <option value="unread">Sin leer</option>
+                    <option value="read">Leídos</option>
+                  </select>
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Interés</span>
+                  <select id="adminMessageInterestFilter">
+                    <option value="all">Todos</option>
+                    <option value="Interés de inversión">Inversión</option>
+                    <option value="Alianza comercial">Alianza</option>
+                    <option value="Demo de producto">Demo</option>
+                    <option value="Soporte operativo">Soporte</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Orden</span>
+                  <select id="adminMessageSortOrder">
+                    <option value="newest">Más recientes</option>
+                    <option value="oldest">Más antiguos</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="admin-inbox-list" id="adminMessageList"></div>
+            </section>
           </section>
         </section>
       </main>

@@ -314,6 +314,44 @@ body.celebration-active::after {
   transform: translateY(-1px);
 }
 
+.workspace-mail-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.72rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(29, 26, 22, 0.06);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.workspace-mail-button.is-active {
+  background: rgba(236, 124, 13, 0.12);
+  color: var(--brand-dark);
+}
+
+.workspace-mail-button__icon {
+  font-size: 0.95rem;
+}
+
+.workspace-mail-button__label {
+  font-size: 0.92rem;
+}
+
+.workspace-mail-button__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--brand-accent);
+  color: #fff7f1;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
 .contact-page {
   display: grid;
   gap: 1rem;
@@ -323,6 +361,9 @@ body.celebration-active::after {
   display: grid;
   gap: 1.1rem;
   padding: 1.4rem;
+  background:
+    radial-gradient(circle at top right, rgba(236, 124, 13, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 244, 234, 0.94));
 }
 
 .contact-hero__top {
@@ -351,9 +392,61 @@ body.celebration-active::after {
   gap: 1rem;
 }
 
+.contact-form-panel,
 .contact-card,
 .contact-map {
   padding: 1.2rem;
+}
+
+.contact-side-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.contact-signal-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.contact-signal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.58rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(29, 26, 22, 0.06);
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.contact-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0.9rem 0 0;
+}
+
+.contact-form__intro {
+  max-width: 54ch;
+}
+
+.contact-form textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(29, 26, 22, 0.12);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.contact-form__actions {
+  justify-content: stretch;
+}
+
+.contact-form__actions .launcher {
+  width: 100%;
 }
 
 .contact-card__stack {
@@ -396,6 +489,11 @@ body.celebration-active::after {
   font-weight: 700;
 }
 
+.contact-item__link:hover,
+.contact-item__link:focus-visible {
+  text-decoration: underline;
+}
+
 .contact-map {
   display: grid;
   gap: 0.9rem;
@@ -427,6 +525,93 @@ body.celebration-active::after {
   padding: 1.4rem;
   text-align: center;
   color: var(--muted);
+}
+
+.admin-inbox-toolbar {
+  grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(180px, 0.6fr));
+}
+
+.admin-inbox-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.admin-inbox-group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-inbox-group__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-inbox-group__heading h3,
+.admin-inbox-card__top h4 {
+  margin: 0;
+}
+
+.admin-inbox-group__heading p {
+  color: var(--muted);
+}
+
+.admin-inbox-group__stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-inbox-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.05rem 1.1rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  box-shadow: 0 12px 28px rgba(105, 66, 28, 0.06);
+}
+
+.admin-inbox-card.is-unread {
+  border-color: rgba(236, 124, 13, 0.24);
+  box-shadow: 0 0 0 3px rgba(236, 124, 13, 0.08), 0 14px 30px rgba(105, 66, 28, 0.08);
+}
+
+.admin-inbox-card__top,
+.admin-inbox-card__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.admin-inbox-card__top p,
+.admin-inbox-card__footer p {
+  color: var(--muted);
+}
+
+.admin-inbox-card__status,
+.admin-inbox-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-inbox-card__message {
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.admin-inbox-card__pill--read {
+  background: rgba(31, 122, 99, 0.12);
+  color: #1f7a63;
+}
+
+.admin-inbox-card__pill--unread {
+  background: rgba(236, 124, 13, 0.12);
+  color: #d86500;
 }
 
 .hero-brand {
@@ -2635,7 +2820,15 @@ button:hover,
     justify-content: flex-start;
   }
 
+  .workspace-mail-button {
+    justify-content: center;
+  }
+
   .contact-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form {
     grid-template-columns: 1fr;
   }
 
@@ -2789,6 +2982,7 @@ button:hover,
     align-items: stretch;
   }
 
+  .workspace-mail-button,
   .workspace-contact-button,
   .contact-back {
     width: 100%;
@@ -2799,6 +2993,7 @@ button:hover,
   }
 
   .contact-hero,
+  .contact-form-panel,
   .contact-card,
   .contact-map {
     padding: 0.95rem;
@@ -2808,6 +3003,11 @@ button:hover,
   .contact-map__placeholder,
   .contact-map__embed {
     min-height: 260px;
+  }
+
+  .admin-inbox-card__top,
+  .admin-inbox-card__footer {
+    flex-direction: column;
   }
 
   .auth-showcase__copy h2,

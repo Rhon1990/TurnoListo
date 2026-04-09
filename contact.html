@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409b" />
+    <link rel="stylesheet" href="./styles.css?v=20260409c" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -35,73 +35,135 @@
         <div class="contact-hero__top">
           <div>
             <p class="panel__kicker">Contáctenos</p>
-            <h1>Canales de atención de TurnoListo</h1>
+            <h1>Hablemos de la siguiente etapa de TurnoListo</h1>
           </div>
           <a class="contact-back" href="javascript:history.back()">Volver</a>
         </div>
         <p class="hero__text">
-          Este espacio reúne la información principal de contacto y soporte de la plataforma para atención comercial y
-          operativa de TurnoListo.
+          Si quieres conocer el producto, explorar una alianza o abrir una conversación de inversión, este canal centraliza
+          el contacto directo con el equipo a través de la bandeja privada de administración.
         </p>
+        <div class="contact-signal-strip">
+          <span class="contact-signal">B2B para restauración</span>
+          <span class="contact-signal">Operación en tiempo real</span>
+          <span class="contact-signal">Canal directo con fundador</span>
+        </div>
       </section>
 
       <main class="contact-page__grid">
-        <section class="panel glass-card contact-card">
+        <section class="panel glass-card contact-form-panel">
           <div class="panel__heading">
             <div>
-              <p class="panel__kicker">Información</p>
-              <h2>Datos de empresa</h2>
+              <p class="panel__kicker">Formulario</p>
+              <h2>Cuéntanos tu interés</h2>
             </div>
           </div>
-          <div class="contact-card__stack">
-            <article class="contact-item">
-              <p class="contact-item__label">Correo principal</p>
-              <p class="contact-item__value">
-                <a class="contact-item__link" href="mailto:rhonal.delgado@gmail.com">rhonal.delgado@gmail.com</a>
-              </p>
-              <p class="contact-item__text">Canal recomendado para soporte comercial, producto y coordinación operativa.</p>
-            </article>
-            <article class="contact-item">
-              <p class="contact-item__label">Teléfonos</p>
-              <p class="contact-item__value">
-                <a class="contact-item__link" href="tel:+34692960498">+34 692960498</a>
-              </p>
-              <p class="contact-item__text">Línea principal de contacto y coordinación.</p>
-            </article>
-            <article class="contact-item">
-              <p class="contact-item__label">Horario de atención</p>
-              <p class="contact-item__value">Lunes a viernes, de 9:00 a 17:00</p>
-              <p class="contact-item__text">Horario laboral legal para atención y seguimiento.</p>
-            </article>
-            <article class="contact-item">
-              <p class="contact-item__label">Ubicación</p>
-              <p class="contact-item__value">Calle Vilatan 19, Ituero y Lama, Segovia</p>
-              <p class="contact-item__text">Atención desde nuestra ubicación operativa en Segovia.</p>
-            </article>
-          </div>
+          <p class="hero__hint contact-form__intro">
+            Completa este formulario y registraremos internamente tu solicitud para seguimiento del equipo TurnoListo.
+          </p>
+          <form class="quick-form contact-form" id="contactForm">
+            <label class="field">
+              <span>Nombre completo</span>
+              <input id="contactName" name="name" type="text" placeholder="Tu nombre" required />
+            </label>
+            <label class="field">
+              <span>Empresa o fondo</span>
+              <input id="contactCompany" name="company" type="text" placeholder="Nombre de tu empresa" />
+            </label>
+            <label class="field">
+              <span>Correo de contacto</span>
+              <input id="contactEmail" name="email" type="email" placeholder="correo@empresa.com" required />
+            </label>
+            <label class="field">
+              <span>Teléfono</span>
+              <input id="contactPhone" name="phone" type="tel" placeholder="+34 ..." />
+            </label>
+            <label class="field field--wide">
+              <span>Motivo</span>
+              <select id="contactInterest" name="interest" required>
+                <option value="Interés de inversión">Interés de inversión</option>
+                <option value="Alianza comercial">Alianza comercial</option>
+                <option value="Demo de producto">Demo de producto</option>
+                <option value="Soporte operativo">Soporte operativo</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </label>
+            <label class="field field--wide">
+              <span>Mensaje</span>
+              <textarea
+                id="contactMessage"
+                name="message"
+                rows="6"
+                placeholder="Cuéntanos en qué te gustaría profundizar, tipo de colaboración o contexto de tu interés."
+                required
+              ></textarea>
+            </label>
+            <div class="quick-form__actions contact-form__actions">
+              <button class="launcher" id="contactSubmitButton" type="submit">Enviar solicitud</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="contactFormFeedback" hidden></p>
         </section>
 
-        <section class="panel glass-card contact-map">
-          <div class="panel__heading">
-            <div>
-              <p class="panel__kicker">Mapa</p>
-              <h2>Ubicación de la empresa</h2>
+        <div class="contact-side-stack">
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Información</p>
+                <h2>Datos de empresa</h2>
+              </div>
             </div>
-          </div>
-          <div class="contact-map__frame">
-            <iframe
-              class="contact-map__embed"
-              title="Mapa de TurnoListo"
-              src="https://maps.google.com/maps?q=Calle%20vilatan%2019%2C%20Ituero%20y%20Lama%2C%20Segovia%2C%20Spain&t=&z=15&ie=UTF8&iwloc=&output=embed"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
-          <p class="hero__hint">
-            Si quieres, también puedo añadir un enlace directo para abrir esta ubicación en Google Maps o Waze.
-          </p>
-        </section>
+            <div class="contact-card__stack">
+              <article class="contact-item">
+                <p class="contact-item__label">Canal de atención</p>
+                <p class="contact-item__value">Bandeja privada TurnoListo</p>
+                <p class="contact-item__text">Las solicitudes enviadas desde este formulario se revisan internamente en administración.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Teléfono</p>
+                <p class="contact-item__value">
+                  <a class="contact-item__link" href="tel:+34692960498">+34 692960498</a>
+                </p>
+                <p class="contact-item__text">Línea principal de contacto y coordinación.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Horario de atención</p>
+                <p class="contact-item__value">Lunes a viernes, de 9:00 a 17:00</p>
+                <p class="contact-item__text">Horario laboral legal para atención y seguimiento.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Ubicación</p>
+                <p class="contact-item__value">Calle Vilatan 19, Ituero y Lama, Segovia</p>
+                <p class="contact-item__text">Atención desde nuestra ubicación operativa en Segovia.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel glass-card contact-map">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Mapa</p>
+                <h2>Ubicación de la empresa</h2>
+              </div>
+            </div>
+            <div class="contact-map__frame">
+              <iframe
+                class="contact-map__embed"
+                title="Mapa de TurnoListo"
+                src="https://maps.google.com/maps?q=Calle%20vilatan%2019%2C%20Ituero%20y%20Lama%2C%20Segovia%2C%20Spain&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <p class="hero__hint">
+              Si quieres, también puedo añadir un enlace directo para abrir esta ubicación en Google Maps o Waze.
+            </p>
+          </section>
+        </div>
       </main>
     </div>
+    <script src="./firebase-config.js"></script>
+    <script type="module" src="./firebase-bridge.js"></script>
+    <script type="module" src="./contact.js?v=20260409c"></script>
   </body>
 </html>

@@ -9,6 +9,7 @@ const firestore = admin.firestore();
 const auth = admin.auth();
 const messaging = admin.messaging();
 const CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION = "clientPushSubscriptions";
+const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -51,6 +52,11 @@ function normalizeAppUrl(value) {
   } catch {
     throw new HttpsError("invalid-argument", "La URL de acceso del restaurante no es valida.");
   }
+}
+
+function isValidEmail(value) {
+  const email = normalizeEmail(value);
+  return Boolean(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 }
 
 function generateRestaurantPassword(length = 14) {
@@ -238,6 +244,59 @@ exports.createRestaurantAccessLink = onCall(async (request) => {
     restaurantId,
     email,
     accessLink,
+  };
+});
+
+exports.submitContactInquiry = onCall(async (request) => {
+  const data = request.data || {};
+  const name = trimValue(data.name);
+  const company = trimValue(data.company);
+  const email = normalizeEmail(data.email);
+  const phone = trimValue(data.phone);
+  const interest = trimValue(data.interest) || "Consulta general";
+  const message = trimValue(data.message);
+  const sourcePage = trimValue(data.sourcePage) || "contact.html";
+  const referrer = trimValue(data.referrer);
+
+  if (!name || name.length < 2) {
+    throw new HttpsError("invalid-argument", "El nombre es obligatorio.");
+  }
+
+  if (!isValidEmail(email)) {
+    throw new HttpsError("invalid-argument", "El correo es invalido.");
+  }
+
+  if (!message || message.length < 12) {
+    throw new HttpsError("invalid-argument", "El mensaje es demasiado corto.");
+  }
+
+  if (message.length > 2000) {
+    throw new HttpsError("invalid-argument", "El mensaje es demasiado largo.");
+  }
+
+  const submittedAt = new Date().toISOString();
+  const inquiry = {
+    name,
+    company,
+    email,
+    phone,
+    interest,
+    message,
+    sourcePage,
+    referrer,
+    submittedAt,
+    status: "unread",
+    isRead: false,
+    readAt: "",
+    channel: "contact-form",
+  };
+
+  const docRef = await firestore.collection(CONTACT_INQUIRIES_COLLECTION).add(inquiry);
+
+  return {
+    ok: true,
+    inquiryId: docRef.id,
+    stored: true,
   };
 });
 

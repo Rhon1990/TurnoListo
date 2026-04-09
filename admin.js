@@ -61,12 +61,23 @@ const adminDeleteClose = document.querySelector("#adminDeleteClose");
 const adminDeleteBack = document.querySelector("#adminDeleteBack");
 const adminDeleteConfirm = document.querySelector("#adminDeleteConfirm");
 const adminDeleteMeta = document.querySelector("#adminDeleteMeta");
+const adminUnreadMessagesBadge = document.querySelector("#adminUnreadMessagesBadge");
+const adminMessageList = document.querySelector("#adminMessageList");
+const adminMessageSearchInput = document.querySelector("#adminMessageSearchInput");
+const adminMessageStatusFilter = document.querySelector("#adminMessageStatusFilter");
+const adminMessageInterestFilter = document.querySelector("#adminMessageInterestFilter");
+const adminMessageSortOrder = document.querySelector("#adminMessageSortOrder");
+const adminMessagesTotalChip = document.querySelector("#adminMessagesTotalChip");
+const adminMessagesUnreadChip = document.querySelector("#adminMessagesUnreadChip");
+const adminMessagesReadChip = document.querySelector("#adminMessagesReadChip");
 
 let activeAdminSection = "dashboard";
 let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
 let selectedRestaurantLogoUrl = "";
 let adminTermTooltipTimer = 0;
+let adminContactInquiries = [];
+let adminMessagesUnsubscribe = null;
 const PLAN_DURATIONS = {
   Quincenal: 15,
   Mensual: 30,
@@ -74,6 +85,7 @@ const PLAN_DURATIONS = {
   Semestral: 180,
   Anual: 365,
 };
+const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
 
 initializeAdminFirebaseAuth();
 waitForDataReady().then(bootAdminPage);
@@ -107,6 +119,11 @@ adminTabs.forEach((button) => {
   control.addEventListener("input", renderAdminWorkspace);
   control.addEventListener("change", renderAdminWorkspace);
 });
+[adminMessageSearchInput, adminMessageStatusFilter, adminMessageInterestFilter, adminMessageSortOrder].forEach((control) => {
+  if (!control) return;
+  control.addEventListener("input", renderAdminMessagesPanel);
+  control.addEventListener("change", renderAdminMessagesPanel);
+});
 
 function bootAdminPage() {
   initializeTermHints(document.querySelector("#adminWorkspace"), adminTermTooltip, () => adminTermTooltipTimer, (value) => {
@@ -115,6 +132,7 @@ function bootAdminPage() {
   syncAdminAccess();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
+    initializeAdminInbox();
     renderAdminWorkspace();
   }
 }
@@ -211,6 +229,9 @@ async function handleAdminLogin(event) {
 }
 
 async function handleAdminLogout() {
+  adminMessagesUnsubscribe?.();
+  adminMessagesUnsubscribe = null;
+  adminContactInquiries = [];
   const backend = await waitForFirebaseBackend();
   preparePrivateFirebaseSignOut();
   clearCurrentUserProfile();
@@ -383,10 +404,65 @@ function initializeAdminFirebaseAuth() {
 
       adminLoginFeedback.hidden = true;
       adminLoginFeedback.textContent = "";
+      initializeAdminInbox();
       syncAdminAccess();
       renderAdminWorkspace();
     });
   });
+}
+
+async function initializeAdminInbox() {
+  if (!isAdminAuthenticated()) return;
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled) return;
+
+  adminMessagesUnsubscribe?.();
+  adminMessagesUnsubscribe = null;
+
+  try {
+    const inquiries = await backend.loadCollection(CONTACT_INQUIRIES_COLLECTION);
+    applyAdminInquiries(inquiries);
+    adminMessagesUnsubscribe = backend.subscribeCollection(CONTACT_INQUIRIES_COLLECTION, (items) => {
+      applyAdminInquiries(items);
+      renderAdminMessagesPanel();
+    });
+  } catch (error) {
+    console.error("No se pudo cargar la bandeja de contacto.", error);
+    showTurnoAlert("No se pudo cargar la bandeja de mensajes.", "error");
+  }
+}
+
+function applyAdminInquiries(items) {
+  adminContactInquiries = (Array.isArray(items) ? items : [])
+    .map(normalizeAdminInquiry)
+    .sort((left, right) => new Date(right.submittedAt) - new Date(left.submittedAt));
+  updateAdminInboxBadge();
+}
+
+function normalizeAdminInquiry(inquiry) {
+  const submittedAt = String(inquiry?.submittedAt || inquiry?.createdAt || new Date().toISOString());
+  const isRead = inquiry?.isRead === true || String(inquiry?.status || "").trim().toLowerCase() === "read";
+  return {
+    ...inquiry,
+    id: String(inquiry?.id || ""),
+    name: String(inquiry?.name || "Sin nombre").trim(),
+    company: String(inquiry?.company || "").trim(),
+    email: String(inquiry?.email || "").trim(),
+    phone: String(inquiry?.phone || "").trim(),
+    interest: String(inquiry?.interest || "Consulta general").trim(),
+    message: String(inquiry?.message || "").trim(),
+    submittedAt,
+    readAt: String(inquiry?.readAt || "").trim(),
+    status: isRead ? "read" : "unread",
+    isRead,
+  };
+}
+
+function updateAdminInboxBadge() {
+  if (!adminUnreadMessagesBadge) return;
+  const unreadCount = adminContactInquiries.filter((item) => !item.isRead).length;
+  adminUnreadMessagesBadge.textContent = String(unreadCount);
+  adminUnreadMessagesBadge.hidden = unreadCount <= 0;
 }
 
 function renderAdminWorkspace() {
@@ -430,6 +506,166 @@ function renderAdminWorkspace() {
 
   renderAdminDashboard(stats);
   renderRestaurantDirectory(enrichedRestaurants);
+  renderAdminMessagesPanel();
+}
+
+function renderAdminMessagesPanel() {
+  if (!adminMessageList) return;
+
+  const search = String(adminMessageSearchInput?.value || "").trim().toLowerCase();
+  const statusFilter = String(adminMessageStatusFilter?.value || "all");
+  const interestFilter = String(adminMessageInterestFilter?.value || "all");
+  const sortOrder = String(adminMessageSortOrder?.value || "newest");
+
+  const filtered = adminContactInquiries
+    .filter((item) => {
+      if (statusFilter === "read" && !item.isRead) return false;
+      if (statusFilter === "unread" && item.isRead) return false;
+      if (interestFilter !== "all" && item.interest !== interestFilter) return false;
+      if (search) {
+        const haystack = [item.name, item.company, item.email, item.phone, item.interest, item.message].join(" ").toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      return true;
+    })
+    .sort((left, right) => {
+      const factor = sortOrder === "oldest" ? 1 : -1;
+      return factor * (new Date(left.submittedAt) - new Date(right.submittedAt));
+    });
+
+  adminMessagesTotalChip.textContent = `${adminContactInquiries.length} mensajes`;
+  adminMessagesUnreadChip.textContent = `${adminContactInquiries.filter((item) => !item.isRead).length} sin leer`;
+  adminMessagesReadChip.textContent = `${adminContactInquiries.filter((item) => item.isRead).length} leídos`;
+  adminMessageList.innerHTML = "";
+
+  if (!filtered.length) {
+    const empty = document.createElement("article");
+    empty.className = "empty-state";
+    empty.textContent = "No hay mensajes que coincidan con esos filtros.";
+    adminMessageList.append(empty);
+    return;
+  }
+
+  const grouped = groupInquiriesByDay(filtered);
+  grouped.forEach((group) => {
+    const section = document.createElement("section");
+    const heading = document.createElement("div");
+    const title = document.createElement("h3");
+    const hint = document.createElement("p");
+    const stack = document.createElement("div");
+
+    section.className = "admin-inbox-group";
+    heading.className = "admin-inbox-group__heading";
+    title.textContent = group.label;
+    hint.textContent = `${group.items.length} mensajes`;
+    stack.className = "admin-inbox-group__stack";
+    heading.append(title, hint);
+
+    group.items.forEach((item) => {
+      stack.append(buildAdminInquiryCard(item));
+    });
+
+    section.append(heading, stack);
+    adminMessageList.append(section);
+  });
+}
+
+function groupInquiriesByDay(items) {
+  const map = new Map();
+  items.forEach((item) => {
+    const key = formatAdminDayLabel(item.submittedAt);
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+    map.get(key).push(item);
+  });
+
+  return Array.from(map.entries()).map(([label, groupedItems]) => ({
+    label,
+    items: groupedItems,
+  }));
+}
+
+function buildAdminInquiryCard(item) {
+  const card = document.createElement("article");
+  const top = document.createElement("div");
+  const identity = document.createElement("div");
+  const title = document.createElement("h4");
+  const meta = document.createElement("p");
+  const statusWrap = document.createElement("div");
+  const interest = document.createElement("span");
+  const state = document.createElement("span");
+  const body = document.createElement("p");
+  const footer = document.createElement("div");
+  const submitted = document.createElement("p");
+  const actions = document.createElement("div");
+  const reply = document.createElement("a");
+  const toggle = document.createElement("button");
+
+  card.className = `admin-inbox-card${item.isRead ? "" : " is-unread"}`;
+  top.className = "admin-inbox-card__top";
+  statusWrap.className = "admin-inbox-card__status";
+  interest.className = "summary-chip";
+  state.className = `status-pill ${item.isRead ? "admin-inbox-card__pill--read" : "admin-inbox-card__pill--unread"}`;
+  body.className = "admin-inbox-card__message";
+  footer.className = "admin-inbox-card__footer";
+  actions.className = "admin-inbox-card__actions";
+
+  title.textContent = item.name;
+  meta.textContent = [item.company || "Sin empresa", item.email || "Sin correo", item.phone || "Sin teléfono"].join(" · ");
+  interest.textContent = item.interest;
+  state.textContent = item.isRead ? "Leído" : "Sin leer";
+  body.textContent = item.message || "Sin mensaje";
+  submitted.textContent = `Recibido ${formatAdminDateTime(item.submittedAt)}`;
+
+  reply.className = "comment-button";
+  reply.href = buildInquiryReplyMailto(item);
+  reply.textContent = "Responder";
+
+  toggle.type = "button";
+  toggle.className = "comment-button";
+  toggle.textContent = item.isRead ? "Marcar sin leer" : "Marcar leído";
+  toggle.addEventListener("click", async () => {
+    await toggleAdminInquiryRead(item);
+  });
+
+  identity.append(title, meta);
+  statusWrap.append(interest, state);
+  top.append(identity, statusWrap);
+  actions.append(reply, toggle);
+  footer.append(submitted, actions);
+  card.append(top, body, footer);
+  return card;
+}
+
+function buildInquiryReplyMailto(item) {
+  const subject = encodeURIComponent(`Re: ${item.interest} · TurnoListo`);
+  const body = encodeURIComponent(
+    `Hola ${item.name},\n\nGracias por escribirnos desde TurnoListo.\n\n`,
+  );
+  return `mailto:${encodeURIComponent(item.email)}?subject=${subject}&body=${body}`;
+}
+
+async function toggleAdminInquiryRead(item) {
+  if (!item?.id) return;
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.setDocument !== "function") {
+    showTurnoAlert("No se pudo actualizar el estado del mensaje.", "error");
+    return;
+  }
+
+  const nextIsRead = !item.isRead;
+  try {
+    await backend.setDocument(CONTACT_INQUIRIES_COLLECTION, item.id, {
+      ...item,
+      isRead: nextIsRead,
+      status: nextIsRead ? "read" : "unread",
+      readAt: nextIsRead ? new Date().toISOString() : "",
+    });
+  } catch (error) {
+    console.error("No se pudo actualizar el mensaje.", error);
+    showTurnoAlert("No se pudo actualizar el estado del mensaje.", "error");
+  }
 }
 
 function renderAdminDashboard(stats) {
@@ -1034,9 +1270,31 @@ function getAdminActionQueues() {
 }
 
 function formatAdminDate(value) {
+  if (!value) return "Sin fecha";
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function formatAdminDateTime(value) {
+  if (!value) return "Sin fecha";
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function formatAdminDayLabel(value) {
+  if (!value) return "Sin fecha";
+  return new Intl.DateTimeFormat("es-ES", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
     year: "numeric",
   }).format(new Date(value));
 }

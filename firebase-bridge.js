@@ -197,6 +197,11 @@ window.__turnoFirebaseReadyPromise = (async () => {
       const result = await callable(payload);
       return result.data;
     },
+    async submitContactInquiry(payload) {
+      const callable = httpsCallable(functions, "submitContactInquiry");
+      const result = await callable(payload);
+      return result.data;
+    },
     async enableClientPushNotifications(subscriptionData) {
       if (!messagingSupported || !messaging || !("Notification" in window) || !("serviceWorker" in navigator)) {
         return { enabled: false, reason: "unsupported" };

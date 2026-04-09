@@ -162,5 +162,10 @@ service cloud.firestore {
           && currentUserProfile().restaurantId == resource.data.restaurantId);
       allow update: if isPublicTrackingRatingUpdate();
     }
+
+    match /contactInquiries/{inquiryId} {
+      allow read, update: if isAdmin();
+      allow create, delete: if false;
+    }
   }
 }
