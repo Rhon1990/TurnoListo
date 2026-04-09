@@ -57,6 +57,8 @@ const adminExportDatasetButton = document.querySelector("#adminExportDatasetButt
 const adminDatasetTotal = document.querySelector("#adminDatasetTotal");
 const adminDatasetDelivered = document.querySelector("#adminDatasetDelivered");
 const adminDatasetReady = document.querySelector("#adminDatasetReady");
+const adminDatasetAdaptive = document.querySelector("#adminDatasetAdaptive");
+const adminDatasetAdaptiveHint = document.querySelector("#adminDatasetAdaptiveHint");
 const adminDatasetInsights = document.querySelector("#adminDatasetInsights");
 const adminTermTooltip = document.querySelector("#adminTermTooltip");
 const adminDeleteModal = document.querySelector("#adminDeleteModal");
@@ -1002,6 +1004,11 @@ function renderAdminDashboard(stats) {
   adminDatasetTotal.textContent = dataset.length;
   adminDatasetDelivered.textContent = deliveredDataset.length;
   adminDatasetReady.textContent = readyDataset.length;
+  adminDatasetAdaptive.textContent = stats.trainedRestaurantCount;
+  adminDatasetAdaptiveHint.textContent =
+    stats.trainedRestaurantCount > 0
+      ? `${stats.highConfidenceModelCount} con confianza alta · error medio ${stats.averageModelError} min`
+      : "Aun no hay locales con suficiente historico para adaptar el modelo";
 
   const topBox = document.createElement("article");
   topBox.className = "dashboard-insight";
@@ -1036,7 +1043,7 @@ function renderAdminDashboard(stats) {
     adminInsights.append(card);
   });
 
-  buildDatasetInsights(dataset, deliveredDataset, readyDataset).forEach((message) => {
+  buildDatasetInsights(dataset, deliveredDataset, readyDataset, stats).forEach((message) => {
     const card = document.createElement("article");
     card.className = "dashboard-insight";
     card.textContent = message;
@@ -1044,7 +1051,7 @@ function renderAdminDashboard(stats) {
   });
 }
 
-function buildDatasetInsights(dataset, deliveredDataset, readyDataset) {
+function buildDatasetInsights(dataset, deliveredDataset, readyDataset, stats) {
   const insights = [];
 
   if (!dataset.length) {
@@ -1052,7 +1059,7 @@ function buildDatasetInsights(dataset, deliveredDataset, readyDataset) {
     return insights;
   }
 
-  insights.push(`${dataset.length} pedidos ya incluyen contexto operativo capturado para entrenamiento offline.`);
+  insights.push(`${dataset.length} pedidos ya incluyen contexto operativo capturado para entrenamiento real por restaurante.`);
 
   if (deliveredDataset.length > 0) {
     insights.push(`${deliveredDataset.length} ejemplos ya permiten modelar minutos reales hasta entrega.`);
@@ -1060,6 +1067,12 @@ function buildDatasetInsights(dataset, deliveredDataset, readyDataset) {
 
   if (readyDataset.length > 0) {
     insights.push(`${readyDataset.length} ejemplos ya permiten modelar minutos reales hasta listo.`);
+  }
+
+  if (stats?.trainedRestaurantCount > 0) {
+    insights.push(
+      `${stats.trainedRestaurantCount} restaurante${stats.trainedRestaurantCount === 1 ? "" : "s"} ya tienen un modelo adaptado en producción con error medio de ${stats.averageModelError} min.`,
+    );
   }
 
   if (!deliveredDataset.length && !readyDataset.length) {
@@ -1178,12 +1191,28 @@ function buildAdminInsights(stats) {
     insights.push("La operación activa es alta frente a los entregados. Revisa si algunos locales necesitan apoyo.");
   }
 
+  if (stats.aiPortfolioAction) {
+    insights.push(stats.aiPortfolioAction);
+  }
+
+  if (stats.dominantPortfolioBottleneck) {
+    insights.push(
+      `Patron dominante en la cartera: ${stats.dominantPortfolioBottleneck.label}. Aparece como friccion principal en ${stats.dominantPortfolioBottleneck.count} restaurante${stats.dominantPortfolioBottleneck.count === 1 ? "" : "s"} con IA activa.`,
+    );
+  }
+
   if (stats.restaurantsWithoutOrders > 0) {
     insights.push(`${stats.restaurantsWithoutOrders} restaurantes aún no han hecho su primer pedido. Necesitan onboarding o seguimiento comercial.`);
   }
 
   if (stats.dormantRestaurants > 0) {
     insights.push(`${stats.dormantRestaurants} restaurantes llevan más de 14 días sin actividad. Aquí puede haber riesgo de churn.`);
+  }
+
+  if (stats.trainedRestaurantCount > 0) {
+    insights.push(
+      `${stats.trainedRestaurantCount} locales ya operan con modelo adaptado y ${stats.highConfidenceModelCount} lo hacen con confianza alta.`,
+    );
   }
 
   if (stats.expiredRestaurants === 0 && stats.soonToExpire === 0 && stats.restaurantsWithoutOrders === 0) {
@@ -1571,7 +1600,20 @@ function buildRestaurantPlaybook(restaurant) {
   }
 
   if (restaurant.healthSegment === "at-risk") {
+    if (Number(restaurant.aiModelSummary?.sampleCount || 0) >= 8) {
+      return "Reactiva el local antes de que pierda el valor acumulado de su IA y ofrécele seguimiento operativo.";
+    }
     return "Revisa por qué cayó el uso y ofrece ayuda en mostrador o una reactivación con seguimiento.";
+  }
+
+  if (restaurant.healthSegment === "healthy" && Number(restaurant.aiModelSummary?.sampleCount || 0) >= 12) {
+    const dominantStage = restaurant.aiModelSummary?.stageBaselines?.preparing >= restaurant.aiModelSummary?.stageBaselines?.received &&
+      restaurant.aiModelSummary?.stageBaselines?.preparing >= restaurant.aiModelSummary?.stageBaselines?.ready
+      ? "preparacion"
+      : restaurant.aiModelSummary?.stageBaselines?.ready >= restaurant.aiModelSummary?.stageBaselines?.received
+        ? "recogida"
+        : "entrada a cocina";
+    return `Usa este local como caso de exito: ya tiene una IA adaptada y suficiente histórico para demostrar valor. Cuello dominante aprendido: ${dominantStage}.`;
   }
 
   return "Mantén frecuencia, pide valoraciones y prepara upsell a más locales o más tiempo de plan.";

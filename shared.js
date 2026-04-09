@@ -513,6 +513,7 @@ function normalizeRestaurants(restaurants) {
       logoUrl: "",
       planName: "Mensual",
       notes: "",
+      aiModelSummary: null,
       activatedAt: restaurant?.createdAt || new Date().toISOString(),
       activatedUntil: new Date(Date.now() + 30 * 24 * 60 * 60000).toISOString(),
       ...restaurant,
@@ -800,6 +801,7 @@ function createDefaultOrders() {
 function saveOrders(orders) {
   applyOrdersSnapshot(orders);
   applyTrackingSnapshot(normalizePublicTracking(orders.map((order) => buildPublicTrackingRecord(order))));
+  syncAdaptiveModelSummariesFromOrders(orders);
   broadcastOrdersChanged();
 }
 
@@ -1006,28 +1008,250 @@ function clampNumber(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function getStageAlertThresholds(order, status) {
+function calculateMedian(values) {
+  const safeValues = [...values]
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value >= 0)
+    .sort((left, right) => left - right);
+
+  if (!safeValues.length) return 0;
+  const middle = Math.floor(safeValues.length / 2);
+  if (safeValues.length % 2) return safeValues[middle];
+  return Math.round((safeValues[middle - 1] + safeValues[middle]) / 2);
+}
+
+function buildAdaptiveModelFeatureVector(snapshot = {}) {
+  const hour = Number(snapshot.hourOfDay || 0);
+  const cycle = (hour / 24) * Math.PI * 2;
+  const isWeekend = [0, 6].includes(Number(snapshot.dayOfWeek));
+
+  return [
+    1,
+    clampNumber((Number(snapshot.estimatedReadyMinutes || 12) || 12) / 25, 0, 4),
+    clampNumber((Number(snapshot.activeOrders || 0) || 0) / 8, 0, 3),
+    clampNumber((Number(snapshot.preparingOrders || 0) || 0) / 6, 0, 3),
+    clampNumber((Number(snapshot.readyOrders || 0) || 0) / 5, 0, 3),
+    clampNumber((Number(snapshot.overdueOrders || 0) || 0) / 4, 0, 3),
+    clampNumber((Number(snapshot.peakLoadScore || 0) || 0) / 2, 0, 2),
+    Math.sin(cycle),
+    Math.cos(cycle),
+    isWeekend ? 1 : 0,
+  ];
+}
+
+function extractAdaptiveModelExamples(orders, restaurantId) {
+  return orders
+    .filter((order) => String(order?.restaurantId || DEFAULT_RESTAURANT_ID) === restaurantId)
+    .map((order) => {
+      const snapshot = order?.aiTrainingSnapshot || null;
+      const record = order?.predictionTrainingRecord || buildPredictionTrainingRecord(order);
+      const targetMinutes = Number(record.minutesToReady);
+
+      if (!snapshot || !Number.isFinite(targetMinutes) || targetMinutes <= 0) return null;
+
+      return {
+        order,
+        snapshot,
+        targetMinutes,
+        features: buildAdaptiveModelFeatureVector(snapshot),
+      };
+    })
+    .filter(Boolean);
+}
+
+function trainAdaptiveEtaModel(examples) {
+  if (!examples.length) {
+    return {
+      weights: [],
+      baselineMinutes: 12,
+      meanAbsoluteError: null,
+      sampleCount: 0,
+    };
+  }
+
+  const featureCount = examples[0].features.length;
+  const averageTarget = Math.round(
+    examples.reduce((total, example) => total + example.targetMinutes, 0) / examples.length,
+  );
+  const weights = new Array(featureCount).fill(0);
+  weights[0] = averageTarget;
+  const learningRate = 0.045;
+  const regularization = 0.0015;
+
+  for (let epoch = 0; epoch < 280; epoch += 1) {
+    for (const example of examples) {
+      const prediction = example.features.reduce((total, value, index) => total + value * weights[index], 0);
+      const error = prediction - example.targetMinutes;
+
+      for (let index = 0; index < featureCount; index += 1) {
+        const penalty = index === 0 ? 0 : regularization * weights[index];
+        weights[index] -= learningRate * ((error * example.features[index]) / examples.length + penalty);
+      }
+    }
+  }
+
+  const meanAbsoluteError =
+    Math.round(
+      (examples.reduce((total, example) => {
+        const prediction = example.features.reduce((sum, value, index) => sum + value * weights[index], 0);
+        return total + Math.abs(prediction - example.targetMinutes);
+      }, 0) /
+        examples.length) *
+        10,
+    ) / 10;
+
+  return {
+    weights,
+    baselineMinutes: averageTarget,
+    meanAbsoluteError,
+    sampleCount: examples.length,
+  };
+}
+
+function evaluateAdaptiveEtaModel(model, snapshot) {
+  if (!Array.isArray(model?.weights) || !model.weights.length) {
+    return clampNumber(Math.round(Number(snapshot?.estimatedReadyMinutes || 12) || 12), 4, 120);
+  }
+
+  const features = buildAdaptiveModelFeatureVector(snapshot);
+  const prediction = features.reduce((total, value, index) => total + value * model.weights[index], 0);
+  const estimatedReadyMinutes = Number(snapshot?.estimatedReadyMinutes || 12) || 12;
+  return clampNumber(Math.round(prediction), Math.max(4, Math.round(estimatedReadyMinutes * 0.55)), 120);
+}
+
+function buildAdaptiveRestaurantModel(restaurantId, allOrders = loadOrders()) {
+  const safeRestaurantId = String(restaurantId || DEFAULT_RESTAURANT_ID);
+  const restaurantOrders = allOrders.filter((order) => String(order?.restaurantId || DEFAULT_RESTAURANT_ID) === safeRestaurantId);
+  const examples = extractAdaptiveModelExamples(restaurantOrders, safeRestaurantId);
+  const etaModel = trainAdaptiveEtaModel(examples);
+  const readyExamples = restaurantOrders.filter((order) => Number.isFinite(order?.predictionTrainingRecord?.minutesToReady));
+  const deliveredExamples = restaurantOrders.filter((order) => Number.isFinite(order?.predictionTrainingRecord?.minutesToDelivered));
+  const receivedMedian = calculateMedian(
+    restaurantOrders
+      .map((order) => getStatusDurationMinutes(order, "received"))
+      .filter((value) => Number.isFinite(value) && value > 0),
+  );
+  const preparingMedian = calculateMedian(
+    restaurantOrders
+      .map((order) => getStatusDurationMinutes(order, "preparing"))
+      .filter((value) => Number.isFinite(value) && value > 0),
+  );
+  const readyMedian = calculateMedian(
+    restaurantOrders
+      .map((order) => getStatusDurationMinutes(order, "ready"))
+      .filter((value) => Number.isFinite(value) && value > 0),
+  );
+  const volumeScore = clampNumber(examples.length / 24, 0, 1);
+  const accuracyScore = etaModel.meanAbsoluteError === null ? 0 : clampNumber(1 - etaModel.meanAbsoluteError / 18, 0, 1);
+  const confidenceScore = Math.round((volumeScore * 0.55 + accuracyScore * 0.45) * 100);
+  const confidenceLabel =
+    examples.length < 5
+      ? "Aprendiendo"
+      : confidenceScore >= 78
+        ? "Alta"
+        : confidenceScore >= 52
+          ? "Media"
+          : "Aprendiendo";
+  const adaptiveWeight = examples.length >= 6 ? clampNumber(0.35 + examples.length / 70, 0.35, 0.82) : 0;
+
+  return {
+    restaurantId: safeRestaurantId,
+    sampleCount: examples.length,
+    readySampleCount: readyExamples.length,
+    deliveredSampleCount: deliveredExamples.length,
+    meanAbsoluteError: etaModel.meanAbsoluteError,
+    confidenceScore,
+    confidenceLabel,
+    adaptiveWeight,
+    stageBaselines: {
+      received: receivedMedian || 6,
+      preparing: preparingMedian || 9,
+      ready: readyMedian || 5,
+    },
+    predictReadyMinutes(snapshot) {
+      return evaluateAdaptiveEtaModel(etaModel, snapshot);
+    },
+  };
+}
+
+function buildAdaptiveRestaurantModelSummary(model) {
+  return {
+    updatedAt: new Date().toISOString(),
+    sampleCount: Number(model?.sampleCount || 0),
+    readySampleCount: Number(model?.readySampleCount || 0),
+    deliveredSampleCount: Number(model?.deliveredSampleCount || 0),
+    confidenceScore: Number(model?.confidenceScore || 0),
+    confidenceLabel: String(model?.confidenceLabel || "Aprendiendo"),
+    meanAbsoluteError: model?.meanAbsoluteError ?? null,
+    adaptiveWeight: Number(model?.adaptiveWeight || 0),
+    stageBaselines: {
+      received: Number(model?.stageBaselines?.received || 0),
+      preparing: Number(model?.stageBaselines?.preparing || 0),
+      ready: Number(model?.stageBaselines?.ready || 0),
+    },
+  };
+}
+
+function syncAdaptiveModelSummariesFromOrders(orders, currentRestaurants = loadRestaurants()) {
+  const safeOrders = Array.isArray(orders) ? orders : loadOrders();
+  const restaurants = Array.isArray(currentRestaurants) ? currentRestaurants : loadRestaurants();
+  let changed = false;
+
+  const nextRestaurants = restaurants.map((restaurant) => {
+    const model = buildAdaptiveRestaurantModel(restaurant.id, safeOrders);
+    const nextSummary = buildAdaptiveRestaurantModelSummary(model);
+    const previousSummary = restaurant?.aiModelSummary || null;
+
+    if (JSON.stringify(previousSummary) === JSON.stringify(nextSummary)) {
+      return restaurant;
+    }
+
+    changed = true;
+    const nextRestaurant = {
+      ...restaurant,
+      aiModelSummary: nextSummary,
+    };
+
+    if (firebaseBackend?.enabled && typeof firebaseBackend.setDocument === "function") {
+      firebaseBackend.setDocument(FIREBASE_RESTAURANTS_COLLECTION, restaurant.id, nextRestaurant).catch((error) => {
+        console.error("No se pudo guardar el resumen IA del restaurante en Firebase.", error);
+        notifyFirebaseError(error, "No se pudo actualizar el resumen IA del restaurante.");
+      });
+    }
+
+    return nextRestaurant;
+  });
+
+  if (changed) {
+    applyRestaurantsSnapshot(nextRestaurants);
+  }
+
+  return nextRestaurants;
+}
+
+function getStageAlertThresholds(order, status, model = null) {
   const estimatedReadyMinutes = Number.parseInt(String(order?.estimatedReadyMinutes || ""), 10);
   const safeEstimatedReadyMinutes = Number.isFinite(estimatedReadyMinutes) && estimatedReadyMinutes > 0 ? estimatedReadyMinutes : 12;
+  const stageBaselines = model?.stageBaselines || {};
 
   if (status === "received") {
     return {
-      warning: Math.max(6, Math.round(safeEstimatedReadyMinutes * 0.35)),
-      critical: Math.max(12, Math.round(safeEstimatedReadyMinutes * 0.6)),
+      warning: Math.max(6, Math.round((stageBaselines.received || safeEstimatedReadyMinutes * 0.35) * 1.35)),
+      critical: Math.max(12, Math.round((stageBaselines.received || safeEstimatedReadyMinutes * 0.45) * 2.1)),
     };
   }
 
   if (status === "preparing") {
     return {
-      warning: Math.max(8, Math.round(safeEstimatedReadyMinutes * 0.7)),
-      critical: Math.max(14, Math.round(safeEstimatedReadyMinutes * 1.15)),
+      warning: Math.max(8, Math.round((stageBaselines.preparing || safeEstimatedReadyMinutes * 0.7) * 1.35)),
+      critical: Math.max(14, Math.round((stageBaselines.preparing || safeEstimatedReadyMinutes * 0.9) * 2)),
     };
   }
 
   if (status === "ready") {
     return {
-      warning: 8,
-      critical: 15,
+      warning: Math.max(6, Math.round((stageBaselines.ready || 6) * 1.5)),
+      critical: Math.max(12, Math.round((stageBaselines.ready || 8) * 2.4)),
     };
   }
 
@@ -1037,13 +1261,13 @@ function getStageAlertThresholds(order, status) {
   };
 }
 
-function getStageDriftAssessment(order) {
+function getStageDriftAssessment(order, model = null) {
   const status = String(order?.status || "");
   const stageMinutes = getStatusDurationMinutes(order, status);
   const receivedMinutes = getStatusDurationMinutes(order, "received");
   const preparingMinutes = getStatusDurationMinutes(order, "preparing");
   const readyMinutes = getStatusDurationMinutes(order, "ready");
-  const { warning, critical } = getStageAlertThresholds(order, status);
+  const { warning, critical } = getStageAlertThresholds(order, status, model);
 
   let severity = "normal";
   let extraPressure = 0;
@@ -1104,6 +1328,51 @@ function getStageDriftAssessment(order) {
   };
 }
 
+function getStageFocusAssessment(order, model = null) {
+  const receivedMinutes = getStatusDurationMinutes(order, "received");
+  const preparingMinutes = getStatusDurationMinutes(order, "preparing");
+  const readyMinutes = getStatusDurationMinutes(order, "ready");
+  const baselines = model?.stageBaselines || {};
+  const weightedStages = [
+    {
+      stage: "received",
+      label: "entrada a cocina",
+      minutes: receivedMinutes,
+      baseline: Math.max(1, Number(baselines.received || 6)),
+      recommendation: "Mete este pedido en cocina o confirma stock antes de que siga acumulando espera en recibido.",
+    },
+    {
+      stage: "preparing",
+      label: "preparacion",
+      minutes: preparingMinutes,
+      baseline: Math.max(1, Number(baselines.preparing || 9)),
+      recommendation: "Redistribuye carga en cocina: aqui esta el atasco principal y la IA espera mas deriva si no se corrige.",
+    },
+    {
+      stage: "ready",
+      label: "recogida",
+      minutes: readyMinutes,
+      baseline: Math.max(1, Number(baselines.ready || 5)),
+      recommendation: "Activa llamada o entrega inmediata: el pedido ya esta listo y el cuello de botella es la recogida.",
+    },
+  ].map((item) => ({
+    ...item,
+    ratio: item.minutes > 0 ? item.minutes / item.baseline : 0,
+  }));
+
+  const worstStage = [...weightedStages].sort((left, right) => right.ratio - left.ratio)[0];
+  if (!worstStage || worstStage.ratio < 1.15) {
+    return {
+      stage: "",
+      label: "",
+      ratio: 0,
+      recommendation: "",
+    };
+  }
+
+  return worstStage;
+}
+
 function getPeakDemandLoad(dateLike = new Date()) {
   const hour = new Date(dateLike).getHours();
   if ([12, 13, 14, 20, 21].includes(hour)) return 2;
@@ -1120,12 +1389,15 @@ function enrichOrdersWithIntelligence(orders, options = {}) {
     accumulator.get(restaurantId).push(order);
     return accumulator;
   }, new Map());
+  const restaurantModels = new Map(
+    [...groupedByRestaurant.keys()].map((restaurantId) => [restaurantId, buildAdaptiveRestaurantModel(restaurantId, allOrders)]),
+  );
 
   return safeOrders.map((order) => {
     const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
     const restaurantOrders = groupedByRestaurant.get(restaurantId) || [];
     const history = allOrders.filter((item) => String(item?.restaurantId || DEFAULT_RESTAURANT_ID) === restaurantId);
-    const intelligence = buildOrderIntelligence(order, restaurantOrders, history);
+    const intelligence = buildOrderIntelligence(order, restaurantOrders, history, restaurantModels.get(restaurantId));
     return {
       ...order,
       aiEtaMinutes: intelligence.aiEtaMinutes,
@@ -1134,12 +1406,19 @@ function enrichOrdersWithIntelligence(orders, options = {}) {
       aiReason: intelligence.aiReason,
       aiPressureScore: intelligence.aiPressureScore,
       aiPressureLabel: intelligence.aiPressureLabel,
+      aiBottleneckStage: intelligence.aiBottleneckStage,
+      aiBottleneckLabel: intelligence.aiBottleneckLabel,
+      aiRecommendation: intelligence.aiRecommendation,
+      aiModelConfidenceLabel: intelligence.aiModelConfidenceLabel,
+      aiModelConfidenceScore: intelligence.aiModelConfidenceScore,
+      aiModelSampleSize: intelligence.aiModelSampleSize,
+      aiModelMeanAbsoluteError: intelligence.aiModelMeanAbsoluteError,
       aiUpdatedAt: intelligence.aiUpdatedAt,
     };
   });
 }
 
-function buildOrderIntelligence(order, activeOrders = [], history = []) {
+function buildOrderIntelligence(order, activeOrders = [], history = [], model = null) {
   const status = String(order?.status || "");
   const elapsedMinutes = getOrderDurationMinutes(order);
   const estimatedReadyMinutes = Number.parseInt(String(order?.estimatedReadyMinutes || ""), 10);
@@ -1166,14 +1445,27 @@ function buildOrderIntelligence(order, activeOrders = [], history = []) {
   const prepPressure = preparingOrders >= 4 ? 2 : preparingOrders >= 2 ? 1 : 0;
   const overduePressure = overdueOrders >= 3 ? 3 : overdueOrders >= 1 ? 1 : 0;
   const historyPressure = clampNumber(Math.round(historicalDelayMinutes * 0.6), 0, 6);
-  const stageDrift = getStageDriftAssessment(order);
+  const liveSnapshot = buildAiTrainingSnapshot(order, currentActiveOrders, new Date().toISOString());
+  const stageDrift = getStageDriftAssessment(order, model);
+  const stageFocus = getStageFocusAssessment(order, model);
   const queuePressure = loadPressure + prepPressure + overduePressure + peakDemandLoad + historyPressure + stageDrift.extraPressure;
   const fallbackRemaining = safeEstimatedReadyMinutes ? Math.max(1, safeEstimatedReadyMinutes - elapsedMinutes) : 6;
   const baseRemainingMinutes =
     promisedRemainingMinutes === null ? fallbackRemaining : Math.max(0, promisedRemainingMinutes);
-  let aiEtaMinutes = status === "ready" ? 0 : Math.max(1, baseRemainingMinutes + queuePressure + (status === "received" ? 1 : 0));
+  const heuristicRemaining = Math.max(1, baseRemainingMinutes + queuePressure + (status === "received" ? 1 : 0));
+  const adaptiveTotalReadyMinutes = model?.sampleCount ? model.predictReadyMinutes(liveSnapshot) : null;
+  const adaptiveRemainingMinutes =
+    adaptiveTotalReadyMinutes === null ? null : Math.max(0, adaptiveTotalReadyMinutes - elapsedMinutes);
+  const modelWeight = Number(model?.adaptiveWeight || 0);
+  let aiEtaMinutes =
+    status === "ready"
+      ? 0
+      : adaptiveRemainingMinutes === null || modelWeight === 0
+        ? heuristicRemaining
+        : Math.max(1, Math.round(adaptiveRemainingMinutes * modelWeight + heuristicRemaining * (1 - modelWeight)));
   let aiRiskLevel = "low";
   let aiReason = "El pedido va dentro de una ventana operativa saludable.";
+  let aiRecommendation = stageFocus.recommendation || "Mantener el flujo actual y seguir cerrando pedidos para que la IA refine mejor sus decisiones.";
 
   if (status === "ready") {
     aiReason = "Pedido listo para retirar; conviene entregarlo cuanto antes.";
@@ -1212,10 +1504,20 @@ function buildOrderIntelligence(order, activeOrders = [], history = []) {
     aiReason = stageDrift.reason;
   }
 
+  if (stageFocus.recommendation && aiRiskLevel !== "low") {
+    aiReason = `${aiReason.replace(/\.$/, "")}. Cuello principal: ${stageFocus.label}.`;
+    aiRecommendation = stageFocus.recommendation;
+  }
+
   if (!["received", "preparing", "ready"].includes(status)) {
     aiEtaMinutes = 0;
     aiRiskLevel = "low";
     aiReason = status === "delivered" ? "Pedido ya entregado." : "Pedido fuera de la cola operativa.";
+    aiRecommendation = status === "delivered" ? "Sin accion operativa pendiente." : "Sin accion operativa pendiente.";
+  }
+
+  if (model?.sampleCount >= 8 && status !== "ready" && aiRiskLevel !== "high") {
+    aiReason = `${aiReason.replace(/\.$/, "")}. Modelo adaptado con ${model.sampleCount} pedidos reales del local.`;
   }
 
   const aiPriorityScore =
@@ -1234,8 +1536,15 @@ function buildOrderIntelligence(order, activeOrders = [], history = []) {
     aiRiskLevel,
     aiPriorityScore,
     aiReason,
+    aiRecommendation,
     aiPressureScore,
     aiPressureLabel,
+    aiBottleneckStage: stageFocus.stage,
+    aiBottleneckLabel: stageFocus.label,
+    aiModelConfidenceLabel: model?.confidenceLabel || "Aprendiendo",
+    aiModelConfidenceScore: model?.confidenceScore || 0,
+    aiModelSampleSize: model?.sampleCount || 0,
+    aiModelMeanAbsoluteError: model?.meanAbsoluteError ?? null,
     aiUpdatedAt: new Date().toISOString(),
   };
 }
@@ -1553,6 +1862,7 @@ function isWithinLastDays(value, days) {
 
 function getDashboardStats() {
   const currentRestaurantId = getCurrentRestaurantSession()?.restaurantId;
+  const allOrders = loadOrders();
   const todayOrders = loadOrders().filter((order) => {
     if (!isSameLocalDay(order.createdAt)) return false;
     if (!currentRestaurantId) return true;
@@ -1561,7 +1871,7 @@ function getDashboardStats() {
   const deliveredOrders = todayOrders.filter((order) => order.status === "delivered");
   const archivedOrders = todayOrders.filter((order) => Boolean(order.archivedAt));
   const activeOrders = todayOrders.filter((order) => !order.archivedAt);
-  const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders: loadOrders() });
+  const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
   const ratedOrders = todayOrders.filter((order) => order.rating && order.rating.score);
   const delayedActiveOrders = activeOrders.filter((order) => getOrderDurationMinutes(order) >= 16);
   const onTimeDeliveredOrders = deliveredOrders.filter((order) => getOrderDurationMinutes(order) <= 15);
@@ -1657,6 +1967,60 @@ function getDashboardStats() {
   const aiFocusOrder =
     [...intelligentActiveOrders].sort((left, right) => Number(right.aiPriorityScore || 0) - Number(left.aiPriorityScore || 0))[0] ||
     null;
+  const adaptiveModel = currentRestaurantId ? buildAdaptiveRestaurantModel(currentRestaurantId, allOrders) : null;
+  const bottleneckCounts = intelligentActiveOrders.reduce(
+    (accumulator, order) => {
+      const stage = String(order.aiBottleneckStage || "");
+      if (stage && Object.prototype.hasOwnProperty.call(accumulator, stage)) {
+        accumulator[stage] += 1;
+      }
+      return accumulator;
+    },
+    { received: 0, preparing: 0, ready: 0 },
+  );
+  const dominantBottleneckEntry =
+    Object.entries(bottleneckCounts).sort((left, right) => right[1] - left[1])[0] || null;
+  const bottleneckLabelMap = {
+    received: "entrada a cocina",
+    preparing: "preparacion",
+    ready: "recogida",
+  };
+  const dominantBottleneck =
+    dominantBottleneckEntry && dominantBottleneckEntry[1] > 0
+      ? {
+          stage: dominantBottleneckEntry[0],
+          label: bottleneckLabelMap[dominantBottleneckEntry[0]] || dominantBottleneckEntry[0],
+          count: dominantBottleneckEntry[1],
+        }
+      : null;
+  const aiNextAction =
+    aiFocusOrder?.aiRiskLevel === "high"
+      ? {
+          title: `Prioriza ${aiFocusOrder.orderNumber}`,
+          body: "Pon este pedido primero en foco: es el que tiene mayor probabilidad de deteriorar la experiencia ahora mismo.",
+          primary: "Intervenir ya",
+          secondary: aiFocusOrder.aiRiskLevel === "high" ? "Critico" : aiFocusOrder.aiRiskLevel === "medium" ? "Atencion" : "Saludable",
+        }
+      : adaptiveModel?.sampleCount >= 8 && adaptiveModel?.confidenceLabel !== "Aprendiendo"
+        ? {
+            title: "Ajusta promesas con la IA del local",
+            body: `El modelo ya aprende de ${adaptiveModel.sampleCount} cierres reales. Usa esta lectura para afinar tiempos prometidos y evitar friccion antes de la hora pico.`,
+            primary: `IA ${adaptiveModel.confidenceLabel}`,
+            secondary: `Error ${adaptiveModel.meanAbsoluteError ?? "--"} min`,
+          }
+        : activeOrders.length
+          ? {
+              title: "Sigue acumulando aprendizaje real",
+              body: "Cierra pedidos completos y mantén estados actualizados. Es la forma más rápida de que la IA se adapte a este restaurante.",
+              primary: `Activos ${activeOrders.length}`,
+              secondary: `Muestras ${adaptiveModel?.sampleCount || 0}`,
+            }
+          : {
+              title: "Listo para entrenar con nuevos pedidos",
+              body: "Cuando entren nuevos pedidos, TurnoListo seguirá afinando tiempos y prioridades con el comportamiento real del local.",
+              primary: adaptiveModel?.sampleCount ? `Muestras ${adaptiveModel.sampleCount}` : "Sin muestras",
+              secondary: adaptiveModel?.confidenceLabel || "Aprendiendo",
+            };
 
   return {
     totalToday: todayOrders.length,
@@ -1682,6 +2046,13 @@ function getDashboardStats() {
     aiPressureScore,
     aiPressureLabel,
     aiFocusOrder,
+    aiModelConfidenceLabel: adaptiveModel?.confidenceLabel || "Aprendiendo",
+    aiModelConfidenceScore: adaptiveModel?.confidenceScore || 0,
+    aiModelSampleSize: adaptiveModel?.sampleCount || 0,
+    aiModelMeanAbsoluteError: adaptiveModel?.meanAbsoluteError ?? null,
+    aiModelDeliveredExamples: adaptiveModel?.deliveredSampleCount || 0,
+    aiDominantBottleneck: dominantBottleneck,
+    aiNextAction,
     ratedCount: ratedOrders.length,
     deliveredCount: deliveredOrders.length,
     statusPerformance,
@@ -1714,6 +2085,7 @@ function getAdminDashboardStats() {
   const restaurantsWithOrders = restaurants.map((restaurant) => {
     const restaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
     const deliveredOrders = restaurantOrders.filter((order) => order.status === "delivered");
+    const adaptiveModel = buildAdaptiveRestaurantModel(restaurant.id, orders);
     const avgDeliveryMinutes = deliveredOrders.length
       ? Math.round(
           deliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) / deliveredOrders.length,
@@ -1727,6 +2099,7 @@ function getAdminDashboardStats() {
       activeOrderCount: restaurantOrders.filter((order) => !order.archivedAt).length,
       deliveredCount: deliveredOrders.length,
       avgDeliveryMinutes,
+      adaptiveModel,
     };
   });
 
@@ -1747,6 +2120,67 @@ function getAdminDashboardStats() {
     .filter((item) => item.orderCount > 0)
     .sort((left, right) => right.orderCount - left.orderCount)
     .slice(0, 5);
+  const trainedRestaurants = restaurantsWithOrders.filter((item) => Number(item.adaptiveModel?.sampleCount || 0) >= 6);
+  const highConfidenceModels = trainedRestaurants.filter((item) => item.adaptiveModel?.confidenceLabel === "Alta");
+  const restaurantsNeedingModelTraining = restaurantsWithOrders.filter(
+    (item) => item.orderCount >= 3 && Number(item.adaptiveModel?.sampleCount || 0) < 8,
+  );
+  const restaurantsWithModelDropRisk = restaurantsWithOrders.filter(
+    (item) =>
+      item.orderCount > 0 &&
+      Number(item.adaptiveModel?.sampleCount || 0) >= 8 &&
+      !item.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 7)),
+  );
+  const averageModelError = trainedRestaurants.length
+    ? Math.round(
+        trainedRestaurants.reduce((total, item) => total + Number(item.adaptiveModel?.meanAbsoluteError || 0), 0) /
+          trainedRestaurants.length,
+      )
+    : 0;
+  const aiPriorityRestaurant =
+    restaurantsWithModelDropRisk[0] ||
+    restaurantsNeedingModelTraining.sort((left, right) => right.orderCount - left.orderCount)[0] ||
+    topRestaurantsByOrders[0] ||
+    null;
+  const aiPortfolioAction = aiPriorityRestaurant
+    ? Number(aiPriorityRestaurant.adaptiveModel?.sampleCount || 0) >= 8 &&
+      !aiPriorityRestaurant.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 7))
+      ? `Recupera ${aiPriorityRestaurant.restaurant.name}: tenía IA ya entrenada, pero su uso cayó y puede perder hábito.`
+      : Number(aiPriorityRestaurant.adaptiveModel?.sampleCount || 0) < 8
+        ? `Empuja ${aiPriorityRestaurant.restaurant.name}: ya tiene volumen suficiente para terminar de entrenar una IA útil para el local.`
+        : `${aiPriorityRestaurant.restaurant.name} es buen candidato para usar la IA como caso de éxito comercial.`
+    : "Todavia no hay suficiente actividad para priorizar una accion IA de cartera.";
+  const portfolioBottleneckCounts = restaurantsWithOrders.reduce(
+    (accumulator, item) => {
+      const baselines = item.adaptiveModel?.stageBaselines || {};
+      const candidates = [
+        { stage: "received", value: Number(baselines.received || 0) },
+        { stage: "preparing", value: Number(baselines.preparing || 0) },
+        { stage: "ready", value: Number(baselines.ready || 0) },
+      ].sort((left, right) => right.value - left.value);
+      const dominantStage = candidates[0]?.stage || "";
+      if (dominantStage && Object.prototype.hasOwnProperty.call(accumulator, dominantStage)) {
+        accumulator[dominantStage] += 1;
+      }
+      return accumulator;
+    },
+    { received: 0, preparing: 0, ready: 0 },
+  );
+  const portfolioBottleneckEntry =
+    Object.entries(portfolioBottleneckCounts).sort((left, right) => right[1] - left[1])[0] || null;
+  const dominantPortfolioBottleneck =
+    portfolioBottleneckEntry && portfolioBottleneckEntry[1] > 0
+      ? {
+          stage: portfolioBottleneckEntry[0],
+          label:
+            portfolioBottleneckEntry[0] === "received"
+              ? "entrada a cocina"
+              : portfolioBottleneckEntry[0] === "preparing"
+                ? "preparacion"
+                : "recogida",
+          count: portfolioBottleneckEntry[1],
+        }
+      : null;
 
   return {
     totalRestaurants: restaurants.length,
@@ -1762,6 +2196,15 @@ function getAdminDashboardStats() {
     restaurantsWithoutOrders,
     topRestaurant,
     topRestaurantsByOrders,
+    trainedRestaurants,
+    trainedRestaurantCount: trainedRestaurants.length,
+    highConfidenceModelCount: highConfidenceModels.length,
+    averageModelError,
+    restaurantsNeedingModelTraining: restaurantsNeedingModelTraining.length,
+    restaurantsWithModelDropRisk: restaurantsWithModelDropRisk.length,
+    aiPriorityRestaurant: aiPriorityRestaurant?.restaurant?.name || "",
+    aiPortfolioAction,
+    dominantPortfolioBottleneck,
     accessMix: [
       { label: "Activos", count: activeRestaurants.length, color: "#1f7a63" },
       { label: "Vencen pronto", count: soonToExpire, color: "#ec7c0d" },

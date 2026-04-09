@@ -67,6 +67,113 @@ function normalizeAppUrl(value) {
   }
 }
 
+function clampNumber(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function calculateMedian(values) {
+  const safeValues = [...values]
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value >= 0)
+    .sort((left, right) => left - right);
+
+  if (!safeValues.length) return 0;
+  const middle = Math.floor(safeValues.length / 2);
+  if (safeValues.length % 2) return safeValues[middle];
+  return Math.round((safeValues[middle - 1] + safeValues[middle]) / 2);
+}
+
+function toMinutesBetween(from, to) {
+  if (!from || !to) return null;
+  return Math.max(0, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000));
+}
+
+function getStatusDurationMinutes(order, status) {
+  const savedMinutes = Number(order?.statusDurations?.[status] || 0);
+  if (order?.status !== status) return savedMinutes;
+
+  const archivedAt = order?.archivedAt || null;
+  const endTime = archivedAt ? new Date(archivedAt).getTime() : Date.now();
+  const startedAt = new Date(order?.statusStartedAt || order?.createdAt || Date.now()).getTime();
+  const liveMinutes = Math.max(0, Math.floor((endTime - startedAt) / 60000));
+  return savedMinutes + liveMinutes;
+}
+
+async function syncRestaurantAiModelSummary(restaurantId) {
+  const safeRestaurantId = trimValue(restaurantId);
+  if (!safeRestaurantId) return null;
+
+  const [restaurantSnapshot, ordersSnapshot] = await Promise.all([
+    firestore.collection("restaurants").doc(safeRestaurantId).get(),
+    firestore.collection("orders").where("restaurantId", "==", safeRestaurantId).get(),
+  ]);
+
+  if (!restaurantSnapshot.exists) return null;
+
+  const orders = ordersSnapshot.docs.map((docSnapshot) => docSnapshot.data() || {});
+  const readyExamples = orders
+    .map((order) => {
+      const minutesToReady =
+        Number(order?.predictionTrainingRecord?.minutesToReady) ||
+        toMinutesBetween(order?.createdAt, order?.lifecycleMilestones?.readyAt);
+      return Number.isFinite(minutesToReady) && minutesToReady > 0 ? minutesToReady : null;
+    })
+    .filter((value) => value !== null);
+  const deliveredExamples = orders
+    .map((order) => {
+      const minutesToDelivered =
+        Number(order?.predictionTrainingRecord?.minutesToDelivered) ||
+        toMinutesBetween(order?.createdAt, order?.lifecycleMilestones?.deliveredAt);
+      return Number.isFinite(minutesToDelivered) && minutesToDelivered > 0 ? minutesToDelivered : null;
+    })
+    .filter((value) => value !== null);
+  const estimationErrors = orders
+    .map((order) => {
+      const estimatedReadyMinutes = Number(order?.estimatedReadyMinutes || 0);
+      const actualReadyMinutes =
+        Number(order?.predictionTrainingRecord?.minutesToReady) ||
+        toMinutesBetween(order?.createdAt, order?.lifecycleMilestones?.readyAt);
+      if (!Number.isFinite(estimatedReadyMinutes) || estimatedReadyMinutes <= 0) return null;
+      if (!Number.isFinite(actualReadyMinutes) || actualReadyMinutes <= 0) return null;
+      return Math.abs(actualReadyMinutes - estimatedReadyMinutes);
+    })
+    .filter((value) => value !== null);
+
+  const volumeScore = clampNumber(readyExamples.length / 24, 0, 1);
+  const meanAbsoluteError = estimationErrors.length
+    ? Math.round((estimationErrors.reduce((total, value) => total + value, 0) / estimationErrors.length) * 10) / 10
+    : null;
+  const accuracyScore = meanAbsoluteError === null ? 0 : clampNumber(1 - meanAbsoluteError / 18, 0, 1);
+  const confidenceScore = Math.round((volumeScore * 0.55 + accuracyScore * 0.45) * 100);
+  const confidenceLabel =
+    readyExamples.length < 5
+      ? "Aprendiendo"
+      : confidenceScore >= 78
+        ? "Alta"
+        : confidenceScore >= 52
+          ? "Media"
+          : "Aprendiendo";
+
+  const summary = {
+    updatedAt: new Date().toISOString(),
+    sampleCount: readyExamples.length,
+    readySampleCount: readyExamples.length,
+    deliveredSampleCount: deliveredExamples.length,
+    confidenceScore,
+    confidenceLabel,
+    meanAbsoluteError,
+    adaptiveWeight: readyExamples.length >= 6 ? clampNumber(0.35 + readyExamples.length / 70, 0.35, 0.82) : 0,
+    stageBaselines: {
+      received: calculateMedian(orders.map((order) => getStatusDurationMinutes(order, "received")).filter((value) => value > 0)),
+      preparing: calculateMedian(orders.map((order) => getStatusDurationMinutes(order, "preparing")).filter((value) => value > 0)),
+      ready: calculateMedian(orders.map((order) => getStatusDurationMinutes(order, "ready")).filter((value) => value > 0)),
+    },
+  };
+
+  await restaurantSnapshot.ref.set({ aiModelSummary: summary }, { merge: true });
+  return summary;
+}
+
 function isValidEmail(value) {
   const email = normalizeEmail(value);
   return Boolean(email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
@@ -543,5 +650,32 @@ exports.notifyClientOrderReady = onDocumentUpdated("orders/{orderId}", async (ev
   return {
     successCount: response.successCount,
     failureCount: response.failureCount,
+  };
+});
+
+exports.syncRestaurantAiModelSummary = onDocumentUpdated("orders/{orderId}", async (event) => {
+  const before = event.data?.before?.data() || null;
+  const after = event.data?.after?.data() || null;
+  const restaurantId = trimValue(after?.restaurantId || before?.restaurantId);
+
+  if (!restaurantId) {
+    return null;
+  }
+
+  const meaningfulChange =
+    JSON.stringify(before?.predictionTrainingRecord || null) !== JSON.stringify(after?.predictionTrainingRecord || null) ||
+    JSON.stringify(before?.statusDurations || null) !== JSON.stringify(after?.statusDurations || null) ||
+    before?.status !== after?.status ||
+    before?.archivedAt !== after?.archivedAt;
+
+  if (!meaningfulChange) {
+    return null;
+  }
+
+  const summary = await syncRestaurantAiModelSummary(restaurantId);
+  return {
+    restaurantId,
+    sampleCount: summary?.sampleCount || 0,
+    confidenceLabel: summary?.confidenceLabel || "Aprendiendo",
   };
 });
