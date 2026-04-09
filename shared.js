@@ -1555,6 +1555,7 @@ function getDashboardStats() {
     totalToday: todayOrders.length,
     activeNow: activeOrders.length,
     readyNow: activeOrders.filter((order) => order.status === "ready").length,
+    archivedToday: archivedOrders.length,
     deliveredToday: deliveredOrders.length,
     delayedActive: delayedActiveOrders.length,
     avgDeliveredMinutes: averageDeliveredMinutes,

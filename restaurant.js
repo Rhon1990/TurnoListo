@@ -319,8 +319,8 @@ function renderRestaurant() {
   restaurantList.innerHTML = "";
   archivedList.innerHTML = "";
   renderRestaurantHeroSignals(dashboard);
-  readyCount.textContent = `${orders.filter((order) => order.status === "ready").length} listos`;
-  archivedCount.textContent = `${archivedOrders.length} archivados`;
+  readyCount.textContent = `${dashboard.readyNow} listos hoy`;
+  archivedCount.textContent = `${dashboard.archivedToday} archivados hoy`;
   syncRestaurantDisplayMode();
   renderFocusStrip(orders);
   syncSectionView();

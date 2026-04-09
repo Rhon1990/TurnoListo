@@ -902,6 +902,12 @@ body.celebration-active::after {
   gap: 0.5rem;
 }
 
+.summary-strip--inline {
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .hero__signals {
   margin-top: 0.35rem;
 }
