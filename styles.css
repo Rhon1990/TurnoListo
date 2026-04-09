@@ -966,7 +966,8 @@ button:hover,
 }
 
 .auth-showcase__copy h2 {
-  max-width: 14ch;
+  max-width: 20ch;
+  text-wrap: balance;
 }
 
 .auth-showcase__text,
@@ -1015,6 +1016,9 @@ button:hover,
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  justify-content: center;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .auth-signal {
