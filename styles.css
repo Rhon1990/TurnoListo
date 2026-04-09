@@ -266,13 +266,11 @@ body.celebration-active::after {
   width: 100%;
   max-width: 100%;
   margin-bottom: 0;
-  padding: 0.58rem 0.72rem 0.58rem 0.58rem;
-  border-radius: 24px;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 240, 0.96) 58%, rgba(252, 244, 234, 0.92)),
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 48%);
-  border: 1px solid rgba(29, 26, 22, 0.08);
-  box-shadow: 0 20px 44px rgba(105, 66, 28, 0.12);
+  padding: 0.2rem 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
