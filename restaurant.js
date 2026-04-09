@@ -16,9 +16,15 @@ const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
 const restaurantMenuProfile = document.querySelector("#restaurantMenuProfile");
 const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
 const restaurantList = document.querySelector("#restaurantOrders");
-const activeCount = document.querySelector("#restaurantActiveCount");
+const restaurantHeroMetricLabel = document.querySelector("#restaurantHeroMetricLabel");
+const restaurantHeroMetricValue = document.querySelector("#restaurantHeroMetricValue");
+const restaurantHeroMetricHint = document.querySelector("#restaurantHeroMetricHint");
 const readyCount = document.querySelector("#restaurantReadyCount");
 const archivedCount = document.querySelector("#restaurantArchivedCount");
+const restaurantSpotlightTitle = document.querySelector("#restaurantSpotlightTitle");
+const restaurantSpotlightBody = document.querySelector("#restaurantSpotlightBody");
+const restaurantSpotlightChipPrimary = document.querySelector("#restaurantSpotlightChipPrimary");
+const restaurantSpotlightChipSecondary = document.querySelector("#restaurantSpotlightChipSecondary");
 const archivedList = document.querySelector("#restaurantArchivedOrders");
 const quickCreateForm = document.querySelector("#quickCreateForm");
 const quickCreateFeedback = document.querySelector("#quickCreateFeedback");
@@ -312,7 +318,7 @@ function renderRestaurant() {
 
   restaurantList.innerHTML = "";
   archivedList.innerHTML = "";
-  activeCount.textContent = getActiveOrderCount();
+  renderRestaurantHeroSignals(dashboard);
   readyCount.textContent = `${orders.filter((order) => order.status === "ready").length} listos`;
   archivedCount.textContent = `${archivedOrders.length} archivados`;
   syncRestaurantDisplayMode();
@@ -347,6 +353,56 @@ function renderRestaurant() {
       ),
     );
   }
+}
+
+function renderRestaurantHeroSignals(stats) {
+  if (!restaurantHeroMetricValue || !restaurantHeroMetricLabel || !restaurantHeroMetricHint) return;
+
+  if (stats.aiHighRiskCount >= 1) {
+    restaurantHeroMetricLabel.textContent = "Pedidos en riesgo";
+    restaurantHeroMetricValue.textContent = String(stats.aiHighRiskCount);
+    restaurantHeroMetricHint.textContent = "Requieren atención antes de que afecten la espera o la retirada.";
+  } else if (stats.deliveredCount > 0) {
+    restaurantHeroMetricLabel.textContent = "Entregas a tiempo";
+    restaurantHeroMetricValue.textContent = `${stats.onTimeRate}%`;
+    restaurantHeroMetricHint.textContent = "Lectura diaria del porcentaje de pedidos entregados en 15 min o menos.";
+  } else {
+    restaurantHeroMetricLabel.textContent = "Pedidos activos";
+    restaurantHeroMetricValue.textContent = String(stats.activeNow);
+    restaurantHeroMetricHint.textContent = "Recibido, en preparación o listo para recoger.";
+  }
+
+  renderRestaurantSpotlight(stats);
+}
+
+function renderRestaurantSpotlight(stats) {
+  if (!restaurantSpotlightTitle || !restaurantSpotlightBody) return;
+
+  if (stats.aiFocusOrder) {
+    restaurantSpotlightTitle.textContent = `Prioriza ${stats.aiFocusOrder.orderNumber} ahora`;
+    restaurantSpotlightBody.textContent =
+      stats.aiFocusOrder.aiRiskLevel === "high"
+        ? "TurnoListo detecta que este pedido puede impactar experiencia o tiempo prometido si no entra primero en foco."
+        : "Es el pedido con mejor retorno operativo inmediato según carga actual, riesgo y compromiso de tiempo.";
+    restaurantSpotlightChipPrimary.textContent = formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel);
+    restaurantSpotlightChipSecondary.textContent = formatAiEta(stats.aiFocusOrder);
+    return;
+  }
+
+  if (stats.activeNow > 0) {
+    restaurantSpotlightTitle.textContent = "La operación va estable";
+    restaurantSpotlightBody.textContent =
+      "No hay pedidos en riesgo alto ahora mismo. Puedes usar esta vista para mantener ritmo y anticiparte antes de la siguiente hora pico.";
+    restaurantSpotlightChipPrimary.textContent = `Activos ${stats.activeNow}`;
+    restaurantSpotlightChipSecondary.textContent = `Listos ${stats.readyNow}`;
+    return;
+  }
+
+  restaurantSpotlightTitle.textContent = "Listo para recibir más pedidos";
+  restaurantSpotlightBody.textContent =
+    "La operación está despejada. Cuando entren nuevos pedidos, TurnoListo mostrará aquí la siguiente mejor acción para el equipo.";
+  restaurantSpotlightChipPrimary.textContent = "Operación estable";
+  restaurantSpotlightChipSecondary.textContent = "Sin fricción en mostrador";
 }
 
 function setRestaurantDisplayMode(mode) {

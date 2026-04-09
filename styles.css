@@ -902,6 +902,10 @@ body.celebration-active::after {
   gap: 0.5rem;
 }
 
+.hero__signals {
+  margin-top: 0.35rem;
+}
+
 .summary-chip {
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
@@ -1268,6 +1272,50 @@ button:hover,
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
   margin: 0.95rem 0 0;
+}
+
+.restaurant-spotlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) auto;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(236, 124, 13, 0.12), transparent 32%),
+    linear-gradient(180deg, rgba(255, 252, 248, 0.94), rgba(250, 242, 231, 0.9));
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  box-shadow: 0 14px 30px rgba(105, 66, 28, 0.06);
+}
+
+.restaurant-spotlight__primary {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.restaurant-spotlight__primary h3,
+.restaurant-spotlight__primary p {
+  margin: 0;
+}
+
+.restaurant-spotlight__primary h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.restaurant-spotlight__primary p {
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.restaurant-spotlight__rail {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  justify-items: end;
 }
 
 .focus-chip {
@@ -3228,6 +3276,7 @@ button:hover,
   .admin-create-form,
   .list-toolbar,
   .focus-strip,
+  .restaurant-spotlight,
   .order-edit-grid,
   .dashboard-hero,
   .dashboard-grid,
@@ -3327,6 +3376,10 @@ button:hover,
   }
 
   .profile-upload {
+    justify-items: start;
+  }
+
+  .restaurant-spotlight__rail {
     justify-items: start;
   }
 
@@ -3559,6 +3612,10 @@ button:hover,
   .auth-entry .panel__heading h2 {
     font-size: clamp(1.45rem, 7.2vw, 1.9rem);
     line-height: 1.03;
+  }
+
+  .restaurant-spotlight {
+    padding: 0.9rem 0.95rem;
   }
 
   .hero h1 {
