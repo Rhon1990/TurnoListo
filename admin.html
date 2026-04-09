@@ -292,6 +292,33 @@
                   </div>
                   <div class="dashboard-insights" id="adminInsights"></div>
                 </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">TurnoListo Intelligence</p>
+                      <h3>Dataset IA</h3>
+                    </div>
+                    <button class="button-secondary" id="adminExportDatasetButton" type="button">Exportar JSON</button>
+                  </div>
+                  <div class="dashboard-grid">
+                    <article class="dashboard-card dashboard-card--ai">
+                      <p class="stat__label">Ejemplos</p>
+                      <strong class="dashboard-card__value" id="adminDatasetTotal">0</strong>
+                      <p class="dashboard-card__hint">Pedidos disponibles para dataset</p>
+                    </article>
+                    <article class="dashboard-card dashboard-card--ai">
+                      <p class="stat__label">Con entrega</p>
+                      <strong class="dashboard-card__value" id="adminDatasetDelivered">0</strong>
+                      <p class="dashboard-card__hint">Pedidos ya útiles para entrenar ETA real</p>
+                    </article>
+                    <article class="dashboard-card dashboard-card--ai">
+                      <p class="stat__label">Con ready</p>
+                      <strong class="dashboard-card__value" id="adminDatasetReady">0</strong>
+                      <p class="dashboard-card__hint">Pedidos con hito listo capturado</p>
+                    </article>
+                  </div>
+                  <div class="dashboard-insights" id="adminDatasetInsights"></div>
+                </article>
               </div>
             </section>
           </section>
@@ -488,7 +515,7 @@
     </script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260408a"></script>
-    <script src="./shared.js?v=20260408a"></script>
-    <script src="./admin.js?v=20260408a"></script>
+    <script src="./shared.js?v=20260409e"></script>
+    <script src="./admin.js?v=20260409e"></script>
   </body>
 </html>

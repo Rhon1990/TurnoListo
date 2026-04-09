@@ -54,6 +54,11 @@ const adminOrderOutcomeMix = document.querySelector("#adminOrderOutcomeMix");
 const adminAdoptionMix = document.querySelector("#adminAdoptionMix");
 const adminTopRestaurantsBars = document.querySelector("#adminTopRestaurantsBars");
 const adminInsights = document.querySelector("#adminInsights");
+const adminExportDatasetButton = document.querySelector("#adminExportDatasetButton");
+const adminDatasetTotal = document.querySelector("#adminDatasetTotal");
+const adminDatasetDelivered = document.querySelector("#adminDatasetDelivered");
+const adminDatasetReady = document.querySelector("#adminDatasetReady");
+const adminDatasetInsights = document.querySelector("#adminDatasetInsights");
 const adminTermTooltip = document.querySelector("#adminTermTooltip");
 const adminDeleteModal = document.querySelector("#adminDeleteModal");
 const adminDeleteBackdrop = document.querySelector("#adminDeleteBackdrop");
@@ -105,6 +110,7 @@ adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
 adminDeleteConfirm.addEventListener("click", confirmDeleteRestaurant);
+adminExportDatasetButton?.addEventListener("click", handleExportPredictionDataset);
 bindAdminActionQueue(adminActionRenewal, "renewal");
 bindAdminActionQueue(adminActionOnboarding, "onboarding");
 bindAdminActionQueue(adminActionRisk, "at-risk");
@@ -691,6 +697,14 @@ function renderAdminDashboard(stats) {
   adminAdoptionMix.innerHTML = "";
   adminTopRestaurantsBars.innerHTML = "";
   adminInsights.innerHTML = "";
+  adminDatasetInsights.innerHTML = "";
+
+  const dataset = exportPredictionDataset();
+  const deliveredDataset = dataset.filter((item) => Number.isFinite(item.minutesToDelivered));
+  const readyDataset = dataset.filter((item) => Number.isFinite(item.minutesToReady));
+  adminDatasetTotal.textContent = dataset.length;
+  adminDatasetDelivered.textContent = deliveredDataset.length;
+  adminDatasetReady.textContent = readyDataset.length;
 
   const topBox = document.createElement("article");
   topBox.className = "dashboard-insight";
@@ -724,6 +738,55 @@ function renderAdminDashboard(stats) {
     card.textContent = message;
     adminInsights.append(card);
   });
+
+  buildDatasetInsights(dataset, deliveredDataset, readyDataset).forEach((message) => {
+    const card = document.createElement("article");
+    card.className = "dashboard-insight";
+    card.textContent = message;
+    adminDatasetInsights.append(card);
+  });
+}
+
+function buildDatasetInsights(dataset, deliveredDataset, readyDataset) {
+  const insights = [];
+
+  if (!dataset.length) {
+    insights.push("Todavía no hay pedidos suficientes para construir un dataset de entrenamiento.");
+    return insights;
+  }
+
+  insights.push(`${dataset.length} pedidos ya incluyen contexto operativo capturado para entrenamiento offline.`);
+
+  if (deliveredDataset.length > 0) {
+    insights.push(`${deliveredDataset.length} ejemplos ya permiten modelar minutos reales hasta entrega.`);
+  }
+
+  if (readyDataset.length > 0) {
+    insights.push(`${readyDataset.length} ejemplos ya permiten modelar minutos reales hasta listo.`);
+  }
+
+  if (!deliveredDataset.length && !readyDataset.length) {
+    insights.push("Aún faltan hitos finales para entrenar un ETA predictivo real, pero la instrumentación ya está acumulando base.");
+  }
+
+  return insights.slice(0, 3);
+}
+
+function handleExportPredictionDataset() {
+  const dataset = exportPredictionDataset({ includeCancelled: true });
+  const payload = JSON.stringify(dataset, null, 2);
+  const blob = new Blob([payload], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 10);
+
+  anchor.href = url;
+  anchor.download = `turnolisto-prediction-dataset-${stamp}.json`;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+  showTurnoAlert("Dataset IA exportado en formato JSON.", "success");
 }
 
 function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {

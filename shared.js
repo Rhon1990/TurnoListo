@@ -818,10 +818,31 @@ function normalizeOrders(orders) {
       archivedAt: null,
       statusDurations: {},
       statusStartedAt: order?.createdAt || new Date().toISOString(),
+      timelineEvents: [],
+      lifecycleMilestones: {
+        createdAt: order?.createdAt || new Date().toISOString(),
+        receivedAt: order?.createdAt || new Date().toISOString(),
+        preparingAt: null,
+        readyAt: null,
+        deliveredAt: null,
+        cancelledAt: null,
+        archivedAt: order?.archivedAt || null,
+      },
+      aiTrainingSnapshot: null,
+      predictionTrainingRecord: null,
       ...order,
       id:
         order.id ||
         buildOrderTrackingId(order.restaurantId || DEFAULT_RESTAURANT_ID, order.sourceOrderId || order.orderNumber || ""),
+    }))
+    .map((order) => ({
+      ...order,
+      lifecycleMilestones: buildLifecycleMilestones(
+        order,
+        { status: order.status, archivedAt: order.archivedAt },
+        order.statusStartedAt || order.createdAt,
+      ),
+      predictionTrainingRecord: order.predictionTrainingRecord || buildPredictionTrainingRecord(order),
     }))
     .sort((left, right) => new Date(left.createdAt) - new Date(right.createdAt));
 }
@@ -897,6 +918,88 @@ function getRemainingEstimatedMinutes(order) {
   const promisedReadyAt = String(order?.promisedReadyAt || "").trim();
   if (!promisedReadyAt) return null;
   return Math.ceil((new Date(promisedReadyAt).getTime() - Date.now()) / 60000);
+}
+
+function buildAiTrainingSnapshot(order, allOrders = loadOrders(), eventTime = new Date().toISOString()) {
+  const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
+  const eventDate = new Date(eventTime || new Date().toISOString());
+  const activeOrders = allOrders.filter(
+    (item) => String(item?.restaurantId || DEFAULT_RESTAURANT_ID) === restaurantId && !item?.archivedAt,
+  );
+  const preparingOrders = activeOrders.filter((item) => item.status === "preparing").length;
+  const readyOrders = activeOrders.filter((item) => item.status === "ready").length;
+  const overdueOrders = activeOrders.filter((item) => {
+    const remaining = getRemainingEstimatedMinutes(item);
+    return remaining !== null ? remaining <= 0 : getOrderDurationMinutes(item) >= 16;
+  }).length;
+
+  return {
+    capturedAt: eventDate.toISOString(),
+    restaurantId,
+    activeOrders: activeOrders.length,
+    preparingOrders,
+    readyOrders,
+    overdueOrders,
+    hourOfDay: eventDate.getHours(),
+    dayOfWeek: eventDate.getDay(),
+    peakLoadScore: getPeakDemandLoad(eventDate),
+    estimatedReadyMinutes: Number(order?.estimatedReadyMinutes || 0) || null,
+    currentStatus: String(order?.status || ""),
+  };
+}
+
+function appendOrderTimelineEvent(order, event) {
+  const timeline = Array.isArray(order?.timelineEvents) ? [...order.timelineEvents] : [];
+  timeline.push(event);
+  return timeline.sort((left, right) => new Date(left.at) - new Date(right.at));
+}
+
+function buildLifecycleMilestones(order, updates = {}, eventTime = new Date().toISOString()) {
+  const nextMilestones = {
+    createdAt: order?.lifecycleMilestones?.createdAt || order?.createdAt || eventTime,
+    receivedAt: order?.lifecycleMilestones?.receivedAt || order?.createdAt || eventTime,
+    preparingAt: order?.lifecycleMilestones?.preparingAt || null,
+    readyAt: order?.lifecycleMilestones?.readyAt || null,
+    deliveredAt: order?.lifecycleMilestones?.deliveredAt || null,
+    cancelledAt: order?.lifecycleMilestones?.cancelledAt || null,
+    archivedAt: order?.lifecycleMilestones?.archivedAt || null,
+  };
+
+  const nextStatus = String(updates.status || order?.status || "");
+  if (nextStatus === "preparing" && !nextMilestones.preparingAt) nextMilestones.preparingAt = eventTime;
+  if (nextStatus === "ready" && !nextMilestones.readyAt) nextMilestones.readyAt = eventTime;
+  if (nextStatus === "delivered") {
+    nextMilestones.deliveredAt = eventTime;
+    if (!nextMilestones.readyAt) nextMilestones.readyAt = eventTime;
+  }
+  if (nextStatus === "cancelled") {
+    nextMilestones.cancelledAt = eventTime;
+  }
+
+  const nextArchivedAt = updates.archivedAt ?? order?.archivedAt ?? null;
+  if (nextArchivedAt) nextMilestones.archivedAt = nextArchivedAt;
+
+  return nextMilestones;
+}
+
+function buildPredictionTrainingRecord(order) {
+  const milestones = order?.lifecycleMilestones || {};
+  const createdAt = order?.createdAt || milestones.createdAt || null;
+  const toMinutes = (from, to) => {
+    if (!from || !to) return null;
+    return Math.max(0, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000));
+  };
+
+  return {
+    createdAt,
+    readyAt: milestones.readyAt || null,
+    deliveredAt: milestones.deliveredAt || null,
+    cancelledAt: milestones.cancelledAt || null,
+    minutesToReady: toMinutes(createdAt, milestones.readyAt),
+    minutesToDelivered: toMinutes(createdAt, milestones.deliveredAt),
+    finalStatus: order?.status || "",
+    estimatedReadyMinutes: Number(order?.estimatedReadyMinutes || 0) || null,
+  };
 }
 
 function clampNumber(value, min, max) {
@@ -1051,9 +1154,10 @@ function createOrder(orderData) {
     Number.isFinite(parsedEstimatedReadyMinutes) && parsedEstimatedReadyMinutes > 0
       ? Math.max(1, parsedEstimatedReadyMinutes)
       : null;
+  const createdAt = new Date().toISOString();
   const order = {
     restaurantId: currentRestaurantId,
-    createdAt: new Date().toISOString(),
+    createdAt,
     id: buildOrderTrackingId(currentRestaurantId, normalizedSourceOrderId),
     orderNumber: `#${nextIndex}`,
     sourceOrderId: normalizedSourceOrderId,
@@ -1068,9 +1172,20 @@ function createOrder(orderData) {
     rating: null,
     archivedAt: null,
     statusDurations: {},
-    statusStartedAt: new Date().toISOString(),
+    statusStartedAt: createdAt,
   };
   order.promisedReadyAt = buildPromisedReadyAt(order.createdAt, order.estimatedReadyMinutes);
+  order.aiTrainingSnapshot = buildAiTrainingSnapshot(order, orders, createdAt);
+  order.timelineEvents = [
+    {
+      type: "created",
+      at: createdAt,
+      status: order.status,
+      snapshot: order.aiTrainingSnapshot,
+    },
+  ];
+  order.lifecycleMilestones = buildLifecycleMilestones(order, { status: order.status, archivedAt: order.archivedAt }, createdAt);
+  order.predictionTrainingRecord = buildPredictionTrainingRecord(order);
 
   const nextOrders = normalizeOrders([...orders, order]);
   saveOrders(nextOrders);
@@ -1116,8 +1231,28 @@ function updateOrder(id, updates) {
     );
   }
 
+  const eventTime = new Date().toISOString();
   const nextOrder = { ...currentOrder, ...nextUpdates };
-  const nextOrders = loadOrders().map((order) => (order.id === id ? nextOrder : order));
+  const stagedOrders = loadOrders().map((order) => (order.id === id ? nextOrder : order));
+  const snapshot = buildAiTrainingSnapshot(nextOrder, stagedOrders, eventTime);
+  const changedKeys = Object.keys(nextUpdates);
+
+  nextOrder.aiTrainingSnapshot = snapshot;
+  nextOrder.lifecycleMilestones = buildLifecycleMilestones(currentOrder, nextUpdates, eventTime);
+  nextOrder.predictionTrainingRecord = buildPredictionTrainingRecord(nextOrder);
+  nextOrder.timelineEvents = changedKeys.length
+    ? appendOrderTimelineEvent(currentOrder, {
+        type: changedKeys.includes("status") ? "status-updated" : "order-updated",
+        at: eventTime,
+        status: nextOrder.status,
+        changedKeys,
+        snapshot,
+      })
+    : Array.isArray(currentOrder.timelineEvents)
+      ? [...currentOrder.timelineEvents]
+      : [];
+
+  const nextOrders = stagedOrders.map((order) => (order.id === id ? nextOrder : order));
   saveOrders(nextOrders);
   persistOrderDocument(nextOrder, currentOrder.id);
   persistTrackingDocumentForOrder(nextOrder, currentOrder.id);
@@ -1786,6 +1921,45 @@ function normalizePublicTracking(trackingRecords) {
       ...tracking,
     }))
     .sort((left, right) => new Date(left.createdAt) - new Date(right.createdAt));
+}
+
+function buildPredictionDatasetRow(order, allOrders = loadOrders()) {
+  const snapshot = order?.aiTrainingSnapshot || buildAiTrainingSnapshot(order, allOrders, order?.statusStartedAt || order?.createdAt);
+  const record = order?.predictionTrainingRecord || buildPredictionTrainingRecord(order);
+
+  return {
+    orderId: order?.id || "",
+    restaurantId: order?.restaurantId || "",
+    sourceSystem: order?.sourceSystem || "",
+    createdAt: order?.createdAt || null,
+    finalStatus: record.finalStatus || order?.status || "",
+    estimatedReadyMinutes: record.estimatedReadyMinutes,
+    minutesToReady: record.minutesToReady,
+    minutesToDelivered: record.minutesToDelivered,
+    activeOrdersAtCapture: snapshot.activeOrders,
+    preparingOrdersAtCapture: snapshot.preparingOrders,
+    readyOrdersAtCapture: snapshot.readyOrders,
+    overdueOrdersAtCapture: snapshot.overdueOrders,
+    hourOfDay: snapshot.hourOfDay,
+    dayOfWeek: snapshot.dayOfWeek,
+    peakLoadScore: snapshot.peakLoadScore,
+    currentStatusAtCapture: snapshot.currentStatus,
+    hasReadyMilestone: Boolean(order?.lifecycleMilestones?.readyAt),
+    hasDeliveredMilestone: Boolean(order?.lifecycleMilestones?.deliveredAt),
+    timelineEventsCount: Array.isArray(order?.timelineEvents) ? order.timelineEvents.length : 0,
+  };
+}
+
+function exportPredictionDataset(options = {}) {
+  const orders = loadOrders();
+  const safeOptions = { deliveredOnly: false, includeCancelled: false, ...options };
+  const filteredOrders = orders.filter((order) => {
+    if (safeOptions.deliveredOnly && order.status !== "delivered") return false;
+    if (!safeOptions.includeCancelled && order.status === "cancelled") return false;
+    return true;
+  });
+
+  return filteredOrders.map((order) => buildPredictionDatasetRow(order, orders));
 }
 
 function initializeTurnoAlerts() {
