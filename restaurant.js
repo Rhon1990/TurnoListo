@@ -33,6 +33,7 @@ const restaurantPlaybook = document.querySelector("#restaurantPlaybook");
 const restaurantPlaybookEyebrow = document.querySelector("#restaurantPlaybookEyebrow");
 const restaurantPlaybookTitle = document.querySelector("#restaurantPlaybookTitle");
 const restaurantPlaybookList = document.querySelector("#restaurantPlaybookList");
+const restaurantPlaybookDismiss = document.querySelector("#restaurantPlaybookDismiss");
 const restaurantModeStrip = document.querySelector(".mode-strip");
 const restaurantModeStandard = document.querySelector("#restaurantModeStandard");
 const restaurantModeCounter = document.querySelector("#restaurantModeCounter");
@@ -134,6 +135,7 @@ let editingOrderId = null;
 let pendingCancelOrderId = null;
 let pendingCancelOrderLabel = "";
 let activeSection = "orders";
+let lastRenderedRestaurantId = "";
 let lastDashboardStats = null;
 let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-display-mode") || "standard";
 let restaurantModeTooltipTimer = 0;
@@ -188,6 +190,7 @@ sectionTabs.forEach((button) => {
     setActiveSection(button.dataset.section || "orders");
   });
 });
+restaurantPlaybookDismiss?.addEventListener("click", hideRestaurantPlaybook);
 commentBackdrop.addEventListener("click", closeCommentModal);
 commentClose.addEventListener("click", closeCommentModal);
 cancelBackdrop.addEventListener("click", closeCancelModal);
@@ -312,11 +315,18 @@ function syncRestaurantAccess() {
 function renderRestaurant() {
   const session = getCurrentRestaurantSession();
   if (!session) {
+    lastRenderedRestaurantId = "";
+    activeSection = "orders";
     syncRestaurantAccess();
     return;
   }
 
   const restaurant = getRestaurantById(session.restaurantId);
+  const restaurantId = String(restaurant?.id || "");
+  if (restaurantId && restaurantId !== lastRenderedRestaurantId) {
+    activeSection = isDemoRestaurant(restaurant) ? "create" : "orders";
+    lastRenderedRestaurantId = restaurantId;
+  }
   renderRestaurantAccount(restaurant);
   renderRestaurantProfile(restaurant);
 
@@ -497,6 +507,16 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   const hasClosedLoop = restaurantOrders.some((order) => order.status === "delivered" || order.archivedAt);
   const hasRatedOrder = restaurantOrders.some((order) => Number(order.rating?.score || 0) > 0);
   const isDemo = isDemoRestaurant(restaurant);
+  const completionUnlocked = hasCreatedOrder && hasReadyOrder && hasClosedLoop && hasRatedOrder;
+
+  if (isDemo && isRestaurantPlaybookDismissed(restaurant) && completionUnlocked) {
+    restaurantPlaybook.hidden = true;
+    restaurantPlaybookList.innerHTML = "";
+    if (restaurantPlaybookDismiss) {
+      restaurantPlaybookDismiss.hidden = true;
+    }
+    return;
+  }
 
   if (restaurantPlaybookEyebrow) {
     restaurantPlaybookEyebrow.textContent = isDemo ? "Recorrido demo" : "Playbook operativo";
@@ -564,12 +584,65 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
 
   restaurantPlaybook.hidden = false;
   restaurantPlaybookList.innerHTML = "";
+  if (restaurantPlaybookDismiss) {
+    restaurantPlaybookDismiss.hidden = !(isDemo && completionUnlocked);
+  }
   steps.forEach((step) => {
     const item = document.createElement("article");
-    item.className = "dashboard-insight";
-    item.textContent = `${step.done ? "Completado" : "Pendiente"} · ${step.text}`;
+    item.className = `dashboard-insight playbook-step${step.done ? " playbook-step--done" : ""}`;
+
+    const icon = document.createElement("span");
+    icon.className = "playbook-step__icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = step.done ? "✓" : "";
+
+    const content = document.createElement("div");
+    content.className = "playbook-step__content";
+
+    const status = document.createElement("strong");
+    status.className = "playbook-step__status";
+    status.textContent = step.done ? "Completado" : "Pendiente";
+
+    const text = document.createElement("span");
+    text.className = "playbook-step__text";
+    text.textContent = step.text;
+
+    content.append(status, text);
+    item.append(icon, content);
     restaurantPlaybookList.append(item);
   });
+}
+
+function getRestaurantPlaybookStorageKey(restaurant) {
+  const restaurantId = String(restaurant?.id || "").trim();
+  return restaurantId ? `turnolisto-demo-playbook-dismissed:${restaurantId}` : "";
+}
+
+function isRestaurantPlaybookDismissed(restaurant) {
+  const key = getRestaurantPlaybookStorageKey(restaurant);
+  return Boolean(key && window.localStorage.getItem(key) === "true");
+}
+
+function hideRestaurantPlaybook() {
+  const session = getCurrentRestaurantSession();
+  const restaurant = session ? getRestaurantById(session.restaurantId) : null;
+  if (!restaurant || !isDemoRestaurant(restaurant)) return;
+
+  const allOrders = loadOrders();
+  const restaurantOrders = allOrders.filter((order) => String(order.restaurantId || "") === String(restaurant.id || ""));
+  const completionUnlocked =
+    restaurantOrders.length > 0 &&
+    restaurantOrders.some((order) => order.status === "ready" || order.status === "delivered") &&
+    restaurantOrders.some((order) => order.status === "delivered" || order.archivedAt) &&
+    restaurantOrders.some((order) => Number(order.rating?.score || 0) > 0);
+
+  if (!completionUnlocked) return;
+
+  const key = getRestaurantPlaybookStorageKey(restaurant);
+  if (key) {
+    window.localStorage.setItem(key, "true");
+  }
+  renderRestaurant();
 }
 
 function setRestaurantDisplayMode(mode) {
@@ -714,6 +787,8 @@ async function handleRestaurantLogout() {
   const backend = await waitForFirebaseBackend();
   preparePrivateFirebaseSignOut();
   clearCurrentRestaurantSession();
+  lastRenderedRestaurantId = "";
+  activeSection = "orders";
   syncRestaurantAccess();
 
   if (backend?.enabled && typeof backend.signOut === "function") {

@@ -3016,6 +3016,38 @@ button:hover,
   gap: 0.75rem;
 }
 
+.playbook-dismiss {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  align-self: start;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  background: rgba(255, 251, 245, 0.92);
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease;
+}
+
+.playbook-dismiss:hover {
+  transform: translateY(-1px);
+  border-color: rgba(236, 124, 13, 0.18);
+  color: var(--ink);
+  background: rgba(255, 247, 236, 0.98);
+}
+
+.playbook-dismiss:focus-visible {
+  outline: 2px solid rgba(236, 124, 13, 0.4);
+  outline-offset: 3px;
+}
+
 .dashboard-subsection__top h3 {
   margin: 0;
   font-size: 1.15rem;
@@ -3222,6 +3254,54 @@ button:hover,
   border: 1px solid rgba(29, 26, 22, 0.08);
   color: var(--ink);
   line-height: 1.5;
+}
+
+.playbook-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.9rem;
+  cursor: default;
+}
+
+.playbook-step__icon {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  margin-top: 0.05rem;
+  border-radius: 999px;
+  border: 1.5px solid rgba(29, 26, 22, 0.18);
+  background: rgba(255, 255, 255, 0.78);
+  color: transparent;
+  font-size: 0.95rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.playbook-step--done .playbook-step__icon {
+  border-color: rgba(31, 122, 77, 0.24);
+  background: linear-gradient(180deg, rgba(228, 247, 236, 0.98), rgba(210, 239, 224, 0.98));
+  color: #1f7a4d;
+}
+
+.playbook-step__content {
+  display: grid;
+  gap: 0.2rem;
+  pointer-events: none;
+}
+
+.playbook-step__status {
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.playbook-step__text {
+  color: var(--ink);
 }
 
 .dashboard-insight--empty-chart {
