@@ -266,7 +266,7 @@ exports.submitContactInquiry = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "El correo es invalido.");
   }
 
-  if (!message || message.length < 12) {
+  if (!message || message.length < 5) {
     throw new HttpsError("invalid-argument", "El mensaje es demasiado corto.");
   }
 

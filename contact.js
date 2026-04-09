@@ -44,6 +44,12 @@ async function handleContactSubmit(event) {
     referrer: document.referrer || "",
   };
 
+  if (payload.message.length < 5) {
+    setContactFeedback("Escribe un mensaje un poco más descriptivo, al menos 5 caracteres.", "error");
+    contactSubmitButton.disabled = false;
+    return;
+  }
+
   try {
     const backend = await window.__turnoFirebaseReadyPromise;
     if (!backend?.enabled || typeof backend.submitContactInquiry !== "function") {
@@ -59,8 +65,12 @@ async function handleContactSubmit(event) {
     );
   } catch (error) {
     console.error("No se pudo enviar el formulario de contacto.", error);
+    const message =
+      error?.message && String(error.message).includes("demasiado corto")
+        ? "Escribe un mensaje un poco más descriptivo para poder enviarlo."
+        : "No se pudo registrar tu solicitud ahora mismo. Inténtalo de nuevo en unos minutos.";
     setContactFeedback(
-      "No se pudo registrar tu solicitud ahora mismo. Inténtalo de nuevo en unos minutos.",
+      message,
       "error",
     );
   } finally {
