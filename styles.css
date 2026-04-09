@@ -208,15 +208,6 @@ body.celebration-active::after {
   overflow: hidden;
 }
 
-.workspace-brand::after {
-  content: "";
-  position: absolute;
-  inset: 10% auto 10% 156px;
-  width: 1px;
-  background: linear-gradient(180deg, rgba(236, 124, 13, 0.18), rgba(185, 29, 43, 0.08), rgba(236, 124, 13, 0.18));
-  pointer-events: none;
-}
-
 .workspace-brand__image {
   width: clamp(102px, 12vw, 148px);
   height: auto;
@@ -2452,10 +2443,6 @@ button:hover,
     padding: 1rem 1.05rem;
   }
 
-  .workspace-brand::after {
-    inset: 10% auto 10% 144px;
-  }
-
   .auth-layout,
   .auth-proof-grid {
     grid-template-columns: 1fr;
@@ -2567,10 +2554,6 @@ button:hover,
     padding: 0.9rem 0.8rem;
     text-align: center;
     border-radius: 26px;
-  }
-
-  .workspace-brand::after {
-    display: none;
   }
 
   .workspace-brand__image {
