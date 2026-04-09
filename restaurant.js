@@ -1180,10 +1180,10 @@ function buildOrderCard(order, isArchived) {
     "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
   intelligenceBadge.dataset.termHint =
     order.aiRiskLevel === "high"
-      ? `${intelligenceBadge.textContent}: este pedido necesita atencion inmediata porque puede desviarse o ya esta comprometido.`
+      ? `${intelligenceBadge.textContent}: este pedido necesita atencion inmediata porque esta bloqueado, retrasado o claramente comprometido.`
       : order.aiRiskLevel === "medium"
-        ? `${intelligenceBadge.textContent}: el pedido aun esta controlado, pero ya muestra señales de tension operativa.`
-        : `${intelligenceBadge.textContent}: el pedido va dentro de una ventana saludable segun la lectura actual del local.`;
+        ? `${intelligenceBadge.textContent}: el pedido aun esta bajo control, pero ya muestra señales reales de tension o espera anomala.`
+        : `${intelligenceBadge.textContent}: el pedido sigue una secuencia temporal consistente con la operativa actual del local.`;
   intelligenceEta.dataset.termHint = buildAiEtaHint(order, intelligenceEta.textContent);
   intelligenceLabel.setAttribute("title", intelligenceLabel.dataset.termHint);
   intelligenceLabel.setAttribute("aria-label", intelligenceLabel.dataset.termHint);
@@ -1358,9 +1358,9 @@ function formatOrderEtaSummary(order) {
 }
 
 function formatAiRiskLabel(level) {
-  if (level === "high") return "Riesgo alto";
-  if (level === "medium") return "Atención";
-  return "Estable";
+  if (level === "high") return "Critico";
+  if (level === "medium") return "Atencion";
+  return "Saludable";
 }
 
 function formatAiEta(order) {
@@ -1372,7 +1372,7 @@ function formatAiEta(order) {
 
 function buildAiEtaHint(order, visibleLabel) {
   if (order.status === "ready") {
-    return `${visibleLabel}: el pedido ya esta listo para recoger.`;
+    return `${visibleLabel}: el pedido ya esta listo para recoger, asi que la prioridad pasa a ser evitar esperas innecesarias en recogida.`;
   }
 
   const eta = Number(order.aiEtaMinutes || 0);
@@ -1380,7 +1380,7 @@ function buildAiEtaHint(order, visibleLabel) {
     return `${visibleLabel}: TurnoListo todavia no tiene una estimacion fiable para este pedido.`;
   }
 
-  return `${visibleLabel}: TurnoListo estima este tiempo restante segun la carga actual, el historico del local y el riesgo de retraso.`;
+  return `${visibleLabel}: TurnoListo estima este tiempo restante segun la carga actual, el historico del local y los atascos detectados por etapa.`;
 }
 
 function buildEtaHintElement(order) {

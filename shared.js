@@ -1006,6 +1006,104 @@ function clampNumber(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function getStageAlertThresholds(order, status) {
+  const estimatedReadyMinutes = Number.parseInt(String(order?.estimatedReadyMinutes || ""), 10);
+  const safeEstimatedReadyMinutes = Number.isFinite(estimatedReadyMinutes) && estimatedReadyMinutes > 0 ? estimatedReadyMinutes : 12;
+
+  if (status === "received") {
+    return {
+      warning: Math.max(6, Math.round(safeEstimatedReadyMinutes * 0.35)),
+      critical: Math.max(12, Math.round(safeEstimatedReadyMinutes * 0.6)),
+    };
+  }
+
+  if (status === "preparing") {
+    return {
+      warning: Math.max(8, Math.round(safeEstimatedReadyMinutes * 0.7)),
+      critical: Math.max(14, Math.round(safeEstimatedReadyMinutes * 1.15)),
+    };
+  }
+
+  if (status === "ready") {
+    return {
+      warning: 8,
+      critical: 15,
+    };
+  }
+
+  return {
+    warning: safeEstimatedReadyMinutes,
+    critical: safeEstimatedReadyMinutes + 8,
+  };
+}
+
+function getStageDriftAssessment(order) {
+  const status = String(order?.status || "");
+  const stageMinutes = getStatusDurationMinutes(order, status);
+  const receivedMinutes = getStatusDurationMinutes(order, "received");
+  const preparingMinutes = getStatusDurationMinutes(order, "preparing");
+  const readyMinutes = getStatusDurationMinutes(order, "ready");
+  const { warning, critical } = getStageAlertThresholds(order, status);
+
+  let severity = "normal";
+  let extraPressure = 0;
+  let reason = "";
+
+  if (status === "ready") {
+    if (stageMinutes >= critical || readyMinutes >= critical) {
+      severity = "critical";
+      extraPressure = 6;
+      reason = "El pedido lleva demasiado tiempo listo para recoger y ya impacta en la operativa.";
+    } else if (stageMinutes >= warning || readyMinutes >= warning) {
+      severity = "warning";
+      extraPressure = 3;
+      reason = "El pedido ya esta listo, pero acumula espera para la recogida.";
+    }
+  } else if (status === "received") {
+    if (stageMinutes >= critical) {
+      severity = "critical";
+      extraPressure = 5;
+      reason = "El pedido sigue en recibido demasiado tiempo y parece bloqueado antes de entrar en cocina.";
+    } else if (stageMinutes >= warning) {
+      severity = "warning";
+      extraPressure = 2;
+      reason = "El pedido tarda mas de lo normal en pasar de recibido a preparacion.";
+    }
+  } else if (status === "preparing") {
+    if (stageMinutes >= critical) {
+      severity = "critical";
+      extraPressure = 5;
+      reason = "La preparacion esta tardando demasiado y el pedido muestra un atasco claro.";
+    } else if (stageMinutes >= warning) {
+      severity = "warning";
+      extraPressure = 2;
+      reason = "La preparacion ya se esta alargando por encima de una ventana saludable.";
+    }
+  }
+
+  if (status === "ready" && receivedMinutes >= 30) {
+    severity = "critical";
+    extraPressure = Math.max(extraPressure, 6);
+    reason = "Aunque ya figura listo, el recorrido acumula demasiada espera desde recibido y requiere intervencion.";
+  }
+
+  if (status === "ready" && preparingMinutes > 0 && receivedMinutes >= preparingMinutes * 2.5) {
+    severity = "critical";
+    extraPressure = Math.max(extraPressure, 5);
+    reason = "La secuencia temporal es anomala: el pedido estuvo demasiado tiempo detenido antes de avanzar.";
+  }
+
+  return {
+    severity,
+    extraPressure,
+    reason,
+    stageMinutes,
+    receivedMinutes,
+    preparingMinutes,
+    readyMinutes,
+  };
+}
+
 function getPeakDemandLoad(dateLike = new Date()) {
   const hour = new Date(dateLike).getHours();
   if ([12, 13, 14, 20, 21].includes(hour)) return 2;
@@ -1068,13 +1166,14 @@ function buildOrderIntelligence(order, activeOrders = [], history = []) {
   const prepPressure = preparingOrders >= 4 ? 2 : preparingOrders >= 2 ? 1 : 0;
   const overduePressure = overdueOrders >= 3 ? 3 : overdueOrders >= 1 ? 1 : 0;
   const historyPressure = clampNumber(Math.round(historicalDelayMinutes * 0.6), 0, 6);
-  const queuePressure = loadPressure + prepPressure + overduePressure + peakDemandLoad + historyPressure;
+  const stageDrift = getStageDriftAssessment(order);
+  const queuePressure = loadPressure + prepPressure + overduePressure + peakDemandLoad + historyPressure + stageDrift.extraPressure;
   const fallbackRemaining = safeEstimatedReadyMinutes ? Math.max(1, safeEstimatedReadyMinutes - elapsedMinutes) : 6;
   const baseRemainingMinutes =
     promisedRemainingMinutes === null ? fallbackRemaining : Math.max(0, promisedRemainingMinutes);
   let aiEtaMinutes = status === "ready" ? 0 : Math.max(1, baseRemainingMinutes + queuePressure + (status === "received" ? 1 : 0));
   let aiRiskLevel = "low";
-  let aiReason = "Va dentro de una ventana operativa estable.";
+  let aiReason = "El pedido va dentro de una ventana operativa saludable.";
 
   if (status === "ready") {
     aiReason = "Pedido listo para retirar; conviene entregarlo cuanto antes.";
@@ -1099,10 +1198,18 @@ function buildOrderIntelligence(order, activeOrders = [], history = []) {
       loadPressure >= 2
         ? "La carga del local esta subiendo y conviene vigilar este pedido de cerca."
         : promisedRemainingMinutes !== null && promisedRemainingMinutes <= 5
-          ? "Esta cerca de la hora comprometida y puede desviarse si entra mas carga."
+        ? "Esta cerca de la hora comprometida y puede desviarse si entra mas carga."
           : "El local viene cerrando pedidos por encima de lo prometido.";
   } else if (peakDemandLoad >= 2) {
     aiReason = "Esta dentro de una franja de alta demanda, aunque por ahora va en ventana.";
+  }
+
+  if (stageDrift.severity === "critical") {
+    aiRiskLevel = "high";
+    aiReason = stageDrift.reason;
+  } else if (stageDrift.severity === "warning" && aiRiskLevel !== "high") {
+    aiRiskLevel = "medium";
+    aiReason = stageDrift.reason;
   }
 
   if (!["received", "preparing", "ready"].includes(status)) {
