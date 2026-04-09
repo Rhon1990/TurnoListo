@@ -12,12 +12,10 @@ const adminCreateAdminFeedback = document.querySelector("#adminCreateAdminFeedba
 const adminUsersList = document.querySelector("#adminUsersList");
 const adminMessagesShortcut = document.querySelector("#adminMessagesShortcut");
 const adminAccountButton = document.querySelector("#adminAccountButton");
-const adminAccountPanel = document.querySelector("#adminAccountPanel");
 const adminAccountAvatarImage = document.querySelector("#adminAccountAvatarImage");
 const adminAccountAvatarFallback = document.querySelector("#adminAccountAvatarFallback");
 const adminAccountName = document.querySelector("#adminAccountName");
 const adminAccountMeta = document.querySelector("#adminAccountMeta");
-const adminMenuLogout = document.querySelector("#adminMenuLogout");
 
 let selectedAdminAvatarUrl = "";
 let adminUsers = [];
@@ -31,12 +29,6 @@ function initializeAdminProfilePage() {
   adminMessagesShortcut?.addEventListener("click", () => {
     window.location.href = "./admin.html";
   });
-  adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
-  adminMenuLogout?.addEventListener("click", async () => {
-    closeAdminAccountMenu();
-    await handleAdminLogout();
-  });
-  window.addEventListener("click", handleAdminAccountOutsideClick);
   waitForDataReady().then(() => {
     initializeAdminProfileAuth();
   });
@@ -280,38 +272,6 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
 
 function buildAdminAccessUrl() {
   return new URL("./admin.html", window.location.href).toString();
-}
-
-async function handleAdminLogout() {
-  const backend = await waitForFirebaseBackend();
-  preparePrivateFirebaseSignOut();
-  clearCurrentUserProfile();
-  if (backend?.enabled && typeof backend.signOut === "function") {
-    await backend.signOut();
-  }
-  redirectToAdmin();
-}
-
-function toggleAdminAccountMenu(event) {
-  event?.stopPropagation();
-  if (!adminAccountPanel || !adminAccountButton) return;
-  const shouldOpen = adminAccountPanel.hidden;
-  adminAccountPanel.hidden = !shouldOpen;
-  adminAccountButton.setAttribute("aria-expanded", String(shouldOpen));
-}
-
-function closeAdminAccountMenu() {
-  if (!adminAccountPanel || !adminAccountButton) return;
-  adminAccountPanel.hidden = true;
-  adminAccountButton.setAttribute("aria-expanded", "false");
-}
-
-function handleAdminAccountOutsideClick(event) {
-  if (!adminAccountPanel || adminAccountPanel.hidden) return;
-  const target = event.target;
-  if (!(target instanceof Element)) return;
-  if (target.closest("#adminAccountMenu")) return;
-  closeAdminAccountMenu();
 }
 
 async function optimizeAccountImage(file) {

@@ -30,25 +30,12 @@
               <span class="workspace-mail-button__label">Mensajes</span>
             </button>
             <div class="account-menu" id="adminAccountMenu">
-              <button class="account-menu__trigger" id="adminAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+              <a class="account-menu__trigger" id="adminAccountButton" href="./admin.html" aria-label="Ir al panel principal de administración">
                 <span class="account-menu__avatar" id="adminAccountAvatar">
                   <img id="adminAccountAvatarImage" alt="Foto del administrador" hidden />
                   <span id="adminAccountAvatarFallback">A</span>
                 </span>
-              </button>
-              <div class="account-menu__panel glass-card" id="adminAccountPanel" hidden>
-                <div class="account-menu__identity">
-                  <strong id="adminAccountName">Administrador</strong>
-                  <p id="adminAccountMeta">Acceso verificado</p>
-                </div>
-                <div class="account-menu__actions">
-                  <a class="account-menu__item" href="./admin-profile.html">Perfil</a>
-                  <a class="account-menu__item" href="./admin.html">Dashboard</a>
-                  <a class="account-menu__item" href="./admin.html">Restaurantes</a>
-                  <a class="account-menu__item" href="./admin.html">Mensajes</a>
-                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">Cerrar sesión</button>
-                </div>
-              </div>
+              </a>
             </div>
           </div>
         </div>
