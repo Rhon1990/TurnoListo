@@ -11,14 +11,21 @@ const adminCreateAdminForm = document.querySelector("#adminCreateAdminForm");
 const adminCreateAdminFeedback = document.querySelector("#adminCreateAdminFeedback");
 const adminUsersList = document.querySelector("#adminUsersList");
 const adminMessagesShortcut = document.querySelector("#adminMessagesShortcut");
+const adminUnreadMessagesBadge = document.querySelector("#adminUnreadMessagesBadge");
 const adminAccountButton = document.querySelector("#adminAccountButton");
+const adminAccountPanel = document.querySelector("#adminAccountPanel");
 const adminAccountAvatarImage = document.querySelector("#adminAccountAvatarImage");
 const adminAccountAvatarFallback = document.querySelector("#adminAccountAvatarFallback");
 const adminAccountName = document.querySelector("#adminAccountName");
 const adminAccountMeta = document.querySelector("#adminAccountMeta");
+const adminMenuDashboard = document.querySelector("#adminMenuDashboard");
+const adminMenuRestaurants = document.querySelector("#adminMenuRestaurants");
+const adminMenuMessages = document.querySelector("#adminMenuMessages");
+const adminMenuLogout = document.querySelector("#adminMenuLogout");
 
 let selectedAdminAvatarUrl = "";
 let adminUsers = [];
+let adminMessagesUnsubscribe = null;
 
 initializeAdminProfilePage();
 
@@ -27,8 +34,17 @@ function initializeAdminProfilePage() {
   adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
   adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
   adminMessagesShortcut?.addEventListener("click", () => {
-    window.location.href = "./admin.html";
+    window.location.href = "./admin.html#messages";
   });
+  adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
+  adminMenuDashboard?.addEventListener("click", () => navigateToAdminSection("dashboard"));
+  adminMenuRestaurants?.addEventListener("click", () => navigateToAdminSection("restaurants"));
+  adminMenuMessages?.addEventListener("click", () => navigateToAdminSection("messages"));
+  adminMenuLogout?.addEventListener("click", async () => {
+    closeAdminAccountMenu();
+    await handleAdminLogout();
+  });
+  window.addEventListener("click", handleAdminAccountOutsideClick);
   waitForDataReady().then(() => {
     initializeAdminProfileAuth();
   });
@@ -54,6 +70,7 @@ function initializeAdminProfileAuth() {
         return;
       }
 
+      initializeAdminInbox();
       renderAdminAccount(profile);
       renderAdminProfile(profile);
       await refreshAdminUsers();
@@ -272,6 +289,75 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
 
 function buildAdminAccessUrl() {
   return new URL("./admin.html", window.location.href).toString();
+}
+
+function navigateToAdminSection(section) {
+  closeAdminAccountMenu();
+  const nextHash = section === "dashboard" ? "" : `#${section}`;
+  window.location.href = `./admin.html${nextHash}`;
+}
+
+async function initializeAdminInbox() {
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.loadCollection !== "function") return;
+
+  adminMessagesUnsubscribe?.();
+  adminMessagesUnsubscribe = null;
+
+  try {
+    const inquiries = await backend.loadCollection("contactInquiries");
+    updateAdminInboxBadge(inquiries);
+    if (typeof backend.subscribeCollection === "function") {
+      adminMessagesUnsubscribe = backend.subscribeCollection("contactInquiries", (items) => {
+        updateAdminInboxBadge(items);
+      });
+    }
+  } catch (error) {
+    console.error("No se pudo cargar el contador de mensajes.", error);
+  }
+}
+
+function updateAdminInboxBadge(items) {
+  if (!adminUnreadMessagesBadge) return;
+  const unreadCount = (Array.isArray(items) ? items : []).filter(
+    (item) => !(item?.isRead === true || String(item?.status || "").trim().toLowerCase() === "read"),
+  ).length;
+  adminUnreadMessagesBadge.textContent = String(unreadCount);
+  adminUnreadMessagesBadge.hidden = unreadCount <= 0;
+}
+
+async function handleAdminLogout() {
+  adminMessagesUnsubscribe?.();
+  adminMessagesUnsubscribe = null;
+  const backend = await waitForFirebaseBackend();
+  preparePrivateFirebaseSignOut();
+  clearCurrentUserProfile();
+  if (backend?.enabled && typeof backend.signOut === "function") {
+    await backend.signOut();
+  }
+  redirectToAdmin();
+}
+
+function toggleAdminAccountMenu(event) {
+  event?.stopPropagation();
+  if (!adminAccountPanel || !adminAccountButton) return;
+  const shouldOpen = adminAccountPanel.hidden;
+  adminAccountPanel.hidden = !shouldOpen;
+  adminAccountButton.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeAdminAccountMenu() {
+  if (!adminAccountPanel || !adminAccountButton) return;
+  adminAccountPanel.hidden = true;
+  adminAccountButton.setAttribute("aria-expanded", "false");
+}
+
+function handleAdminAccountOutsideClick(event) {
+  if (!adminAccountPanel || adminAccountPanel.hidden) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#adminAccountMenu")) return;
+  closeAdminAccountMenu();
 }
 
 async function optimizeAccountImage(file) {

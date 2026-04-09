@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409k" />
+    <link rel="stylesheet" href="./styles.css?v=20260409l" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -26,12 +26,23 @@
           </a>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
             <div class="account-menu" id="restaurantAccountMenu">
-              <a class="account-menu__trigger" id="restaurantAccountButton" href="./restaurant.html" aria-label="Ir al panel principal del restaurante">
+              <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
                 <span class="account-menu__avatar" id="restaurantAccountAvatar">
                   <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
                   <span id="restaurantAccountAvatarFallback">R</span>
                 </span>
-              </a>
+              </button>
+              <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="restaurantAccountName">Restaurante</strong>
+                  <p id="restaurantAccountMeta">Acceso verificado</p>
+                </div>
+                <div class="account-menu__actions">
+                  <a class="account-menu__item" href="./restaurant-profile.html">Perfil</a>
+                  <a class="account-menu__item" href="./contact.html">Contáctenos</a>
+                  <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">Cerrar sesión</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -141,6 +152,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./restaurant-profile.js?v=20260409k"></script>
+    <script src="./restaurant-profile.js?v=20260409l"></script>
   </body>
 </html>

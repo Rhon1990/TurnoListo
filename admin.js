@@ -140,8 +140,7 @@ bindAdminActionQueue(adminActionRisk, "at-risk");
 bindAdminActionQueue(adminActionHealthy, "healthy");
 adminTabs.forEach((button) => {
   button.addEventListener("click", () => {
-    activeAdminSection = button.dataset.adminSection || "dashboard";
-    syncAdminSections();
+    navigateAdminSection(button.dataset.adminSection || "dashboard");
   });
 });
 [adminSearchInput, adminStatusFilter, adminActivityFilter, adminLifecycleFilter].forEach((control) => {
@@ -165,8 +164,15 @@ adminProfileForm?.addEventListener("submit", handleAdminProfileSubmit);
 adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
 adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
 window.addEventListener("click", handleAdminAccountOutsideClick);
+window.addEventListener("hashchange", () => {
+  syncAdminSectionFromHash();
+  if (isAdminAuthenticated()) {
+    syncAdminSections();
+  }
+});
 
 function bootAdminPage() {
+  syncAdminSectionFromHash();
   initializeTermHints(document.querySelector("#adminWorkspace"));
   syncAdminAccess();
   syncActivationDaysWithPlan();
@@ -215,6 +221,12 @@ function syncAdminSections() {
     panel.hidden = !isActive;
     panel.classList.toggle("restaurant-section--active", isActive);
   });
+}
+
+function syncAdminSectionFromHash() {
+  const section = String(window.location.hash || "").replace(/^#/, "").trim();
+  const allowed = new Set(["dashboard", "create", "restaurants", "messages"]);
+  activeAdminSection = allowed.has(section) ? section : "dashboard";
 }
 
 async function handleAdminLogin(event) {
@@ -435,6 +447,10 @@ function initializeAdminFirebaseAuth() {
 function navigateAdminSection(section) {
   closeAdminAccountMenu();
   activeAdminSection = section;
+  const nextHash = section === "dashboard" ? "" : `#${section}`;
+  if (window.location.hash !== nextHash) {
+    history.replaceState(null, "", `${window.location.pathname}${nextHash}`);
+  }
   syncAdminSections();
 }
 
