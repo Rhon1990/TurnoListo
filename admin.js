@@ -142,7 +142,6 @@ function initializeTermHints(root, tooltip, getTimer, setTimer) {
   root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
     const hint = String(element.dataset.termHint || "").trim();
     if (hint) {
-      element.setAttribute("title", hint);
       element.setAttribute("aria-label", hint);
     }
     if (element.dataset.termHintBound === "true") return;
