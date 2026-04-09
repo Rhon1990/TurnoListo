@@ -190,6 +190,75 @@ body.celebration-active::after {
   justify-self: start;
 }
 
+.workspace-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: min(100%, 720px);
+  max-width: 100%;
+  margin-bottom: 1.15rem;
+  padding: 0.95rem 1.15rem 0.95rem 0.95rem;
+  border-radius: 34px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 240, 0.96) 58%, rgba(252, 244, 234, 0.92)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 48%);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  box-shadow: 0 20px 44px rgba(105, 66, 28, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-brand::after {
+  content: "";
+  position: absolute;
+  inset: 10% auto 10% 156px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(236, 124, 13, 0.18), rgba(185, 29, 43, 0.08), rgba(236, 124, 13, 0.18));
+  pointer-events: none;
+}
+
+.workspace-brand__image {
+  width: clamp(102px, 12vw, 148px);
+  height: auto;
+  display: block;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 12px 20px rgba(216, 101, 0, 0.16));
+}
+
+.workspace-brand__copy {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+  padding-left: 0.85rem;
+}
+
+.workspace-brand__name {
+  margin: 0;
+  font-size: clamp(2.3rem, 4.3vw, 4rem);
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  font-weight: 700;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+.workspace-brand__name span {
+  color: var(--brand-accent);
+}
+
+.workspace-brand__tagline {
+  margin: 0;
+  font-size: clamp(0.9rem, 1.18vw, 1.18rem);
+  font-family: var(--font-brand-soft);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--brand);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
 .hero-brand {
   display: inline-flex;
   align-items: center;
@@ -2377,6 +2446,16 @@ button:hover,
     width: 100%;
   }
 
+  .workspace-brand {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem 1.05rem;
+  }
+
+  .workspace-brand::after {
+    inset: 10% auto 10% 144px;
+  }
+
   .auth-layout,
   .auth-proof-grid {
     grid-template-columns: 1fr;
@@ -2482,11 +2561,43 @@ button:hover,
     letter-spacing: -0.045em;
   }
 
+  .workspace-brand {
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.9rem 0.8rem;
+    text-align: center;
+    border-radius: 26px;
+  }
+
+  .workspace-brand::after {
+    display: none;
+  }
+
+  .workspace-brand__image {
+    width: min(100%, 106px);
+  }
+
+  .workspace-brand__copy {
+    justify-items: center;
+    padding-left: 0;
+  }
+
+  .workspace-brand__name {
+    font-size: clamp(1.9rem, 9.8vw, 2.8rem);
+    white-space: normal;
+  }
+
   .auth-brand__tagline {
     font-size: 0.74rem;
     white-space: normal;
     max-width: 24ch;
     line-height: 1.2;
+  }
+
+  .workspace-brand__tagline {
+    font-size: 0.8rem;
+    white-space: normal;
+    max-width: 24ch;
   }
 
   .auth-showcase__copy h2,
