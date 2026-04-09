@@ -539,13 +539,25 @@ async function handleRestaurantLogin(event) {
     restaurantLoginUsername.focus();
   } catch (error) {
     console.error("No se pudo iniciar sesion con Firebase Authentication.", error);
+    const errorCode = String(error?.code || "");
+    const isCredentialError = [
+      "auth/invalid-credential",
+      "auth/user-not-found",
+      "auth/wrong-password",
+      "auth/invalid-login-credentials",
+      "auth/invalid-email",
+    ].includes(errorCode);
+
     restaurantLoginFeedback.textContent =
       knownRestaurant
-        ? "No se pudo iniciar sesion. Verifica que este correo exista en Firebase Authentication y que la clave coincida."
+        ? "No se pudo iniciar sesion. Verifica que la cuenta del restaurante exista en Firebase Authentication y que la clave coincida."
         : "Usuario o contrasena incorrectos.";
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
-    showTurnoAlert("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}.", "error");
+
+    if (!isCredentialError) {
+      showTurnoAlert("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}.", "error");
+    }
   }
 }
 
