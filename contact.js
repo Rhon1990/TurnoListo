@@ -6,6 +6,13 @@ const contactCompany = document.querySelector("#contactCompany");
 const contactEmail = document.querySelector("#contactEmail");
 const contactPhone = document.querySelector("#contactPhone");
 const contactInterest = document.querySelector("#contactInterest");
+const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
+const restaurantAccountPanel = document.querySelector("#restaurantAccountPanel");
+const restaurantAccountAvatarImage = document.querySelector("#restaurantAccountAvatarImage");
+const restaurantAccountAvatarFallback = document.querySelector("#restaurantAccountAvatarFallback");
+const restaurantAccountName = document.querySelector("#restaurantAccountName");
+const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
+const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
 const RESTAURANT_STORAGE_KEY = "turnolisto-restaurants-v1";
 const RESTAURANT_SESSION_KEY = "turnolisto-restaurant-session-v1";
 
@@ -13,6 +20,12 @@ let contactPrefillSnapshot = null;
 
 if (contactForm && contactFeedback && contactSubmitButton) {
   contactForm.addEventListener("submit", handleContactSubmit);
+  restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
+  restaurantMenuLogout?.addEventListener("click", async () => {
+    closeRestaurantAccountMenu();
+    await handleRestaurantLogout();
+  });
+  window.addEventListener("click", handleRestaurantAccountOutsideClick);
   initializeContactPrefill();
 }
 
@@ -83,6 +96,7 @@ async function initializeContactPrefill() {
   if (localRestaurant) {
     contactPrefillSnapshot = buildContactPrefillFromRestaurant(localRestaurant);
     applyContactPrefillSnapshot();
+    renderRestaurantAccount(localRestaurant);
   }
 
   try {
@@ -106,6 +120,7 @@ async function initializeContactPrefill() {
 
     contactPrefillSnapshot = buildContactPrefillFromRestaurant(restaurant, profile, user);
     applyContactPrefillSnapshot();
+    renderRestaurantAccount(restaurant);
   } catch (error) {
     console.error("No se pudieron precargar los datos del restaurante en contacto.", error);
   }
@@ -181,4 +196,63 @@ function setInputValueIfEmpty(element, value) {
   if (!element) return;
   if (String(element.value || "").trim()) return;
   element.value = String(value || "").trim();
+}
+
+function renderRestaurantAccount(restaurant) {
+  if (!restaurantAccountName) return;
+  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const logoUrl = String(restaurant?.logoUrl || "").trim();
+  restaurantAccountName.textContent = restaurantName;
+  restaurantAccountMeta.textContent = "Acceso verificado";
+  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+
+  if (logoUrl) {
+    restaurantAccountAvatarImage.src = logoUrl;
+    restaurantAccountAvatarImage.hidden = false;
+    restaurantAccountAvatarFallback.hidden = true;
+  } else {
+    restaurantAccountAvatarImage.hidden = true;
+    restaurantAccountAvatarImage.removeAttribute("src");
+    restaurantAccountAvatarFallback.hidden = false;
+  }
+}
+
+async function handleRestaurantLogout() {
+  const backend = await window.__turnoFirebaseReadyPromise;
+  if (typeof window.preparePrivateFirebaseSignOut === "function") {
+    window.preparePrivateFirebaseSignOut();
+  } else if (typeof preparePrivateFirebaseSignOut === "function") {
+    preparePrivateFirebaseSignOut();
+  }
+  if (typeof window.clearCurrentRestaurantSession === "function") {
+    window.clearCurrentRestaurantSession();
+  } else if (typeof clearCurrentRestaurantSession === "function") {
+    clearCurrentRestaurantSession();
+  }
+  if (backend?.enabled && typeof backend.signOut === "function") {
+    await backend.signOut();
+  }
+  window.location.href = "./restaurant.html";
+}
+
+function toggleRestaurantAccountMenu(event) {
+  event?.stopPropagation();
+  if (!restaurantAccountPanel || !restaurantAccountButton) return;
+  const shouldOpen = restaurantAccountPanel.hidden;
+  restaurantAccountPanel.hidden = !shouldOpen;
+  restaurantAccountButton.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeRestaurantAccountMenu() {
+  if (!restaurantAccountPanel || !restaurantAccountButton) return;
+  restaurantAccountPanel.hidden = true;
+  restaurantAccountButton.setAttribute("aria-expanded", "false");
+}
+
+function handleRestaurantAccountOutsideClick(event) {
+  if (!restaurantAccountPanel || restaurantAccountPanel.hidden) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#restaurantAccountMenu")) return;
+  closeRestaurantAccountMenu();
 }

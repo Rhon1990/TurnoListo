@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409j" />
+    <link rel="stylesheet" href="./styles.css?v=20260409k" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -25,8 +25,31 @@
             </div>
           </a>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
-            <span class="workspace-status">Perfil administrador</span>
-            <a class="workspace-contact-button" href="./admin.html">Volver al admin</a>
+            <button class="workspace-mail-button" type="button" id="adminMessagesShortcut" aria-label="Volver a mensajes">
+              <span class="workspace-mail-button__icon" aria-hidden="true">✉</span>
+              <span class="workspace-mail-button__label">Mensajes</span>
+            </button>
+            <div class="account-menu" id="adminAccountMenu">
+              <button class="account-menu__trigger" id="adminAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+                <span class="account-menu__avatar" id="adminAccountAvatar">
+                  <img id="adminAccountAvatarImage" alt="Foto del administrador" hidden />
+                  <span id="adminAccountAvatarFallback">A</span>
+                </span>
+              </button>
+              <div class="account-menu__panel glass-card" id="adminAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="adminAccountName">Administrador</strong>
+                  <p id="adminAccountMeta">Acceso verificado</p>
+                </div>
+                <div class="account-menu__actions">
+                  <a class="account-menu__item" href="./admin-profile.html">Perfil</a>
+                  <a class="account-menu__item" href="./admin.html">Dashboard</a>
+                  <a class="account-menu__item" href="./admin.html">Restaurantes</a>
+                  <a class="account-menu__item" href="./admin.html">Mensajes</a>
+                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">Cerrar sesión</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -137,6 +160,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin-profile.js?v=20260409j"></script>
+    <script src="./admin-profile.js?v=20260409k"></script>
   </body>
 </html>

@@ -10,6 +10,14 @@ const adminProfileFeedback = document.querySelector("#adminProfileFeedback");
 const adminCreateAdminForm = document.querySelector("#adminCreateAdminForm");
 const adminCreateAdminFeedback = document.querySelector("#adminCreateAdminFeedback");
 const adminUsersList = document.querySelector("#adminUsersList");
+const adminMessagesShortcut = document.querySelector("#adminMessagesShortcut");
+const adminAccountButton = document.querySelector("#adminAccountButton");
+const adminAccountPanel = document.querySelector("#adminAccountPanel");
+const adminAccountAvatarImage = document.querySelector("#adminAccountAvatarImage");
+const adminAccountAvatarFallback = document.querySelector("#adminAccountAvatarFallback");
+const adminAccountName = document.querySelector("#adminAccountName");
+const adminAccountMeta = document.querySelector("#adminAccountMeta");
+const adminMenuLogout = document.querySelector("#adminMenuLogout");
 
 let selectedAdminAvatarUrl = "";
 let adminUsers = [];
@@ -20,6 +28,15 @@ function initializeAdminProfilePage() {
   adminProfileForm?.addEventListener("submit", handleAdminProfileSubmit);
   adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
   adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
+  adminMessagesShortcut?.addEventListener("click", () => {
+    window.location.href = "./admin.html";
+  });
+  adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
+  adminMenuLogout?.addEventListener("click", async () => {
+    closeAdminAccountMenu();
+    await handleAdminLogout();
+  });
+  window.addEventListener("click", handleAdminAccountOutsideClick);
   waitForDataReady().then(() => {
     initializeAdminProfileAuth();
   });
@@ -45,6 +62,7 @@ function initializeAdminProfileAuth() {
         return;
       }
 
+      renderAdminAccount(profile);
       renderAdminProfile(profile);
       await refreshAdminUsers();
     });
@@ -61,6 +79,25 @@ function renderAdminProfile(profile) {
   adminProfilePhone.value = profile.phone || "";
   adminProfileTitle.value = profile.title || "";
   syncAdminAvatarPreview(selectedAdminAvatarUrl || profile.avatarUrl || "");
+}
+
+function renderAdminAccount(profile) {
+  const displayName = String(profile?.displayName || profile?.email || "Administrador").trim();
+  const title = String(profile?.title || "").trim();
+  const avatarUrl = String(profile?.avatarUrl || "").trim();
+  adminAccountName.textContent = displayName;
+  adminAccountMeta.textContent = title ? `${title} · Acceso verificado` : "Acceso verificado";
+  adminAccountAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "A";
+
+  if (avatarUrl) {
+    adminAccountAvatarImage.src = avatarUrl;
+    adminAccountAvatarImage.hidden = false;
+    adminAccountAvatarFallback.hidden = true;
+  } else {
+    adminAccountAvatarImage.hidden = true;
+    adminAccountAvatarImage.removeAttribute("src");
+    adminAccountAvatarFallback.hidden = false;
+  }
 }
 
 function syncAdminAvatarPreview(avatarUrl) {
@@ -120,6 +157,7 @@ async function handleAdminProfileSubmit(event) {
     adminProfileFeedback.textContent = "Perfil administrador actualizado correctamente.";
     adminProfileFeedback.className = "form-feedback form-feedback--success";
     adminProfileFeedback.hidden = false;
+    renderAdminAccount(getCurrentUserProfile() || {});
     renderAdminProfile(getCurrentUserProfile() || {});
     await refreshAdminUsers();
   } catch (error) {
@@ -242,6 +280,38 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
 
 function buildAdminAccessUrl() {
   return new URL("./admin.html", window.location.href).toString();
+}
+
+async function handleAdminLogout() {
+  const backend = await waitForFirebaseBackend();
+  preparePrivateFirebaseSignOut();
+  clearCurrentUserProfile();
+  if (backend?.enabled && typeof backend.signOut === "function") {
+    await backend.signOut();
+  }
+  redirectToAdmin();
+}
+
+function toggleAdminAccountMenu(event) {
+  event?.stopPropagation();
+  if (!adminAccountPanel || !adminAccountButton) return;
+  const shouldOpen = adminAccountPanel.hidden;
+  adminAccountPanel.hidden = !shouldOpen;
+  adminAccountButton.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeAdminAccountMenu() {
+  if (!adminAccountPanel || !adminAccountButton) return;
+  adminAccountPanel.hidden = true;
+  adminAccountButton.setAttribute("aria-expanded", "false");
+}
+
+function handleAdminAccountOutsideClick(event) {
+  if (!adminAccountPanel || adminAccountPanel.hidden) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#adminAccountMenu")) return;
+  closeAdminAccountMenu();
 }
 
 async function optimizeAccountImage(file) {

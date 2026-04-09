@@ -12,7 +12,13 @@ const restaurantProfileNotes = document.querySelector("#restaurantProfileNotes")
 const restaurantProfilePlanName = document.querySelector("#restaurantProfilePlanName");
 const restaurantProfileActivatedUntil = document.querySelector("#restaurantProfileActivatedUntil");
 const restaurantProfileFeedback = document.querySelector("#restaurantProfileFeedback");
-const restaurantProfileTopStatus = document.querySelector("#restaurantProfileTopStatus");
+const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
+const restaurantAccountPanel = document.querySelector("#restaurantAccountPanel");
+const restaurantAccountAvatarImage = document.querySelector("#restaurantAccountAvatarImage");
+const restaurantAccountAvatarFallback = document.querySelector("#restaurantAccountAvatarFallback");
+const restaurantAccountName = document.querySelector("#restaurantAccountName");
+const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
+const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
 
 let selectedRestaurantProfileLogoUrl = "";
 
@@ -21,6 +27,12 @@ initializeRestaurantProfilePage();
 function initializeRestaurantProfilePage() {
   restaurantProfileForm?.addEventListener("submit", handleRestaurantProfileSubmit);
   restaurantProfileLogoInput?.addEventListener("change", handleRestaurantProfileLogoSelection);
+  restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
+  restaurantMenuLogout?.addEventListener("click", async () => {
+    closeRestaurantAccountMenu();
+    await handleRestaurantLogout();
+  });
+  window.addEventListener("click", handleRestaurantAccountOutsideClick);
   waitForDataReady().then(() => {
     initializeRestaurantProfileAuth();
   });
@@ -61,7 +73,7 @@ function redirectToRestaurant() {
 
 function renderRestaurantProfile(restaurant) {
   if (!restaurant) return;
-  restaurantProfileTopStatus.textContent = restaurant.name || "Perfil restaurante";
+  renderRestaurantAccount(restaurant);
   restaurantProfileName.value = restaurant.name || "";
   restaurantProfileOwnerName.value = restaurant.ownerName || "";
   restaurantProfileEmail.value = restaurant.email || "";
@@ -72,6 +84,24 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfilePlanName.textContent = restaurant.planName || "Sin plan";
   restaurantProfileActivatedUntil.textContent = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : "Sin fecha";
   syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl || restaurant.logoUrl || "");
+}
+
+function renderRestaurantAccount(restaurant) {
+  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const logoUrl = String(restaurant?.logoUrl || "").trim();
+  restaurantAccountName.textContent = restaurantName;
+  restaurantAccountMeta.textContent = "Acceso verificado";
+  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+
+  if (logoUrl) {
+    restaurantAccountAvatarImage.src = logoUrl;
+    restaurantAccountAvatarImage.hidden = false;
+    restaurantAccountAvatarFallback.hidden = true;
+  } else {
+    restaurantAccountAvatarImage.hidden = true;
+    restaurantAccountAvatarImage.removeAttribute("src");
+    restaurantAccountAvatarFallback.hidden = false;
+  }
 }
 
 function formatProfileDate(value) {
@@ -142,6 +172,38 @@ function handleRestaurantProfileSubmit(event) {
   restaurantProfileFeedback.className = "form-feedback form-feedback--success";
   restaurantProfileFeedback.hidden = false;
   renderRestaurantProfile(nextRestaurant);
+}
+
+async function handleRestaurantLogout() {
+  const backend = await waitForFirebaseBackend();
+  preparePrivateFirebaseSignOut();
+  clearCurrentRestaurantSession();
+  if (backend?.enabled && typeof backend.signOut === "function") {
+    await backend.signOut();
+  }
+  redirectToRestaurant();
+}
+
+function toggleRestaurantAccountMenu(event) {
+  event?.stopPropagation();
+  if (!restaurantAccountPanel || !restaurantAccountButton) return;
+  const shouldOpen = restaurantAccountPanel.hidden;
+  restaurantAccountPanel.hidden = !shouldOpen;
+  restaurantAccountButton.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeRestaurantAccountMenu() {
+  if (!restaurantAccountPanel || !restaurantAccountButton) return;
+  restaurantAccountPanel.hidden = true;
+  restaurantAccountButton.setAttribute("aria-expanded", "false");
+}
+
+function handleRestaurantAccountOutsideClick(event) {
+  if (!restaurantAccountPanel || restaurantAccountPanel.hidden) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#restaurantAccountMenu")) return;
+  closeRestaurantAccountMenu();
 }
 
 async function optimizeAccountImage(file) {
