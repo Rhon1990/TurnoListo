@@ -2745,6 +2745,15 @@ button:hover,
   line-height: 1.5;
 }
 
+.dashboard-insight--empty-chart {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
 .qr-link {
   color: var(--brand-dark);
   font-weight: 700;

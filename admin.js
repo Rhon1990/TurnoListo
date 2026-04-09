@@ -140,9 +140,16 @@ function bootAdminPage() {
 function initializeTermHints(root, tooltip, getTimer, setTimer) {
   if (!root || !tooltip) return;
   root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
+    const hint = String(element.dataset.termHint || "").trim();
+    if (hint) {
+      element.setAttribute("title", hint);
+      element.setAttribute("aria-label", hint);
+    }
     if (element.dataset.termHintBound === "true") return;
     element.dataset.termHintBound = "true";
-    element.tabIndex = 0;
+    if (!element.closest("button")) {
+      element.tabIndex = 0;
+    }
     element.addEventListener("mouseenter", () => {
       window.clearTimeout(getTimer());
       showTermTooltip(element, tooltip);

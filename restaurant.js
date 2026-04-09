@@ -680,7 +680,7 @@ function renderDashboardDonut(container, items, centerLabel) {
 
   if (!total) {
     const empty = document.createElement("article");
-    empty.className = "dashboard-insight";
+    empty.className = "dashboard-insight dashboard-insight--empty-chart";
     empty.textContent = "Sin datos suficientes por ahora.";
     container.append(empty);
     return;
@@ -948,9 +948,9 @@ function buildOrderCard(order, isArchived) {
   compactTop.className = "order-card__summary-top";
   compactTime.className = "order-card__summary-time";
   intelligence.className = "order-card__intelligence";
-  intelligenceLabel.className = "order-card__intelligence-label";
-  intelligenceBadge.className = `order-card__intelligence-badge order-card__intelligence-badge--${order.aiRiskLevel || "low"}`;
-  intelligenceEta.className = "order-card__intelligence-eta";
+  intelligenceLabel.className = "order-card__intelligence-label term-hint";
+  intelligenceBadge.className = `order-card__intelligence-badge order-card__intelligence-badge--${order.aiRiskLevel || "low"} term-hint`;
+  intelligenceEta.className = "order-card__intelligence-eta term-hint";
   intelligenceReason.className = "order-card__intelligence-reason";
   compactSide.className = "order-card__summary-side";
   ratingRow.className = "order-card__rating-row";
@@ -972,6 +972,16 @@ function buildOrderCard(order, isArchived) {
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
   intelligenceReason.textContent = order.aiReason || "Sin lectura inteligente todavía.";
+  intelligenceLabel.dataset.termHint =
+    "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
+  intelligenceBadge.dataset.termHint =
+    order.aiRiskLevel === "high"
+      ? "Riesgo alto significa que este pedido necesita atencion inmediata porque puede desviarse o ya esta comprometido."
+      : order.aiRiskLevel === "medium"
+        ? "Atencion significa que el pedido aun esta controlado, pero ya muestra señales de tension operativa."
+        : "Estable significa que el pedido va dentro de una ventana saludable segun la lectura actual del local.";
+  intelligenceEta.dataset.termHint =
+    "ETA IA es la estimacion inteligente de minutos restantes segun carga actual, historico del local y riesgo de retraso.";
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
