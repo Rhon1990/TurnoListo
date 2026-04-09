@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409l" />
+    <link rel="stylesheet" href="./styles.css?v=20260409m" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -384,20 +384,22 @@
               <div class="logo-upload-preview" id="adminRestaurantLogoPreview" hidden>
                 <img id="adminRestaurantLogoPreviewImage" alt="Vista previa del logo del restaurante" />
               </div>
-              <label class="field">
-                <span>Plan</span>
-                <select id="adminPlanSelect" name="planName">
-                  <option value="Quincenal">Quincenal</option>
-                  <option value="Mensual" selected>Mensual</option>
-                  <option value="Trimestral">Trimestral</option>
-                  <option value="Semestral">Semestral</option>
-                  <option value="Anual">Anual</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Días de activación</span>
-                <input id="adminActivationDays" name="activationDays" type="number" min="1" value="30" required />
-              </label>
+              <div class="admin-create-form__plan-stack">
+                <label class="field">
+                  <span>Plan</span>
+                  <select id="adminPlanSelect" name="planName">
+                    <option value="Quincenal">Quincenal</option>
+                    <option value="Mensual" selected>Mensual</option>
+                    <option value="Trimestral">Trimestral</option>
+                    <option value="Semestral">Semestral</option>
+                    <option value="Anual">Anual</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Días de activación</span>
+                  <input id="adminActivationDays" name="activationDays" type="number" min="1" value="30" required />
+                </label>
+              </div>
               <label class="field field--wide">
                 <span>Notas internas</span>
                 <input name="notes" type="text" placeholder="Observaciones comerciales, facturación, seguimiento..." />
