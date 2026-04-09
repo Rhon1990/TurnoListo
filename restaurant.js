@@ -1054,7 +1054,11 @@ function matchesActiveFilters(order) {
 }
 
 function compareActiveOrders(left, right) {
-  const sortOrder = activeSortOrder.value || "urgency";
+  const sortOrder = activeSortOrder.value || "all";
+  if (sortOrder === "all") {
+    return 0;
+  }
+
   if (sortOrder === "newest") {
     return new Date(right.createdAt) - new Date(left.createdAt);
   }
