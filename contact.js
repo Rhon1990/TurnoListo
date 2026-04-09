@@ -1,9 +1,17 @@
 const contactForm = document.querySelector("#contactForm");
 const contactFeedback = document.querySelector("#contactFormFeedback");
 const contactSubmitButton = document.querySelector("#contactSubmitButton");
+const contactName = document.querySelector("#contactName");
+const contactCompany = document.querySelector("#contactCompany");
+const contactEmail = document.querySelector("#contactEmail");
+const contactPhone = document.querySelector("#contactPhone");
+const contactInterest = document.querySelector("#contactInterest");
+
+let contactPrefillSnapshot = null;
 
 if (contactForm && contactFeedback && contactSubmitButton) {
   contactForm.addEventListener("submit", handleContactSubmit);
+  initializeContactPrefill();
 }
 
 function setContactFeedback(message, type = "success") {
@@ -42,6 +50,7 @@ async function handleContactSubmit(event) {
 
     await backend.submitContactInquiry(payload);
     contactForm.reset();
+    applyContactPrefillSnapshot();
     setContactFeedback(
       "Tu solicitud se registró correctamente. El equipo de TurnoListo la revisará desde la bandeja interna de administración.",
       "success",
@@ -55,4 +64,55 @@ async function handleContactSubmit(event) {
   } finally {
     contactSubmitButton.disabled = false;
   }
+}
+
+async function initializeContactPrefill() {
+  try {
+    const backend = await window.__turnoFirebaseReadyPromise;
+    if (!backend?.enabled || typeof backend.getCurrentUser !== "function" || typeof backend.getDocument !== "function") {
+      return;
+    }
+
+    const user = backend.getCurrentUser();
+    if (!user?.uid) return;
+
+    const profile = await backend.getDocument("users", user.uid);
+    if (!profile || profile.role !== "restaurant" || !profile.restaurantId) return;
+
+    const restaurant = await backend.getDocument("restaurants", profile.restaurantId);
+    if (!restaurant) return;
+
+    contactPrefillSnapshot = {
+      name: String(restaurant.ownerName || restaurant.name || "").trim(),
+      company: String(restaurant.name || "").trim(),
+      email: String(restaurant.email || profile.email || user.email || "").trim(),
+      phone: String(restaurant.phone || "").trim(),
+      interest: "Soporte operativo",
+    };
+
+    applyContactPrefillSnapshot();
+  } catch (error) {
+    console.error("No se pudieron precargar los datos del restaurante en contacto.", error);
+  }
+}
+
+function applyContactPrefillSnapshot() {
+  if (!contactPrefillSnapshot) return;
+
+  setInputValueIfEmpty(contactName, contactPrefillSnapshot.name);
+  setInputValueIfEmpty(contactCompany, contactPrefillSnapshot.company);
+  setInputValueIfEmpty(contactEmail, contactPrefillSnapshot.email);
+  setInputValueIfEmpty(contactPhone, contactPrefillSnapshot.phone);
+
+  if (contactInterest && !String(contactInterest.value || "").trim()) {
+    contactInterest.value = contactPrefillSnapshot.interest;
+  } else if (contactInterest && contactInterest.value === "Interés de inversión") {
+    contactInterest.value = contactPrefillSnapshot.interest;
+  }
+}
+
+function setInputValueIfEmpty(element, value) {
+  if (!element) return;
+  if (String(element.value || "").trim()) return;
+  element.value = String(value || "").trim();
 }
