@@ -11,7 +11,14 @@ const restaurantProfileAddress = document.querySelector("#restaurantProfileAddre
 const restaurantProfileNotes = document.querySelector("#restaurantProfileNotes");
 const restaurantProfilePlanName = document.querySelector("#restaurantProfilePlanName");
 const restaurantProfileActivatedUntil = document.querySelector("#restaurantProfileActivatedUntil");
+const restaurantProfileStatus = document.querySelector("#restaurantProfileStatus");
+const restaurantProfilePlanNameCard = document.querySelector("#restaurantProfilePlanNameCard");
+const restaurantProfileActivatedUntilCard = document.querySelector("#restaurantProfileActivatedUntilCard");
 const restaurantProfileFeedback = document.querySelector("#restaurantProfileFeedback");
+const restaurantProfileSummaryAvatarImage = document.querySelector("#restaurantProfileSummaryAvatarImage");
+const restaurantProfileSummaryAvatarFallback = document.querySelector("#restaurantProfileSummaryAvatarFallback");
+const restaurantProfileSummaryName = document.querySelector("#restaurantProfileSummaryName");
+const restaurantProfileSummaryTitle = document.querySelector("#restaurantProfileSummaryTitle");
 const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
 const restaurantAccountPanel = document.querySelector("#restaurantAccountPanel");
 const restaurantAccountAvatarImage = document.querySelector("#restaurantAccountAvatarImage");
@@ -81,9 +88,15 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfileCity.value = restaurant.city || "";
   restaurantProfileAddress.value = restaurant.address || "";
   restaurantProfileNotes.value = restaurant.notes || "";
-  restaurantProfilePlanName.textContent = restaurant.planName || "Sin plan";
-  restaurantProfileActivatedUntil.textContent = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : "Sin fecha";
+  const planName = restaurant.planName || "Sin plan";
+  const activatedUntil = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : "Sin fecha";
+  restaurantProfilePlanName.value = planName;
+  restaurantProfileActivatedUntil.value = activatedUntil;
+  if (restaurantProfilePlanNameCard) restaurantProfilePlanNameCard.textContent = planName;
+  if (restaurantProfileActivatedUntilCard) restaurantProfileActivatedUntilCard.textContent = activatedUntil;
+  if (restaurantProfileStatus) restaurantProfileStatus.value = "Acceso verificado";
   syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl || restaurant.logoUrl || "");
+  renderRestaurantProfileSummary(restaurant);
 }
 
 function renderRestaurantAccount(restaurant) {
@@ -101,6 +114,26 @@ function renderRestaurantAccount(restaurant) {
     restaurantAccountAvatarImage.hidden = true;
     restaurantAccountAvatarImage.removeAttribute("src");
     restaurantAccountAvatarFallback.hidden = false;
+  }
+}
+
+function renderRestaurantProfileSummary(restaurant) {
+  if (!restaurantProfileSummaryName) return;
+  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const ownerName = String(restaurant?.ownerName || "").trim();
+  const logoUrl = String(selectedRestaurantProfileLogoUrl || restaurant?.logoUrl || "").trim();
+  restaurantProfileSummaryName.textContent = restaurantName;
+  restaurantProfileSummaryTitle.textContent = ownerName || "Acceso verificado";
+  restaurantProfileSummaryAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+
+  if (logoUrl) {
+    restaurantProfileSummaryAvatarImage.src = logoUrl;
+    restaurantProfileSummaryAvatarImage.hidden = false;
+    restaurantProfileSummaryAvatarFallback.hidden = true;
+  } else {
+    restaurantProfileSummaryAvatarImage.hidden = true;
+    restaurantProfileSummaryAvatarImage.removeAttribute("src");
+    restaurantProfileSummaryAvatarFallback.hidden = false;
   }
 }
 
@@ -139,6 +172,17 @@ async function handleRestaurantProfileLogoSelection(event) {
   try {
     selectedRestaurantProfileLogoUrl = await optimizeAccountImage(file);
     syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl);
+    const currentRestaurant = getCurrentRestaurantSession()
+      ? getRestaurantById(getCurrentRestaurantSession().restaurantId)
+      : null;
+    if (currentRestaurant) {
+      renderRestaurantProfileSummary({
+        ...currentRestaurant,
+        name: restaurantProfileName?.value || currentRestaurant.name,
+        ownerName: restaurantProfileOwnerName?.value || currentRestaurant.ownerName,
+        logoUrl: selectedRestaurantProfileLogoUrl,
+      });
+    }
   } catch (error) {
     showTurnoAlert(error instanceof Error ? error.message : "No se pudo preparar el logo del restaurante.", "error");
   }

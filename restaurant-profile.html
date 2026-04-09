@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409l" />
+    <link rel="stylesheet" href="./styles.css?v=20260409m" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -65,51 +65,109 @@
         </div>
       </section>
 
-      <main class="contact-page__grid">
+      <main class="contact-page__grid admin-profile-layout">
         <section class="panel glass-card contact-form-panel">
           <div class="panel__heading">
             <div>
-              <p class="panel__kicker">Mi restaurante</p>
-              <h2>Datos del local</h2>
+              <p class="panel__kicker">Mi cuenta</p>
+              <h2>Perfil actual</h2>
             </div>
           </div>
-          <form class="quick-form admin-create-form" id="restaurantProfileForm">
-            <label class="field field--wide">
-              <span>Foto / logo del restaurante</span>
-              <input id="restaurantProfileLogoInput" type="file" accept="image/*" />
-              <small class="field__hint">Puedes cambiar el logo que verán tu equipo y los clientes.</small>
-            </label>
-            <div class="logo-upload-preview" id="restaurantProfileLogoPreview" hidden>
-              <img id="restaurantProfileLogoPreviewImage" alt="Vista previa del logo del restaurante" />
+          <div class="contact-card__stack admin-profile-summary">
+            <article class="contact-item admin-profile-hero">
+              <div class="admin-user-card__top">
+                <span class="admin-user-card__avatar" id="restaurantProfileSummaryAvatar">
+                  <img id="restaurantProfileSummaryAvatarImage" alt="Logo del restaurante" hidden />
+                  <span id="restaurantProfileSummaryAvatarFallback">R</span>
+                </span>
+                <div class="admin-user-card__identity">
+                  <h4 id="restaurantProfileSummaryName">Restaurante</h4>
+                  <p id="restaurantProfileSummaryTitle">Acceso verificado</p>
+                </div>
+              </div>
+            </article>
+          </div>
+          <form class="quick-form admin-profile-form" id="restaurantProfileForm">
+            <div class="admin-profile-block">
+              <div class="admin-profile-block__header">
+                <p class="panel__kicker">Identidad visual</p>
+                <h3>Foto y presencia de cuenta</h3>
+                <p>Actualiza la imagen que verás en la cabecera y en la identificación interna del panel.</p>
+              </div>
+              <div class="profile-upload">
+                <div class="logo-upload-preview logo-upload-preview--profile" id="restaurantProfileLogoPreview" hidden>
+                  <img id="restaurantProfileLogoPreviewImage" alt="Vista previa del logo del restaurante" />
+                </div>
+                <label class="field field--wide">
+                  <span>Foto de perfil</span>
+                  <input id="restaurantProfileLogoInput" type="file" accept="image/*" />
+                  <small class="field__hint">Usa una imagen limpia y reconocible para mantener consistencia en toda la operación.</small>
+                </label>
+              </div>
             </div>
-            <label class="field">
-              <span>Nombre del restaurante</span>
-              <input id="restaurantProfileName" name="name" type="text" required />
-            </label>
-            <label class="field">
-              <span>Responsable</span>
-              <input id="restaurantProfileOwnerName" name="ownerName" type="text" />
-            </label>
-            <label class="field">
-              <span>Correo</span>
-              <input id="restaurantProfileEmail" name="email" type="email" readonly />
-            </label>
-            <label class="field">
-              <span>Teléfono</span>
-              <input id="restaurantProfilePhone" name="phone" type="text" />
-            </label>
-            <label class="field">
-              <span>Ciudad</span>
-              <input id="restaurantProfileCity" name="city" type="text" />
-            </label>
-            <label class="field field--wide">
-              <span>Dirección</span>
-              <input id="restaurantProfileAddress" name="address" type="text" />
-            </label>
-            <label class="field field--wide">
-              <span>Notas internas</span>
-              <input id="restaurantProfileNotes" name="notes" type="text" />
-            </label>
+
+            <div class="admin-profile-divider" aria-hidden="true"></div>
+
+            <div class="admin-profile-block">
+              <div class="admin-profile-block__header">
+                <p class="panel__kicker">Información principal</p>
+                <p>Los datos clave del restaurante quedan ordenados en una sola vista, sin ruido visual innecesario.</p>
+              </div>
+              <div class="profile-form-grid">
+                <label class="field">
+                  <span>Nombre</span>
+                  <input id="restaurantProfileName" name="name" type="text" required />
+                </label>
+                <label class="field">
+                  <span>Responsable</span>
+                  <input id="restaurantProfileOwnerName" name="ownerName" type="text" />
+                </label>
+                <label class="field">
+                  <span>Correo</span>
+                  <input id="restaurantProfileEmail" name="email" type="email" readonly />
+                  <small class="field__hint">Se usa para iniciar sesión y no se modifica desde esta pantalla.</small>
+                </label>
+                <label class="field">
+                  <span>Teléfono</span>
+                  <input id="restaurantProfilePhone" name="phone" type="text" />
+                </label>
+                <label class="field">
+                  <span>Ciudad</span>
+                  <input id="restaurantProfileCity" name="city" type="text" />
+                </label>
+                <label class="field">
+                  <span>Plan</span>
+                  <input id="restaurantProfilePlanName" type="text" readonly />
+                </label>
+                <label class="field field--wide">
+                  <span>Dirección</span>
+                  <input id="restaurantProfileAddress" name="address" type="text" />
+                </label>
+                <label class="field field--wide">
+                  <span>Notas internas</span>
+                  <input id="restaurantProfileNotes" name="notes" type="text" />
+                </label>
+              </div>
+            </div>
+
+            <div class="admin-profile-divider" aria-hidden="true"></div>
+
+            <div class="admin-profile-block">
+              <div class="admin-profile-block__header">
+                <p class="panel__kicker">Trazabilidad</p>
+                <p>Referencia rápida del estado operativo de la cuenta y su vigencia actual.</p>
+              </div>
+              <div class="profile-form-grid profile-form-grid--meta">
+                <label class="field">
+                  <span>Acceso hasta</span>
+                  <input id="restaurantProfileActivatedUntil" type="text" readonly />
+                </label>
+                <label class="field">
+                  <span>Estado</span>
+                  <input id="restaurantProfileStatus" type="text" readonly value="Acceso verificado" />
+                </label>
+              </div>
+            </div>
             <div class="quick-form__actions">
               <button type="submit" class="launcher">Guardar perfil</button>
             </div>
@@ -128,12 +186,12 @@
             <div class="contact-card__stack">
               <article class="contact-item">
                 <p class="contact-item__label">Plan actual</p>
-                <p class="contact-item__value" id="restaurantProfilePlanName">Sin plan</p>
+                <p class="contact-item__value" id="restaurantProfilePlanNameCard">Sin plan</p>
                 <p class="contact-item__text">Plan comercial activo para la cuenta del restaurante.</p>
               </article>
               <article class="contact-item">
                 <p class="contact-item__label">Acceso hasta</p>
-                <p class="contact-item__value" id="restaurantProfileActivatedUntil">Sin fecha</p>
+                <p class="contact-item__value" id="restaurantProfileActivatedUntilCard">Sin fecha</p>
                 <p class="contact-item__text">Fecha hasta la que el acceso del local permanece operativo.</p>
               </article>
               <article class="contact-item">
@@ -152,6 +210,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./restaurant-profile.js?v=20260409l"></script>
+    <script src="./restaurant-profile.js?v=20260409m"></script>
   </body>
 </html>
