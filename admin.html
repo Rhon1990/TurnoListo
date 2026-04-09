@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409d" />
+    <link rel="stylesheet" href="./styles.css?v=20260409f" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -104,12 +104,32 @@
             </div>
           </div>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
-            <span class="workspace-status">Panel privado</span>
             <button class="workspace-mail-button" type="button" data-admin-section="messages" aria-label="Abrir bandeja de mensajes">
               <span class="workspace-mail-button__icon" aria-hidden="true">✉</span>
               <span class="workspace-mail-button__label">Mensajes</span>
               <span class="workspace-mail-button__badge" id="adminUnreadMessagesBadge" hidden>0</span>
             </button>
+            <div class="account-menu" id="adminAccountMenu">
+              <button class="account-menu__trigger" id="adminAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+                <span class="account-menu__avatar" id="adminAccountAvatar">
+                  <img id="adminAccountAvatarImage" alt="Foto del administrador" hidden />
+                  <span id="adminAccountAvatarFallback">A</span>
+                </span>
+              </button>
+              <div class="account-menu__panel glass-card" id="adminAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="adminAccountName">Administrador</strong>
+                  <p id="adminAccountMeta">Panel privado</p>
+                </div>
+                <div class="account-menu__actions">
+                  <button class="account-menu__item" id="adminMenuProfile" type="button">Perfil</button>
+                  <button class="account-menu__item" id="adminMenuDashboard" type="button">Dashboard</button>
+                  <button class="account-menu__item" id="adminMenuRestaurants" type="button">Restaurantes</button>
+                  <button class="account-menu__item" id="adminMenuMessages" type="button">Mensajes</button>
+                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">Cerrar sesión</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -125,7 +145,6 @@
           <p class="hero__metric-label">Restaurantes</p>
           <strong class="hero__metric" id="adminRestaurantCount">0</strong>
           <p class="hero__hint">Cuentas dadas de alta en la plataforma.</p>
-          <button class="button-secondary" id="adminLogoutButton" type="button">Cerrar sesión</button>
         </div>
       </header>
 
@@ -143,6 +162,7 @@
             <button class="section-switcher__button" type="button" data-admin-section="create">Alta</button>
             <button class="section-switcher__button" type="button" data-admin-section="restaurants">Restaurantes</button>
             <button class="section-switcher__button" type="button" data-admin-section="messages">Mensajes</button>
+            <button class="section-switcher__button" type="button" data-admin-section="profile">Perfil</button>
           </div>
 
           <section class="restaurant-section restaurant-section--active" data-admin-panel="dashboard">
@@ -488,6 +508,84 @@
               <div class="admin-inbox-list" id="adminMessageList"></div>
             </section>
           </section>
+          <section class="restaurant-section" data-admin-panel="profile" hidden>
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Perfil admin</p>
+                <h2>Cuenta y equipo administrador</h2>
+              </div>
+            </div>
+            <div class="dashboard-layout">
+              <article class="dashboard-panel">
+                <div class="dashboard-panel__top">
+                  <div>
+                    <p class="panel__kicker">Mi cuenta</p>
+                    <h3>Perfil actual</h3>
+                  </div>
+                </div>
+                <form class="quick-form admin-create-form" id="adminProfileForm">
+                  <label class="field field--wide">
+                    <span>Foto de perfil</span>
+                    <input id="adminProfileAvatarInput" type="file" accept="image/*" />
+                  </label>
+                  <div class="logo-upload-preview" id="adminProfileAvatarPreview" hidden>
+                    <img id="adminProfileAvatarPreviewImage" alt="Vista previa de la foto del administrador" />
+                  </div>
+                  <label class="field">
+                    <span>Nombre</span>
+                    <input id="adminProfileDisplayName" name="displayName" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Correo</span>
+                    <input id="adminProfileEmail" name="email" type="email" readonly />
+                  </label>
+                  <label class="field">
+                    <span>Teléfono</span>
+                    <input id="adminProfilePhone" name="phone" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Cargo</span>
+                    <input id="adminProfileTitle" name="title" type="text" placeholder="Ej. Founder / Operaciones" />
+                  </label>
+                  <div class="quick-form__actions">
+                    <button type="submit" class="launcher">Guardar perfil</button>
+                  </div>
+                </form>
+                <p class="form-feedback" id="adminProfileFeedback" hidden></p>
+              </article>
+              <article class="dashboard-panel">
+                <div class="dashboard-panel__top">
+                  <div>
+                    <p class="panel__kicker">Equipo admin</p>
+                    <h3>Agregar administradores</h3>
+                  </div>
+                </div>
+                <form class="quick-form admin-create-form" id="adminCreateAdminForm">
+                  <label class="field">
+                    <span>Nombre</span>
+                    <input name="displayName" type="text" required />
+                  </label>
+                  <label class="field">
+                    <span>Correo</span>
+                    <input name="email" type="email" required />
+                  </label>
+                  <label class="field">
+                    <span>Teléfono</span>
+                    <input name="phone" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Cargo</span>
+                    <input name="title" type="text" placeholder="Ej. Comercial / Operaciones" />
+                  </label>
+                  <div class="quick-form__actions">
+                    <button type="submit" class="launcher">Agregar admin</button>
+                  </div>
+                </form>
+                <p class="form-feedback" id="adminCreateAdminFeedback" hidden></p>
+                <div class="dashboard-insights" id="adminUsersList"></div>
+              </article>
+            </div>
+          </section>
         </section>
       </main>
     </div>
@@ -514,8 +612,8 @@
       window.TURNO_LISTO_PRIVATE_ROLE = "admin";
     </script>
     <script src="./firebase-config.js?v=20260408a"></script>
-    <script type="module" src="./firebase-bridge.js?v=20260408a"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin.js?v=20260409e"></script>
+    <script src="./admin.js?v=20260409f"></script>
   </body>
 </html>

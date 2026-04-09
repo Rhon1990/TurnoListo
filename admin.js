@@ -5,7 +5,6 @@ const adminLoginFeedback = document.querySelector("#adminLoginFeedback");
 const adminLoginUsername = adminLoginForm.querySelector('[name="username"]');
 const adminLoginPassword = document.querySelector("#adminLoginPassword");
 const adminLoginTogglePassword = document.querySelector("#adminLoginTogglePassword");
-const adminLogoutButton = document.querySelector("#adminLogoutButton");
 const adminCreateRestaurantForm = document.querySelector("#adminCreateRestaurantForm");
 const adminCreateFeedback = document.querySelector("#adminCreateFeedback");
 const adminRestaurantLogoInput = document.querySelector("#adminRestaurantLogoInput");
@@ -75,14 +74,39 @@ const adminMessageSortOrder = document.querySelector("#adminMessageSortOrder");
 const adminMessagesTotalChip = document.querySelector("#adminMessagesTotalChip");
 const adminMessagesUnreadChip = document.querySelector("#adminMessagesUnreadChip");
 const adminMessagesReadChip = document.querySelector("#adminMessagesReadChip");
+const adminAccountButton = document.querySelector("#adminAccountButton");
+const adminAccountPanel = document.querySelector("#adminAccountPanel");
+const adminAccountAvatarImage = document.querySelector("#adminAccountAvatarImage");
+const adminAccountAvatarFallback = document.querySelector("#adminAccountAvatarFallback");
+const adminAccountName = document.querySelector("#adminAccountName");
+const adminAccountMeta = document.querySelector("#adminAccountMeta");
+const adminMenuProfile = document.querySelector("#adminMenuProfile");
+const adminMenuDashboard = document.querySelector("#adminMenuDashboard");
+const adminMenuRestaurants = document.querySelector("#adminMenuRestaurants");
+const adminMenuMessages = document.querySelector("#adminMenuMessages");
+const adminMenuLogout = document.querySelector("#adminMenuLogout");
+const adminProfileForm = document.querySelector("#adminProfileForm");
+const adminProfileAvatarInput = document.querySelector("#adminProfileAvatarInput");
+const adminProfileAvatarPreview = document.querySelector("#adminProfileAvatarPreview");
+const adminProfileAvatarPreviewImage = document.querySelector("#adminProfileAvatarPreviewImage");
+const adminProfileDisplayName = document.querySelector("#adminProfileDisplayName");
+const adminProfileEmail = document.querySelector("#adminProfileEmail");
+const adminProfilePhone = document.querySelector("#adminProfilePhone");
+const adminProfileTitle = document.querySelector("#adminProfileTitle");
+const adminProfileFeedback = document.querySelector("#adminProfileFeedback");
+const adminCreateAdminForm = document.querySelector("#adminCreateAdminForm");
+const adminCreateAdminFeedback = document.querySelector("#adminCreateAdminFeedback");
+const adminUsersList = document.querySelector("#adminUsersList");
 
 let activeAdminSection = "dashboard";
 let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
 let selectedRestaurantLogoUrl = "";
+let selectedAdminAvatarUrl = "";
 let adminTermTooltipTimer = 0;
 let adminContactInquiries = [];
 let adminMessagesUnsubscribe = null;
+let adminUsers = [];
 const PLAN_DURATIONS = {
   Quincenal: 15,
   Mensual: 30,
@@ -102,7 +126,6 @@ adminLoginTogglePassword.addEventListener("click", (event) => {
   event.preventDefault();
   togglePasswordVisibility(adminLoginPassword, adminLoginTogglePassword);
 });
-adminLogoutButton.addEventListener("click", handleAdminLogout);
 adminCreateRestaurantForm.addEventListener("submit", handleCreateRestaurant);
 adminRestaurantLogoInput.addEventListener("change", handleRestaurantLogoSelection);
 adminPlanSelect.addEventListener("change", syncActivationDaysWithPlan);
@@ -130,6 +153,19 @@ adminTabs.forEach((button) => {
   control.addEventListener("input", renderAdminMessagesPanel);
   control.addEventListener("change", renderAdminMessagesPanel);
 });
+adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
+adminMenuProfile?.addEventListener("click", () => navigateAdminSection("profile"));
+adminMenuDashboard?.addEventListener("click", () => navigateAdminSection("dashboard"));
+adminMenuRestaurants?.addEventListener("click", () => navigateAdminSection("restaurants"));
+adminMenuMessages?.addEventListener("click", () => navigateAdminSection("messages"));
+adminMenuLogout?.addEventListener("click", async () => {
+  closeAdminAccountMenu();
+  await handleAdminLogout();
+});
+adminProfileForm?.addEventListener("submit", handleAdminProfileSubmit);
+adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
+adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
+window.addEventListener("click", handleAdminAccountOutsideClick);
 
 function bootAdminPage() {
   initializeTermHints(document.querySelector("#adminWorkspace"));
@@ -137,6 +173,7 @@ function bootAdminPage() {
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
     initializeAdminInbox();
+    refreshAdminUsers();
     renderAdminWorkspace();
   }
 }
@@ -213,10 +250,13 @@ async function handleAdminLogout() {
   adminMessagesUnsubscribe?.();
   adminMessagesUnsubscribe = null;
   adminContactInquiries = [];
+  adminUsers = [];
+  selectedAdminAvatarUrl = "";
   const backend = await waitForFirebaseBackend();
   preparePrivateFirebaseSignOut();
   clearCurrentUserProfile();
   syncAdminAccess();
+  closeAdminAccountMenu();
 
   if (backend?.enabled && typeof backend.signOut === "function") {
     await backend.signOut();
@@ -386,10 +426,39 @@ function initializeAdminFirebaseAuth() {
       adminLoginFeedback.hidden = true;
       adminLoginFeedback.textContent = "";
       initializeAdminInbox();
+      refreshAdminUsers();
       syncAdminAccess();
       renderAdminWorkspace();
     });
   });
+}
+
+function navigateAdminSection(section) {
+  closeAdminAccountMenu();
+  activeAdminSection = section;
+  syncAdminSections();
+}
+
+function toggleAdminAccountMenu(event) {
+  event?.stopPropagation();
+  if (!adminAccountPanel || !adminAccountButton) return;
+  const shouldOpen = adminAccountPanel.hidden;
+  adminAccountPanel.hidden = !shouldOpen;
+  adminAccountButton.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeAdminAccountMenu() {
+  if (!adminAccountPanel || !adminAccountButton) return;
+  adminAccountPanel.hidden = true;
+  adminAccountButton.setAttribute("aria-expanded", "false");
+}
+
+function handleAdminAccountOutsideClick(event) {
+  if (!adminAccountPanel || adminAccountPanel.hidden) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest("#adminAccountMenu")) return;
+  closeAdminAccountMenu();
 }
 
 async function initializeAdminInbox() {
@@ -450,6 +519,9 @@ function renderAdminWorkspace() {
   if (!isAdminAuthenticated()) return;
 
   syncAdminSections();
+  renderAdminAccount();
+  renderAdminProfile();
+  renderAdminUsersList();
   const stats = getAdminDashboardStats();
   const restaurants = loadRestaurants();
   const orders = loadOrders();
@@ -488,6 +560,235 @@ function renderAdminWorkspace() {
   renderAdminDashboard(stats);
   renderRestaurantDirectory(enrichedRestaurants);
   renderAdminMessagesPanel();
+}
+
+function renderAdminAccount() {
+  const profile = getCurrentUserProfile() || {};
+  const displayName = String(profile.displayName || profile.email || "Administrador").trim();
+  const title = String(profile.title || "").trim();
+  const avatarUrl = String(profile.avatarUrl || "").trim();
+
+  if (adminAccountName) {
+    adminAccountName.textContent = displayName;
+  }
+
+  if (adminAccountMeta) {
+    adminAccountMeta.textContent = title ? `${title} · Acceso verificado` : "Acceso verificado";
+  }
+
+  if (adminAccountAvatarFallback) {
+    adminAccountAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "A";
+  }
+
+  if (adminAccountAvatarImage) {
+    if (avatarUrl) {
+      adminAccountAvatarImage.src = avatarUrl;
+      adminAccountAvatarImage.hidden = false;
+      adminAccountAvatarFallback.hidden = true;
+    } else {
+      adminAccountAvatarImage.hidden = true;
+      adminAccountAvatarImage.removeAttribute("src");
+      adminAccountAvatarFallback.hidden = false;
+    }
+  }
+}
+
+function renderAdminProfile() {
+  if (!adminProfileForm) return;
+  const profile = getCurrentUserProfile() || {};
+  adminProfileDisplayName.value = profile.displayName || "";
+  adminProfileEmail.value = profile.email || "";
+  adminProfilePhone.value = profile.phone || "";
+  adminProfileTitle.value = profile.title || "";
+  syncAdminAvatarPreview(selectedAdminAvatarUrl || profile.avatarUrl || "");
+}
+
+function syncAdminAvatarPreview(avatarUrl) {
+  if (!adminProfileAvatarPreview || !adminProfileAvatarPreviewImage) return;
+  const normalized = String(avatarUrl || "").trim();
+  if (!normalized) {
+    adminProfileAvatarPreview.hidden = true;
+    adminProfileAvatarPreviewImage.removeAttribute("src");
+    return;
+  }
+
+  adminProfileAvatarPreviewImage.src = normalized;
+  adminProfileAvatarPreview.hidden = false;
+}
+
+async function handleAdminAvatarSelection(event) {
+  const file = event.target.files?.[0] || null;
+  if (!file) {
+    selectedAdminAvatarUrl = "";
+    syncAdminAvatarPreview(getCurrentUserProfile()?.avatarUrl || "");
+    return;
+  }
+
+  try {
+    selectedAdminAvatarUrl = await optimizeRestaurantLogo(file);
+    syncAdminAvatarPreview(selectedAdminAvatarUrl);
+    if (adminProfileFeedback) {
+      adminProfileFeedback.hidden = true;
+      adminProfileFeedback.textContent = "";
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "No se pudo preparar la foto del administrador.";
+    if (adminProfileFeedback) {
+      adminProfileFeedback.textContent = message;
+      adminProfileFeedback.className = "form-feedback form-feedback--error";
+      adminProfileFeedback.hidden = false;
+    }
+    showTurnoAlert(message, "error");
+  }
+}
+
+async function handleAdminProfileSubmit(event) {
+  event.preventDefault();
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.updateCurrentAdminProfile !== "function") {
+    adminProfileFeedback.textContent = "No se pudo guardar el perfil admin en esta configuración.";
+    adminProfileFeedback.className = "form-feedback form-feedback--error";
+    adminProfileFeedback.hidden = false;
+    return;
+  }
+
+  try {
+    await backend.updateCurrentAdminProfile({
+      displayName: adminProfileDisplayName?.value || "",
+      phone: adminProfilePhone?.value || "",
+      title: adminProfileTitle?.value || "",
+      avatarUrl: selectedAdminAvatarUrl || getCurrentUserProfile()?.avatarUrl || "",
+    });
+
+    await loadCurrentUserProfileFromBackend();
+    selectedAdminAvatarUrl = "";
+    adminProfileFeedback.textContent = "Perfil administrador actualizado correctamente.";
+    adminProfileFeedback.className = "form-feedback form-feedback--success";
+    adminProfileFeedback.hidden = false;
+    refreshAdminUsers();
+    renderAdminWorkspace();
+  } catch (error) {
+    console.error("No se pudo actualizar el perfil admin.", error);
+    adminProfileFeedback.textContent = "No se pudo guardar el perfil administrador.";
+    adminProfileFeedback.className = "form-feedback form-feedback--error";
+    adminProfileFeedback.hidden = false;
+    showTurnoAlert("No se pudo guardar el perfil administrador.", "error");
+  }
+}
+
+async function handleCreateAdminAccount(event) {
+  event.preventDefault();
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.createAdminAccount !== "function") {
+    adminCreateAdminFeedback.textContent = "No se pudo crear el usuario administrador en esta configuración.";
+    adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
+    adminCreateAdminFeedback.hidden = false;
+    return;
+  }
+
+  const formData = new FormData(adminCreateAdminForm);
+  try {
+    const result = await backend.createAdminAccount({
+      displayName: formData.get("displayName"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      title: formData.get("title"),
+      appUrl: buildAdminAccessUrl(),
+    });
+    adminCreateAdminForm.reset();
+    adminCreateAdminFeedback.textContent = result?.accessLink
+      ? "Administrador creado. Se generó un enlace seguro para definir contraseña."
+      : "Administrador creado correctamente.";
+    adminCreateAdminFeedback.className = "form-feedback form-feedback--success";
+    adminCreateAdminFeedback.hidden = false;
+    await refreshAdminUsers();
+    renderAdminWorkspace();
+    showTurnoAlert("Nuevo administrador creado correctamente.", "success");
+  } catch (error) {
+    console.error("No se pudo crear el usuario admin.", error);
+    const message =
+      error?.code === "functions/already-exists"
+        ? "Ese correo ya existe en Firebase Authentication."
+        : "No se pudo crear el nuevo administrador.";
+    adminCreateAdminFeedback.textContent = message;
+    adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
+    adminCreateAdminFeedback.hidden = false;
+    showTurnoAlert(message, "error");
+  }
+}
+
+async function refreshAdminUsers() {
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.loadCollection !== "function") {
+    adminUsers = [];
+    renderAdminUsersList();
+    return;
+  }
+
+  try {
+    const users = await backend.loadCollection("users");
+    adminUsers = (Array.isArray(users) ? users : [])
+      .filter((user) => String(user?.role || "").trim() === "admin")
+      .sort((left, right) =>
+        String(left.displayName || left.email || "").localeCompare(String(right.displayName || right.email || ""), "es"),
+      );
+    renderAdminUsersList();
+  } catch (error) {
+    console.error("No se pudo cargar el equipo admin.", error);
+    if (adminUsersList) {
+      adminUsersList.innerHTML = "";
+      const card = document.createElement("article");
+      card.className = "dashboard-insight";
+      card.textContent = "No se pudo cargar el equipo administrador por ahora.";
+      adminUsersList.append(card);
+    }
+  }
+}
+
+function renderAdminUsersList() {
+  if (!adminUsersList) return;
+  adminUsersList.innerHTML = "";
+
+  if (!adminUsers.length) {
+    const empty = document.createElement("article");
+    empty.className = "dashboard-insight";
+    empty.textContent = "Aquí verás el equipo administrador con acceso activo.";
+    adminUsersList.append(empty);
+    return;
+  }
+
+  adminUsers.forEach((user) => {
+    const card = document.createElement("article");
+    const top = document.createElement("div");
+    const identity = document.createElement("div");
+    const name = document.createElement("h4");
+    const meta = document.createElement("p");
+    const avatar = document.createElement("span");
+    const avatarImage = document.createElement("img");
+    const avatarFallback = document.createElement("span");
+
+    card.className = "admin-user-card";
+    top.className = "admin-user-card__top";
+    identity.className = "admin-user-card__identity";
+    avatar.className = "admin-user-card__avatar";
+    avatarFallback.textContent = String(user.displayName || user.email || "A").trim().charAt(0).toUpperCase() || "A";
+    name.textContent = user.displayName || user.email || "Administrador";
+    meta.textContent = [user.title || "Administrador", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
+
+    const avatarUrl = String(user.avatarUrl || "").trim();
+    if (avatarUrl) {
+      avatarImage.src = avatarUrl;
+      avatarImage.alt = `Avatar de ${name.textContent}`;
+      avatar.append(avatarImage);
+    } else {
+      avatar.append(avatarFallback);
+    }
+
+    identity.append(name, meta);
+    top.append(avatar, identity);
+    card.append(top);
+    adminUsersList.append(card);
+  });
 }
 
 function renderAdminMessagesPanel() {
@@ -1335,6 +1636,10 @@ function buildRemainingAccessLabel(restaurant) {
 
 function buildRestaurantAccessUrl() {
   return new URL("./restaurant.html", window.location.href).toString();
+}
+
+function buildAdminAccessUrl() {
+  return new URL("./admin.html", window.location.href).toString();
 }
 
 async function openCredentialsEmail(restaurant) {

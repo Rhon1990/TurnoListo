@@ -42,6 +42,10 @@ function normalizeLogoUrl(value) {
   return logoUrl;
 }
 
+function normalizeProfileImage(value) {
+  return normalizeLogoUrl(value);
+}
+
 function normalizeAppUrl(value) {
   const appUrl = trimValue(value);
   if (!appUrl) return "";
@@ -243,6 +247,118 @@ exports.createRestaurantAccessLink = onCall(async (request) => {
   return {
     restaurantId,
     email,
+    accessLink,
+  };
+});
+
+exports.updateCurrentAdminProfile = onCall(async (request) => {
+  const authUid = request.auth?.uid || null;
+  await assertAdmin(authUid);
+
+  const data = request.data || {};
+  const displayName = trimValue(data.displayName);
+  const phone = trimValue(data.phone);
+  const title = trimValue(data.title);
+  const avatarUrl = normalizeProfileImage(data.avatarUrl);
+  const nowIso = new Date().toISOString();
+
+  await firestore.collection("users").doc(authUid).set(
+    {
+      displayName,
+      phone,
+      title,
+      avatarUrl,
+      updatedAt: nowIso,
+    },
+    { merge: true },
+  );
+
+  await auth.updateUser(authUid, {
+    displayName: displayName || undefined,
+    photoURL: avatarUrl || undefined,
+  });
+
+  const updatedProfile = await firestore.collection("users").doc(authUid).get();
+  return {
+    ok: true,
+    profile: {
+      id: updatedProfile.id,
+      ...updatedProfile.data(),
+    },
+  };
+});
+
+exports.createAdminAccount = onCall(async (request) => {
+  const authUid = request.auth?.uid || null;
+  await assertAdmin(authUid);
+
+  const data = request.data || {};
+  const email = normalizeEmail(data.email);
+  if (!email) {
+    throw new HttpsError("invalid-argument", "El correo del admin es obligatorio.");
+  }
+
+  const displayName = trimValue(data.displayName) || "Administrador";
+  const phone = trimValue(data.phone);
+  const title = trimValue(data.title) || "Administrador";
+  const avatarUrl = normalizeProfileImage(data.avatarUrl);
+  const appUrl = normalizeAppUrl(data.appUrl);
+  const nowIso = new Date().toISOString();
+  const password = generateRestaurantPassword();
+
+  let userRecord;
+  try {
+    userRecord = await auth.createUser({
+      email,
+      password,
+      displayName,
+      photoURL: avatarUrl || undefined,
+    });
+  } catch (error) {
+    if (error?.code === "auth/email-already-exists") {
+      throw new HttpsError("already-exists", "Ese correo ya existe en Firebase Authentication.");
+    }
+    throw new HttpsError("internal", "No se pudo crear el usuario administrador.");
+  }
+
+  try {
+    await firestore.collection("users").doc(userRecord.uid).set({
+      role: "admin",
+      email,
+      displayName,
+      phone,
+      title,
+      avatarUrl,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    });
+  } catch (error) {
+    await auth.deleteUser(userRecord.uid).catch(() => null);
+    throw new HttpsError("internal", "No se pudo guardar el perfil admin en Firestore.");
+  }
+
+  let accessLink = "";
+  if (appUrl) {
+    try {
+      accessLink = await auth.generatePasswordResetLink(email, {
+        url: appUrl,
+        handleCodeInApp: false,
+      });
+    } catch (error) {
+      console.error("No se pudo generar el acceso inicial del admin.", error);
+    }
+  }
+
+  return {
+    ok: true,
+    adminUser: {
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName,
+      phone,
+      title,
+      avatarUrl,
+    },
     accessLink,
   };
 });

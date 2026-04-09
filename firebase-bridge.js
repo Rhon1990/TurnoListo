@@ -197,6 +197,16 @@ window.__turnoFirebaseReadyPromise = (async () => {
       const result = await callable(payload);
       return result.data;
     },
+    async updateCurrentAdminProfile(payload) {
+      const callable = httpsCallable(functions, "updateCurrentAdminProfile");
+      const result = await callable(payload);
+      return result.data;
+    },
+    async createAdminAccount(payload) {
+      const callable = httpsCallable(functions, "createAdminAccount");
+      const result = await callable(payload);
+      return result.data;
+    },
     async submitContactInquiry(payload) {
       const callable = httpsCallable(functions, "submitContactInquiry");
       const result = await callable(payload);

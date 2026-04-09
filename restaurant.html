@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260409d" />
+    <link rel="stylesheet" href="./styles.css?v=20260409f" />
   </head>
   <body>
     <div class="app-shell" id="restaurantLoginView" hidden>
@@ -105,8 +105,27 @@
             </div>
           </div>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
-            <span class="workspace-status">Acceso verificado</span>
-            <a class="workspace-contact-button" href="./contact.html">Contáctenos</a>
+            <div class="account-menu" id="restaurantAccountMenu">
+              <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+                <span class="account-menu__avatar" id="restaurantAccountAvatar">
+                  <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
+                  <span id="restaurantAccountAvatarFallback">R</span>
+                </span>
+              </button>
+              <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="restaurantAccountName">Restaurante</strong>
+                  <p id="restaurantAccountMeta">Acceso verificado</p>
+                </div>
+                <div class="account-menu__actions">
+                  <button class="account-menu__item" id="restaurantMenuProfile" type="button">Perfil</button>
+                  <button class="account-menu__item" id="restaurantMenuOrders" type="button">Pedidos</button>
+                  <button class="account-menu__item" id="restaurantMenuDashboard" type="button">Dashboard</button>
+                  <a class="account-menu__item" href="./contact.html">Contáctenos</a>
+                  <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">Cerrar sesión</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -132,7 +151,6 @@
           <p class="hero__metric-label">Pedidos activos</p>
           <strong class="hero__metric" id="restaurantActiveCount">0</strong>
           <p class="hero__hint">Recibido, en preparación o listo para recoger.</p>
-          <button class="button-secondary" id="restaurantLogoutButton" type="button">Cerrar sesión</button>
         </div>
       </header>
 
@@ -152,6 +170,7 @@
             <button class="section-switcher__button is-active" type="button" data-section="orders">Pedidos activos</button>
             <button class="section-switcher__button" type="button" data-section="create">Nuevo pedido</button>
             <button class="section-switcher__button" type="button" data-section="dashboard">Dashboard</button>
+            <button class="section-switcher__button" type="button" data-section="profile">Perfil</button>
             <button class="section-switcher__button" type="button" data-section="history">Archivados</button>
           </div>
           <section class="restaurant-section restaurant-section--active" data-section-panel="orders">
@@ -436,6 +455,64 @@
               </div>
             </section>
           </section>
+          <section class="restaurant-section" data-section-panel="profile" hidden>
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Perfil</p>
+                <h2>Cuenta del restaurante</h2>
+              </div>
+            </div>
+            <form class="quick-form admin-create-form" id="restaurantProfileForm">
+              <label class="field field--wide">
+                <span>Foto / logo del restaurante</span>
+                <input id="restaurantProfileLogoInput" type="file" accept="image/*" />
+                <small class="field__hint">Puedes cambiar el logo que verán tu equipo y los clientes.</small>
+              </label>
+              <div class="logo-upload-preview" id="restaurantProfileLogoPreview" hidden>
+                <img id="restaurantProfileLogoPreviewImage" alt="Vista previa del logo del restaurante" />
+              </div>
+              <label class="field">
+                <span>Nombre del restaurante</span>
+                <input id="restaurantProfileName" name="name" type="text" required />
+              </label>
+              <label class="field">
+                <span>Responsable</span>
+                <input id="restaurantProfileOwnerName" name="ownerName" type="text" />
+              </label>
+              <label class="field">
+                <span>Correo</span>
+                <input id="restaurantProfileEmail" name="email" type="email" readonly />
+              </label>
+              <label class="field">
+                <span>Teléfono</span>
+                <input id="restaurantProfilePhone" name="phone" type="text" />
+              </label>
+              <label class="field">
+                <span>Ciudad</span>
+                <input id="restaurantProfileCity" name="city" type="text" />
+              </label>
+              <label class="field field--wide">
+                <span>Dirección</span>
+                <input id="restaurantProfileAddress" name="address" type="text" />
+              </label>
+              <label class="field field--wide">
+                <span>Notas internas</span>
+                <input id="restaurantProfileNotes" name="notes" type="text" />
+              </label>
+              <label class="field">
+                <span>Plan actual</span>
+                <input id="restaurantProfilePlanName" type="text" readonly />
+              </label>
+              <label class="field">
+                <span>Acceso hasta</span>
+                <input id="restaurantProfileActivatedUntil" type="text" readonly />
+              </label>
+              <div class="quick-form__actions">
+                <button type="submit" class="launcher">Guardar perfil</button>
+              </div>
+            </form>
+            <p class="form-feedback" id="restaurantProfileFeedback" hidden></p>
+          </section>
           <section class="restaurant-section" data-section-panel="history" hidden>
             <section class="history-block">
               <div class="panel__heading">
@@ -519,8 +596,8 @@
       window.TURNO_LISTO_PRIVATE_ROLE = "restaurant";
     </script>
     <script src="./firebase-config.js?v=20260408a"></script>
-    <script type="module" src="./firebase-bridge.js?v=20260408a"></script>
-    <script src="./shared.js?v=20260409d"></script>
-    <script src="./restaurant.js?v=20260409d"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
+    <script src="./shared.js?v=20260409e"></script>
+    <script src="./restaurant.js?v=20260409f"></script>
   </body>
 </html>
