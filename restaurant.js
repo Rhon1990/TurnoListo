@@ -175,9 +175,16 @@ function bootRestaurantPage() {
 function initializeRestaurantTermHints(root = document) {
   if (!root || !restaurantTermTooltip) return;
   root.querySelectorAll(".term-hint[data-term-hint]").forEach((element) => {
+    const hint = String(element.dataset.termHint || "").trim();
+    if (hint) {
+      element.setAttribute("title", hint);
+      element.setAttribute("aria-label", hint);
+    }
     if (element.dataset.termHintBound === "true") return;
     element.dataset.termHintBound = "true";
-    element.tabIndex = 0;
+    if (!element.closest("button")) {
+      element.tabIndex = 0;
+    }
     element.addEventListener("mouseenter", () => {
       window.clearTimeout(restaurantTermTooltipTimer);
       showRestaurantTermTooltip(element);
@@ -1153,7 +1160,8 @@ function buildEtaHintElement(order) {
         ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
         : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
     element.dataset.termHint = hint;
-    element.tabIndex = 0;
+    element.setAttribute("title", hint);
+    element.setAttribute("aria-label", hint);
   }
 
   return element;
