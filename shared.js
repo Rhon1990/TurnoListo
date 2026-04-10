@@ -2253,18 +2253,26 @@ function getAdminDashboardStats(options = {}) {
   const restaurants = loadRestaurants();
   const orders = loadOrders();
   const filteredOrders = filterOrdersByDashboardPeriod(orders, period);
+  const deliveredMilestoneOrders = filterOrdersByDashboardPeriod(orders, period, {
+    dateField: "lifecycleMilestones.deliveredAt",
+  }).filter((order) => order.status === "delivered");
+  const cancelledMilestoneOrders = filterOrdersByDashboardPeriod(orders, period, {
+    dateField: "lifecycleMilestones.cancelledAt",
+  }).filter((order) => order.status === "cancelled");
+  const activeCreatedOrders = filteredOrders.filter((order) => !order.archivedAt);
   const activeRestaurants = restaurants.filter((restaurant) => isRestaurantAccessActive(restaurant));
   const expiredRestaurants = restaurants.filter((restaurant) => !isRestaurantAccessActive(restaurant));
   const demoRestaurants = restaurants.filter((restaurant) => isDemoRestaurant(restaurant));
   const restaurantsWithOrders = restaurants.map((restaurant) => {
     const historicalRestaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
     const restaurantOrders = filteredOrders.filter((order) => order.restaurantId === restaurant.id);
-    const deliveredOrders = restaurantOrders.filter((order) => order.status === "delivered");
+    const restaurantDeliveredOrders = deliveredMilestoneOrders.filter((order) => order.restaurantId === restaurant.id);
     const adaptiveModel = buildAdaptiveRestaurantModel(restaurant.id, orders);
     const demoUsage = getRestaurantDemoUsage(restaurant, filteredOrders);
-    const avgDeliveryMinutes = deliveredOrders.length
+    const avgDeliveryMinutes = restaurantDeliveredOrders.length
       ? Math.round(
-          deliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) / deliveredOrders.length,
+          restaurantDeliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) /
+            restaurantDeliveredOrders.length,
         )
       : 0;
 
@@ -2275,7 +2283,7 @@ function getAdminDashboardStats(options = {}) {
       orderCount: restaurantOrders.length,
       historicalOrderCount: historicalRestaurantOrders.length,
       activeOrderCount: restaurantOrders.filter((order) => !order.archivedAt).length,
-      deliveredCount: deliveredOrders.length,
+      deliveredCount: restaurantDeliveredOrders.length,
       avgDeliveryMinutes,
       demoUsage,
       adaptiveModel,
@@ -2376,9 +2384,9 @@ function getAdminDashboardStats(options = {}) {
     demoRestaurantCount: demoRestaurants.length,
     demoReadyToConvertCount: demoReadyToConvert.length,
     totalOrders: filteredOrders.length,
-    activeOrders: filteredOrders.filter((order) => !order.archivedAt).length,
-    deliveredOrders: filteredOrders.filter((order) => order.status === "delivered").length,
-    cancelledOrders: filteredOrders.filter((order) => order.status === "cancelled").length,
+    activeOrders: activeCreatedOrders.length,
+    deliveredOrders: deliveredMilestoneOrders.length,
+    cancelledOrders: cancelledMilestoneOrders.length,
     soonToExpire,
     recentlyActiveRestaurants,
     dormantRestaurants,
@@ -2405,9 +2413,9 @@ function getAdminDashboardStats(options = {}) {
       { label: "Sin pedidos", count: restaurantsWithoutOrders, color: "#ec7c0d" },
     ],
     orderOutcomeMix: [
-      { label: "Activos", count: filteredOrders.filter((order) => !order.archivedAt).length, color: "#ec7c0d" },
-      { label: "Entregados", count: filteredOrders.filter((order) => order.status === "delivered").length, color: "#1f7a63" },
-      { label: "Cancelados", count: filteredOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
+      { label: "Abiertos", count: activeCreatedOrders.length, color: "#ec7c0d" },
+      { label: "Entregados", count: deliveredMilestoneOrders.length, color: "#1f7a63" },
+      { label: "Cancelados", count: cancelledMilestoneOrders.length, color: "#b42318" },
     ],
   };
 }

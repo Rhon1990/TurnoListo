@@ -1010,11 +1010,11 @@ function renderAdminDashboard(stats) {
   adminHeroActiveBase.textContent = stats.activeRestaurants;
   adminHeroActiveBaseHint.textContent = `${activeBaseRate}% de la base con acceso vigente`;
   adminHeroWeeklyActivity.textContent = `${weeklyActivityRate}%`;
-  adminHeroWeeklyActivityHint.textContent = `${stats.recentlyActiveRestaurants} restaurantes operaron ${stats.periodScopeLabel}`;
+  adminHeroWeeklyActivityHint.textContent = `${stats.recentlyActiveRestaurants} restaurantes registraron pedidos ${stats.periodScopeLabel}`;
   adminHeroRenewal.textContent = stats.expiredRestaurants + stats.soonToExpire;
   adminHeroRenewalHint.textContent = `${stats.expiredRestaurants} vencidos y ${stats.soonToExpire} por vencer`;
   adminHeroRisk.textContent = riskCount;
-  adminHeroRiskHint.textContent = `${stats.dormantRestaurants} sin actividad ${stats.periodResultsLabel} y ${stats.restaurantsWithoutOrders} sin activar`;
+  adminHeroRiskHint.textContent = `${stats.dormantRestaurants} con señal de inactividad ${stats.periodResultsLabel} y ${stats.restaurantsWithoutOrders} sin activar`;
   const actionQueues = getAdminActionQueues({ period: stats.period });
   adminActionRenewalCount.textContent = actionQueues.renewal;
   adminActionOnboardingCount.textContent = actionQueues.onboarding;
@@ -1027,8 +1027,8 @@ function renderAdminDashboard(stats) {
     ? `${actionQueues.onboarding} locales necesitan activar hábito y primer valor claro`
     : "No hay onboarding bloqueado en este momento";
   adminActionRiskHint.textContent = actionQueues["at-risk"]
-    ? `${actionQueues["at-risk"]} restaurantes muestran caída de uso o posible churn`
-    : "No hay restaurantes en riesgo detectados ahora";
+    ? `${actionQueues["at-risk"]} restaurantes muestran señales de caída de uso o posible churn`
+    : "No hay señales de riesgo relevantes ahora";
   adminActionHealthyHint.textContent = actionQueues.healthy
     ? `${actionQueues.healthy} cuentas están listas para retención, reseñas o expansión`
     : "Aún no hay base sana suficiente para empujar upsell";
@@ -1059,7 +1059,7 @@ function renderAdminDashboard(stats) {
   topBox.className = "dashboard-insight";
   if (stats.topRestaurant) {
     topBox.textContent =
-      `${stats.topRestaurant.restaurant.name} lidera ${stats.periodResultsLabel} con ${stats.topRestaurant.orderCount} pedidos y un promedio de ${formatDurationMinutes(stats.topRestaurant.avgDeliveryMinutes)} por entrega.`;
+      `${stats.topRestaurant.restaurant.name} lidera ${stats.periodResultsLabel} con ${stats.topRestaurant.orderCount} pedidos creados y un promedio de ${formatDurationMinutes(stats.topRestaurant.avgDeliveryMinutes)} en sus entregas del periodo.`;
   } else {
     topBox.textContent = `Todavía no hay actividad suficiente ${stats.periodResultsLabel} para destacar un restaurante.`;
   }
@@ -1236,16 +1236,16 @@ function buildAdminInsights(stats) {
   }
 
   if (stats.activeOrders > stats.deliveredOrders) {
-    insights.push(`La operación activa ${stats.periodResultsLabel} es alta frente a los entregados. Revisa si algunos locales necesitan apoyo.`);
+    insights.push(`Los pedidos abiertos creados ${stats.periodResultsLabel} superan a los entregados en ese mismo periodo. Conviene revisar si algunos locales necesitan apoyo.`);
   }
 
   if (stats.aiPortfolioAction) {
-    insights.push(stats.aiPortfolioAction);
+    insights.push(`Señal IA de cartera: ${stats.aiPortfolioAction}`);
   }
 
   if (stats.dominantPortfolioBottleneck) {
     insights.push(
-      `Patron dominante en la cartera: ${stats.dominantPortfolioBottleneck.label}. Aparece como friccion principal en ${stats.dominantPortfolioBottleneck.count} restaurante${stats.dominantPortfolioBottleneck.count === 1 ? "" : "s"} con IA activa.`,
+      `Patrón inferido en la cartera: ${stats.dominantPortfolioBottleneck.label}. Aparece como fricción principal en ${stats.dominantPortfolioBottleneck.count} restaurante${stats.dominantPortfolioBottleneck.count === 1 ? "" : "s"} con IA activa.`,
     );
   }
 
@@ -1260,7 +1260,7 @@ function buildAdminInsights(stats) {
   }
 
   if (stats.dormantRestaurants > 0) {
-    insights.push(`${stats.dormantRestaurants} restaurantes no registran actividad ${stats.periodResultsLabel}. Aquí puede haber riesgo de churn.`);
+    insights.push(`${stats.dormantRestaurants} restaurantes no registran actividad ${stats.periodResultsLabel}. Esto es una señal de posible churn, no una baja confirmada.`);
   }
 
   if (stats.trainedRestaurantCount > 0) {
@@ -1274,7 +1274,7 @@ function buildAdminInsights(stats) {
   }
 
   if (!insights.length) {
-    insights.push("La cartera va estable. Aquí aparecerán avisos cuando detectemos vencimientos o cuellos de botella.");
+    insights.push("La cartera va estable. Aquí aparecerán señales cuando detectemos vencimientos, caída de uso o cuellos de botella.");
   }
 
   return insights.slice(0, 3);

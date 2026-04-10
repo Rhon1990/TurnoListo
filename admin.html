@@ -186,7 +186,7 @@
                 </article>
                 <div class="dashboard-hero__rail">
                   <article class="dashboard-hero__mini">
-                    <p class="stat__label"><span class="term-hint" data-term-hint="Porcentaje de restaurantes que han usado la plataforma dentro del periodo activo del dashboard.">Actividad del periodo</span></p>
+                    <p class="stat__label"><span class="term-hint" data-term-hint="Porcentaje de restaurantes que registraron al menos un pedido creado dentro del periodo activo del dashboard.">Actividad observada del periodo</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroWeeklyActivity">0%</strong>
                     <p class="dashboard-card__hint" id="adminHeroWeeklyActivityHint">Restaurantes operando en el periodo</p>
                   </article>
@@ -196,7 +196,7 @@
                     <p class="dashboard-card__hint" id="adminHeroRenewalHint">Cuentas para mover en el periodo</p>
                   </article>
                   <article class="dashboard-hero__mini">
-                    <p class="stat__label"><span class="term-hint" data-term-hint="Churn significa perdida de clientes. Aqui señala restaurantes con riesgo de dejar de usar o renovar el producto.">Riesgo de churn</span></p>
+                    <p class="stat__label"><span class="term-hint" data-term-hint="Señal heurística de restaurantes que pueden dejar de usar o renovar el producto según su historial y actividad reciente.">Señal de churn</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroRisk">0</strong>
                     <p class="dashboard-card__hint" id="adminHeroRiskHint">Locales dormidos o sin activar</p>
                   </article>
@@ -216,12 +216,12 @@
                 <article class="dashboard-card">
                   <p class="stat__label">Activos del periodo</p>
                   <strong class="dashboard-card__value" id="adminStatActiveOrders">0</strong>
-                  <p class="dashboard-card__hint">Pedidos abiertos dentro del filtro</p>
+                  <p class="dashboard-card__hint">Pedidos creados en el filtro activo que siguen abiertos</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label">Entregados del periodo</p>
                   <strong class="dashboard-card__value" id="adminStatDelivered">0</strong>
-                  <p class="dashboard-card__hint">Pedidos completados en el filtro activo</p>
+                  <p class="dashboard-card__hint">Pedidos entregados realmente dentro del filtro activo</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label">Pendientes de renovar</p>
@@ -242,8 +242,8 @@
               <div class="dashboard-subsection">
                 <div class="dashboard-subsection__top">
                   <div>
-                    <p class="panel__kicker">Acciones recomendadas</p>
-                    <h3>Qué mover en el periodo</h3>
+                    <p class="panel__kicker">Acciones sugeridas</p>
+                    <h3>Qué priorizar ahora</h3>
                   </div>
                 </div>
               <div class="dashboard-grid dashboard-grid--actions">
@@ -258,7 +258,7 @@
                   <p class="dashboard-card__hint" id="adminActionOnboardingHint">Locales que aún no consolidan el flujo principal</p>
                 </article>
                 <article class="dashboard-card dashboard-card--action" id="adminActionRisk" role="button" tabindex="0">
-                  <p class="stat__label">Recuperar uso</p>
+                  <p class="stat__label">Señal de reactivación</p>
                   <strong class="dashboard-card__value" id="adminActionRiskCount">0</strong>
                   <p class="dashboard-card__hint" id="adminActionRiskHint">Restaurantes con señales de caída de actividad</p>
                 </article>
@@ -274,7 +274,7 @@
                   <div class="dashboard-panel__top">
                     <div>
                       <p class="panel__kicker">Seguimiento</p>
-                      <h3>Mejor restaurante del periodo</h3>
+                      <h3>Liderazgo por volumen del periodo</h3>
                     </div>
                   </div>
                   <div class="dashboard-insights" id="adminTopRestaurantPanel"></div>
@@ -293,7 +293,7 @@
                   <div class="dashboard-panel__top">
                     <div>
                       <p class="panel__kicker">Operación</p>
-                      <h3>Resultado de pedidos</h3>
+                      <h3>Resultado operativo del periodo</h3>
                     </div>
                   </div>
                   <div class="dashboard-donut" id="adminOrderOutcomeDonut"></div>
@@ -302,8 +302,8 @@
                 <article class="dashboard-panel">
                   <div class="dashboard-panel__top">
                     <div>
-                      <p class="panel__kicker"><span class="term-hint" data-term-hint="Adopcion mide si los restaurantes ya incorporaron TurnoListo en su operacion habitual.">Adopción</span></p>
-                      <h3>Uso por restaurante</h3>
+                      <p class="panel__kicker"><span class="term-hint" data-term-hint="Adopción mide si los restaurantes ya incorporaron TurnoListo en su operación habitual.">Adopción</span></p>
+                      <h3>Señales de uso por restaurante</h3>
                     </div>
                   </div>
                   <div class="dashboard-bars" id="adminAdoptionMix"></div>
