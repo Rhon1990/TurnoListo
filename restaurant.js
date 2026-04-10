@@ -52,6 +52,7 @@ const focusChipReadyValue = document.querySelector("#focusChipReadyValue");
 const archivedSearchInput = document.querySelector("#archivedSearchInput");
 const archivedStatusFilter = document.querySelector("#archivedStatusFilter");
 const archivedRatingFilter = document.querySelector("#archivedRatingFilter");
+const archivedPeriodFilter = document.querySelector("#archivedPeriodFilter");
 const sectionTabs = document.querySelectorAll("[data-section]");
 const sectionPanels = document.querySelectorAll("[data-section-panel]");
 const restaurantProfileForm = document.querySelector("#restaurantProfileForm");
@@ -142,6 +143,9 @@ let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-d
 let activeRestaurantDashboardPeriod = normalizeDashboardPeriod(
   window.localStorage.getItem("turnolisto-restaurant-dashboard-period") || "day",
 );
+let activeArchivedPeriod = normalizeDashboardPeriod(
+  window.localStorage.getItem("turnolisto-restaurant-archived-period") || "day",
+);
 let restaurantModeTooltipTimer = 0;
 let restaurantTermTooltipTimer = 0;
 let selectedRestaurantProfileLogoUrl = "";
@@ -200,6 +204,11 @@ restaurantDashboardPeriod?.addEventListener("change", (event) => {
   window.localStorage.setItem("turnolisto-restaurant-dashboard-period", activeRestaurantDashboardPeriod);
   renderRestaurant();
 });
+archivedPeriodFilter?.addEventListener("change", (event) => {
+  activeArchivedPeriod = normalizeDashboardPeriod(event.target.value || "day");
+  window.localStorage.setItem("turnolisto-restaurant-archived-period", activeArchivedPeriod);
+  renderRestaurant();
+});
 commentBackdrop.addEventListener("click", closeCommentModal);
 commentClose.addEventListener("click", closeCommentModal);
 cancelBackdrop.addEventListener("click", closeCancelModal);
@@ -229,6 +238,9 @@ function bootRestaurantPage() {
   initializeRestaurantTermHints(document.querySelector("#restaurantWorkspace"));
   if (restaurantDashboardPeriod) {
     restaurantDashboardPeriod.value = activeRestaurantDashboardPeriod;
+  }
+  if (archivedPeriodFilter) {
+    archivedPeriodFilter.value = activeArchivedPeriod;
   }
   syncRestaurantAccess();
   if (getCurrentRestaurantSession()) {
@@ -1367,6 +1379,8 @@ function matchesArchivedFilters(order) {
   const score = Number(order.rating?.score || 0);
   const hasComment = Boolean(String(order.rating?.comment || "").trim());
   const hasRating = score > 0;
+
+  if (!isWithinDashboardPeriod(order.archivedAt, activeArchivedPeriod)) return false;
 
   if (search) {
     const haystack = [
