@@ -1968,8 +1968,10 @@ function filterOrdersByDashboardPeriod(orders, period, options = {}) {
   const safePeriod = normalizeDashboardPeriod(period);
   const dateField = String(options.dateField || "createdAt");
   const referenceDate = options.referenceDate instanceof Date ? options.referenceDate : new Date();
+  const readValue = (item, path) =>
+    path.split(".").reduce((current, key) => (current && current[key] !== undefined ? current[key] : undefined), item);
 
-  return safeOrders.filter((order) => isWithinDashboardPeriod(order?.[dateField], safePeriod, referenceDate));
+  return safeOrders.filter((order) => isWithinDashboardPeriod(readValue(order, dateField), safePeriod, referenceDate));
 }
 
 function isSameLocalDay(value) {
@@ -1987,12 +1989,19 @@ function getDashboardStats(options = {}) {
   const periodMeta = getDashboardPeriodMeta(period);
   const currentRestaurantId = getCurrentRestaurantSession()?.restaurantId;
   const allOrders = loadOrders();
-  const periodOrders = filterOrdersByDashboardPeriod(allOrders, period).filter((order) => {
+  const restaurantOrders = allOrders.filter((order) => {
     if (!currentRestaurantId) return true;
     return order.restaurantId === currentRestaurantId;
   });
+  const periodOrders = filterOrdersByDashboardPeriod(restaurantOrders, period);
+  const readyMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
+    dateField: "lifecycleMilestones.readyAt",
+  });
+  const archivedMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
+    dateField: "archivedAt",
+  });
   const deliveredOrders = periodOrders.filter((order) => order.status === "delivered");
-  const archivedOrders = periodOrders.filter((order) => Boolean(order.archivedAt));
+  const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
   const activeOrders = periodOrders.filter((order) => !order.archivedAt);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
   const ratedOrders = periodOrders.filter((order) => order.rating && order.rating.score);
@@ -2153,6 +2162,7 @@ function getDashboardStats(options = {}) {
     totalToday: periodOrders.length,
     activeNow: activeOrders.length,
     readyNow: activeOrders.filter((order) => order.status === "ready").length,
+    readyInPeriod: readyMilestoneOrders.length,
     archivedToday: archivedOrders.length,
     deliveredToday: deliveredOrders.length,
     delayedActive: delayedActiveOrders.length,

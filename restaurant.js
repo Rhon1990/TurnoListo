@@ -360,7 +360,7 @@ function renderRestaurant() {
   renderRestaurantHeroSignals(dashboard, restaurant, allOrders);
   renderRestaurantCreateHints(restaurant, allOrders);
   renderRestaurantPlaybook(restaurant, allOrders);
-  readyCount.textContent = `${dashboard.readyNow} listos hoy`;
+  readyCount.textContent = `${dashboard.readyInPeriod} listos hoy`;
   archivedCount.textContent = `${dashboard.archivedToday} archivados hoy`;
   syncRestaurantDisplayMode();
   renderFocusStrip(orders);
