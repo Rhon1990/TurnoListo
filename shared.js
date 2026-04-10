@@ -1382,6 +1382,7 @@ function getStageDriftAssessment(order, model = null) {
 }
 
 function getStageFocusAssessment(order, model = null) {
+  const status = String(order?.status || "");
   const receivedMinutes = getStatusDurationMinutes(order, "received");
   const preparingMinutes = getStatusDurationMinutes(order, "preparing");
   const readyMinutes = getStatusDurationMinutes(order, "ready");
@@ -1406,12 +1407,22 @@ function getStageFocusAssessment(order, model = null) {
       label: "recogida",
       minutes: readyMinutes,
       baseline: Math.max(1, Number(baselines.ready || 5)),
-      recommendation: "Activa llamada o entrega inmediata: el pedido ya esta listo y el cuello de botella es la recogida.",
+      recommendation: "Activa llamada o entrega inmediata: el pedido ya esta listo y ahora depende de recogida o entrega.",
     },
   ].map((item) => ({
     ...item,
     ratio: item.minutes > 0 ? item.minutes / item.baseline : 0,
   }));
+
+  if (status === "ready") {
+    const readyStage = weightedStages.find((item) => item.stage === "ready");
+    return readyStage || {
+      stage: "ready",
+      label: "recogida",
+      ratio: 1,
+      recommendation: "Activa llamada o entrega inmediata: el pedido ya esta listo y ahora depende de recogida o entrega.",
+    };
+  }
 
   const worstStage = [...weightedStages].sort((left, right) => right.ratio - left.ratio)[0];
   if (!worstStage || worstStage.ratio < 1.15) {
