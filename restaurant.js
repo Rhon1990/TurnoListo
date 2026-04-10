@@ -1481,10 +1481,7 @@ function buildOrderCard(order, isArchived) {
   footer.className = "order-card__footer";
 
   compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  compactLine.append(
-    document.createTextNode(`${order.items} · ${order.pickupPoint} · `),
-    buildEtaHintElement(order),
-  );
+  compactLine.append(document.createTextNode(`${order.items} · `), buildEtaHintElement(order));
   intelligenceLabel.textContent = "IA TurnoListo";
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
@@ -1556,20 +1553,22 @@ function buildOrderCard(order, isArchived) {
   qr.alt = `QR del pedido ${order.orderNumber}`;
   qr.className = "order-card__qr";
 
+  const estimatedEtaField = getDisplayEstimatedReadyMinutes(order);
   grid.append(
-    buildField("Código factura / ticket", "sourceOrderId", order.sourceOrderId, !isEditing),
-    buildField("Origen", "sourceSystem", order.sourceSystem, !isEditing),
+    buildFieldWithOptions("Código factura / ticket", "sourceOrderId", order.sourceOrderId, !isEditing, {
+      wide: true,
+      className: "field--priority",
+    }),
+    buildFieldWithOptions("Pedido", "items", order.items, !isEditing, {
+      wide: true,
+      className: "field--priority",
+    }),
     buildField("Cliente", "customerName", order.customerName, !isEditing),
-    buildField("Recogida", "pickupPoint", order.pickupPoint, !isEditing),
-    buildField(
-      "Tiempo estimado (min)",
-      "estimatedReadyMinutes",
-      order.estimatedReadyMinutes ? String(order.estimatedReadyMinutes) : "",
-      !isEditing,
-      false,
-      "number",
-    ),
-    buildField("Pedido", "items", order.items, !isEditing, true),
+    buildField("Origen", "sourceSystem", order.sourceSystem, !isEditing),
+    buildFieldWithOptions(estimatedEtaField.label, "estimatedReadyMinutes", estimatedEtaField.value, !isEditing, {
+      type: "number",
+      placeholder: estimatedEtaField.placeholder,
+    }),
     buildField("Diligencias opcionales", "notes", order.notes, !isEditing, true),
   );
 
@@ -1581,7 +1580,6 @@ function buildOrderCard(order, isArchived) {
         sourceOrderId: String(formData.get("sourceOrderId") || "").trim(),
         sourceSystem: String(formData.get("sourceSystem") || "").trim() || "Alta manual",
         customerName: String(formData.get("customerName") || "").trim() || "Cliente mostrador",
-        pickupPoint: String(formData.get("pickupPoint") || "").trim() || "Mostrador 1",
         estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "").trim(),
         items: String(formData.get("items") || "").trim() || "Pedido rápido",
         notes: String(formData.get("notes") || "").trim(),
@@ -1658,19 +1656,39 @@ function buildQuickStatusButtons(order, container, disabled, isCounterMode = fal
 }
 
 function buildField(label, name, value, disabled, wide = false, type = "text") {
+  return buildFieldWithOptions(label, name, value, disabled, { wide, type });
+}
+
+function buildFieldWithOptions(label, name, value, disabled, options = {}) {
   const wrapper = document.createElement("label");
   const text = document.createElement("span");
   const input = document.createElement("input");
+  const { wide = false, type = "text", placeholder = "", className = "" } = options;
 
-  wrapper.className = `field${wide ? " field--wide" : ""}`;
+  wrapper.className = `field${wide ? " field--wide" : ""}${className ? ` ${className}` : ""}`;
   text.textContent = label;
   input.name = name;
   input.type = type;
   input.value = value;
   input.disabled = disabled;
+  input.placeholder = placeholder;
 
   wrapper.append(text, input);
   return wrapper;
+}
+
+function getDisplayEstimatedReadyMinutes(order) {
+  const manualEta = Number.parseInt(String(order?.estimatedReadyMinutes || ""), 10);
+  if (Number.isFinite(manualEta) && manualEta > 0) {
+    return { label: "Tiempo estimado (min)", value: String(manualEta), placeholder: "" };
+  }
+
+  const aiEta = Number.parseInt(String(order?.aiEtaMinutes || ""), 10);
+  if (Number.isFinite(aiEta) && aiEta > 0) {
+    return { label: "ETA IA (min)", value: "", placeholder: String(aiEta) };
+  }
+
+  return { label: "Tiempo estimado (min)", value: "", placeholder: "" };
 }
 
 function formatOrderEtaSummary(order) {
@@ -1679,7 +1697,13 @@ function formatOrderEtaSummary(order) {
   if (order.status === "cancelled") return "Cancelado / desistio";
 
   const remainingMinutes = getRemainingEstimatedMinutes(order);
-  if (remainingMinutes === null) return "Sin ETA";
+  if (remainingMinutes === null) {
+    const aiEta = Number(order.aiEtaMinutes || 0);
+    if (Number.isFinite(aiEta) && aiEta > 0) {
+      return `ETA IA ${aiEta} min`;
+    }
+    return "Sin ETA";
+  }
   if (remainingMinutes <= 0) return "Retrasado";
   if (remainingMinutes === 1) return "ETA 1 min";
   return `ETA ${remainingMinutes} min`;
@@ -1726,6 +1750,14 @@ function buildEtaHintElement(order) {
       summary === "Sin ETA"
         ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
         : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
+    element.dataset.termHint = hint;
+    element.setAttribute("title", hint);
+    element.setAttribute("aria-label", hint);
+  }
+
+  if (summary.startsWith("ETA IA ")) {
+    element.className = "term-hint";
+    const hint = "ETA IA es la estimacion de TurnoListo cuando el pedido no tiene un tiempo manual cargado.";
     element.dataset.termHint = hint;
     element.setAttribute("title", hint);
     element.setAttribute("aria-label", hint);
