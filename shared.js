@@ -2000,14 +2000,22 @@ function getDashboardStats(options = {}) {
   const deliveredMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "lifecycleMilestones.deliveredAt",
   });
+  const cancelledMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
+    dateField: "lifecycleMilestones.cancelledAt",
+  });
   const archivedMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "archivedAt",
   });
   const deliveredOrders = deliveredMilestoneOrders.filter((order) => order.status === "delivered");
+  const cancelledOrders = cancelledMilestoneOrders.filter((order) => order.status === "cancelled");
   const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
   const activeOrders = periodOrders.filter((order) => !order.archivedAt);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
-  const ratedOrders = periodOrders.filter((order) => order.rating && order.rating.score);
+  const ratedOrders = filterOrdersByDashboardPeriod(
+    restaurantOrders.filter((order) => order.rating && order.rating.score),
+    period,
+    { dateField: "rating.createdAt" },
+  );
   const delayedActiveOrders = activeOrders.filter((order) => getOrderDurationMinutes(order) >= 16);
   const onTimeDeliveredOrders = deliveredOrders.filter((order) => getOrderDurationMinutes(order) <= 15);
   const lowRatedOrders = ratedOrders.filter((order) => Number(order.rating.score || 0) <= 2);
@@ -2016,7 +2024,7 @@ function getDashboardStats(options = {}) {
     ? Math.max(...activeOrders.map((order) => getOrderDurationMinutes(order)))
     : 0;
   const slowestOrder =
-    [...periodOrders].sort((left, right) => getOrderDurationMinutes(right) - getOrderDurationMinutes(left))[0] || null;
+    [...activeOrders].sort((left, right) => getOrderDurationMinutes(right) - getOrderDurationMinutes(left))[0] || null;
 
   const ordersByHour = periodOrders.reduce((accumulator, order) => {
     const hour = new Date(order.createdAt).getHours();
@@ -2045,8 +2053,9 @@ function getDashboardStats(options = {}) {
       ).toFixed(1)
     : null;
 
-  const cancellationRate = periodOrders.length
-    ? Math.round((periodOrders.filter((order) => order.status === "cancelled").length / periodOrders.length) * 100)
+  const resolvedOutcomeCount = deliveredOrders.length + cancelledOrders.length;
+  const cancellationRate = resolvedOutcomeCount
+    ? Math.round((cancelledOrders.length / resolvedOutcomeCount) * 100)
     : 0;
 
   const onTimeRate = deliveredOrders.length ? Math.round((onTimeDeliveredOrders.length / deliveredOrders.length) * 100) : 0;
@@ -2168,6 +2177,7 @@ function getDashboardStats(options = {}) {
     readyInPeriod: readyMilestoneOrders.length,
     archivedToday: archivedOrders.length,
     deliveredToday: deliveredOrders.length,
+    cancelledToday: cancelledOrders.length,
     delayedActive: delayedActiveOrders.length,
     avgDeliveredMinutes: averageDeliveredMinutes,
     avgResolutionMinutes: averageResolutionMinutes,
@@ -2199,7 +2209,12 @@ function getDashboardStats(options = {}) {
     statusCounts: ORDER_STATUSES.map((status) => ({
       status,
       label: statusMeta[status].label,
-      count: periodOrders.filter((order) => order.status === status).length,
+      count:
+        status === "delivered"
+          ? deliveredOrders.length
+          : status === "cancelled"
+            ? cancelledOrders.length
+            : activeOrders.filter((order) => order.status === status).length,
       color: statusMeta[status].color,
       bg: statusMeta[status].bg,
     })),
@@ -2212,7 +2227,7 @@ function getDashboardStats(options = {}) {
       { label: "Activos", count: activeOrders.length, color: "#ec7c0d" },
       { label: "Listos", count: activeOrders.filter((order) => order.status === "ready").length, color: "#1f7a63" },
       { label: "Entregados", count: deliveredOrders.length, color: "#0c5b75" },
-      { label: "Cancelados", count: periodOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
+      { label: "Cancelados", count: cancelledOrders.length, color: "#b42318" },
     ],
   };
 }
