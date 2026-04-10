@@ -553,6 +553,41 @@
       </div>
     </div>
 
+    <div class="qr-modal" id="adminActivatePlanModal" hidden>
+      <div class="qr-modal__backdrop" id="adminActivatePlanBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="adminActivatePlanClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Activar plan</p>
+          <h3>Convertir demo a plan comercial</h3>
+          <p class="comment-modal__meta" id="adminActivatePlanMeta"></p>
+          <div class="quick-form" id="adminActivatePlanForm">
+            <label class="field field--wide">
+              <span>Plan</span>
+              <select id="adminActivatePlanSelect" name="planName">
+                <option value="Quincenal">Quincenal</option>
+                <option value="Mensual" selected>Mensual</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+              </select>
+            </label>
+            <p class="hero__hint field--wide">Elige el plan comercial con el que quieres activar esta cuenta desde admin.</p>
+            <label class="field field--wide">
+              <span>Días de activación</span>
+              <input id="adminActivatePlanDays" name="activationDays" type="number" value="30" readonly />
+            </label>
+          </div>
+          <div class="cancel-modal__actions">
+            <button class="button-tertiary" id="adminActivatePlanBack" type="button">Volver</button>
+            <button class="launcher" id="adminActivatePlanConfirm" type="button">Activar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       window.TURNO_LISTO_PRIVATE_ROLE = "admin";
     </script>

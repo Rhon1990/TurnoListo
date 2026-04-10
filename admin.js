@@ -73,6 +73,14 @@ const adminDeleteClose = document.querySelector("#adminDeleteClose");
 const adminDeleteBack = document.querySelector("#adminDeleteBack");
 const adminDeleteConfirm = document.querySelector("#adminDeleteConfirm");
 const adminDeleteMeta = document.querySelector("#adminDeleteMeta");
+const adminActivatePlanModal = document.querySelector("#adminActivatePlanModal");
+const adminActivatePlanBackdrop = document.querySelector("#adminActivatePlanBackdrop");
+const adminActivatePlanClose = document.querySelector("#adminActivatePlanClose");
+const adminActivatePlanBack = document.querySelector("#adminActivatePlanBack");
+const adminActivatePlanConfirm = document.querySelector("#adminActivatePlanConfirm");
+const adminActivatePlanMeta = document.querySelector("#adminActivatePlanMeta");
+const adminActivatePlanSelect = document.querySelector("#adminActivatePlanSelect");
+const adminActivatePlanDays = document.querySelector("#adminActivatePlanDays");
 const adminUnreadMessagesBadge = document.querySelector("#adminUnreadMessagesBadge");
 const adminMessageList = document.querySelector("#adminMessageList");
 const adminMessageSearchInput = document.querySelector("#adminMessageSearchInput");
@@ -106,6 +114,8 @@ const adminUsersList = document.querySelector("#adminUsersList");
 let activeAdminSection = "dashboard";
 let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
+let pendingActivatePlanRestaurantId = null;
+let pendingActivatePlanRestaurantName = "";
 let selectedRestaurantLogoUrl = "";
 let selectedAdminAvatarUrl = "";
 let adminTermTooltipTimer = 0;
@@ -142,6 +152,11 @@ adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
 adminDeleteConfirm.addEventListener("click", confirmDeleteRestaurant);
+adminActivatePlanBackdrop?.addEventListener("click", closeActivatePlanModal);
+adminActivatePlanClose?.addEventListener("click", closeActivatePlanModal);
+adminActivatePlanBack?.addEventListener("click", closeActivatePlanModal);
+adminActivatePlanConfirm?.addEventListener("click", confirmActivateRestaurantPlan);
+adminActivatePlanSelect?.addEventListener("change", syncActivatePlanDays);
 adminExportDatasetButton?.addEventListener("click", handleExportPredictionDataset);
 adminDashboardPeriod?.addEventListener("change", (event) => {
   activeAdminDashboardPeriod = normalizeDashboardPeriod(event.target.value || "day");
@@ -525,6 +540,12 @@ function activateRestaurantPlan(restaurantId, planName = "Mensual") {
     activatedAt,
     activatedUntil,
   });
+}
+
+function syncActivatePlanDays() {
+  if (!adminActivatePlanSelect || !adminActivatePlanDays) return;
+  const plan = adminActivatePlanSelect.value || "Mensual";
+  adminActivatePlanDays.value = String(PLAN_DURATIONS[plan] || 30);
 }
 
 async function initializeAdminInbox() {
@@ -1550,13 +1571,7 @@ function renderRestaurantDirectory(restaurants) {
     activatePlan.textContent = "Activar plan";
     activatePlan.hidden = !isDemoRestaurant(restaurant);
     activatePlan.addEventListener("click", () => {
-      const updatedRestaurant = activateRestaurantPlan(restaurant.id, "Mensual");
-      if (!updatedRestaurant) return;
-      adminCreateFeedback.textContent = `${restaurant.name} pasó de demo a plan Mensual.`;
-      adminCreateFeedback.className = "form-feedback form-feedback--success";
-      adminCreateFeedback.hidden = false;
-      showTurnoAlert(`${restaurant.name} activado en plan Mensual.`, "success");
-      renderAdminWorkspace();
+      openActivatePlanModal(restaurant);
     });
     renew30.type = "button";
     renew30.className = "comment-button";
@@ -1919,6 +1934,29 @@ function closeDeleteModal() {
   pendingDeleteRestaurantName = "";
 }
 
+function openActivatePlanModal(restaurant) {
+  pendingActivatePlanRestaurantId = restaurant.id;
+  pendingActivatePlanRestaurantName = restaurant.name;
+  if (adminActivatePlanMeta) {
+    adminActivatePlanMeta.textContent = `${restaurant.name} · ${restaurant.email || "Sin correo"}`;
+  }
+  if (adminActivatePlanSelect) {
+    adminActivatePlanSelect.value = "Mensual";
+  }
+  syncActivatePlanDays();
+  if (adminActivatePlanModal) {
+    adminActivatePlanModal.hidden = false;
+  }
+}
+
+function closeActivatePlanModal() {
+  if (adminActivatePlanModal) {
+    adminActivatePlanModal.hidden = true;
+  }
+  pendingActivatePlanRestaurantId = null;
+  pendingActivatePlanRestaurantName = "";
+}
+
 function confirmDeleteRestaurant() {
   if (!pendingDeleteRestaurantId) return;
 
@@ -1927,5 +1965,19 @@ function confirmDeleteRestaurant() {
   adminCreateFeedback.className = "form-feedback form-feedback--success";
   adminCreateFeedback.hidden = false;
   closeDeleteModal();
+  renderAdminWorkspace();
+}
+
+function confirmActivateRestaurantPlan() {
+  if (!pendingActivatePlanRestaurantId) return;
+  const selectedPlan = adminActivatePlanSelect?.value || "Mensual";
+  const updatedRestaurant = activateRestaurantPlan(pendingActivatePlanRestaurantId, selectedPlan);
+  if (!updatedRestaurant) return;
+
+  adminCreateFeedback.textContent = `${pendingActivatePlanRestaurantName} pasó de demo a plan ${selectedPlan}.`;
+  adminCreateFeedback.className = "form-feedback form-feedback--success";
+  adminCreateFeedback.hidden = false;
+  showTurnoAlert(`${pendingActivatePlanRestaurantName} activado en plan ${selectedPlan}.`, "success");
+  closeActivatePlanModal();
   renderAdminWorkspace();
 }
