@@ -1997,10 +1997,13 @@ function getDashboardStats(options = {}) {
   const readyMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "lifecycleMilestones.readyAt",
   });
+  const deliveredMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
+    dateField: "lifecycleMilestones.deliveredAt",
+  });
   const archivedMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "archivedAt",
   });
-  const deliveredOrders = periodOrders.filter((order) => order.status === "delivered");
+  const deliveredOrders = deliveredMilestoneOrders.filter((order) => order.status === "delivered");
   const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
   const activeOrders = periodOrders.filter((order) => !order.archivedAt);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
