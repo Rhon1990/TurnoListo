@@ -302,11 +302,19 @@
           </section>
           <section class="restaurant-section" data-section-panel="dashboard" hidden>
             <section class="dashboard-block">
-              <div class="panel__heading">
+              <div class="panel__heading dashboard-heading">
                 <div>
                   <p class="panel__kicker">Dashboard</p>
                   <h2>Resumen del restaurante</h2>
                 </div>
+                <label class="dashboard-filter">
+                  <span>Ver por</span>
+                  <select id="restaurantDashboardPeriod">
+                    <option value="day">Día</option>
+                    <option value="month">Mes</option>
+                    <option value="year">Año</option>
+                  </select>
+                </label>
               </div>
               <section class="dashboard-hero">
                 <article class="dashboard-hero__primary">
@@ -335,14 +343,14 @@
               </section>
               <div class="dashboard-grid">
                 <article class="dashboard-card">
-                  <p class="stat__label">Pedidos de hoy</p>
+                  <p class="stat__label">Pedidos del periodo</p>
                   <strong class="dashboard-card__value" id="dashboardTotalToday">0</strong>
-                  <p class="dashboard-card__hint">Pedidos registrados hoy</p>
+                  <p class="dashboard-card__hint">Pedidos registrados en el filtro activo</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Entregados hoy</p>
+                  <p class="stat__label">Entregados del periodo</p>
                   <strong class="dashboard-card__value" id="dashboardDeliveredToday">0</strong>
-                  <p class="dashboard-card__hint">Pedidos completados</p>
+                  <p class="dashboard-card__hint">Pedidos completados en el filtro activo</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label">Entregas a tiempo</p>

@@ -163,11 +163,19 @@
 
           <section class="restaurant-section restaurant-section--active" data-admin-panel="dashboard">
             <section class="dashboard-block">
-              <div class="panel__heading">
+              <div class="panel__heading dashboard-heading">
                 <div>
                   <p class="panel__kicker">Dashboard administrador</p>
                   <h2>Resumen general</h2>
                 </div>
+                <label class="dashboard-filter">
+                  <span>Ver por</span>
+                  <select id="adminDashboardPeriod">
+                    <option value="day">Día</option>
+                    <option value="month">Mes</option>
+                    <option value="year">Año</option>
+                  </select>
+                </label>
               </div>
               <section class="dashboard-hero dashboard-hero--admin">
                 <article class="dashboard-hero__primary">
@@ -178,14 +186,14 @@
                 </article>
                 <div class="dashboard-hero__rail">
                   <article class="dashboard-hero__mini">
-                    <p class="stat__label"><span class="term-hint" data-term-hint="Porcentaje de restaurantes que han usado la plataforma durante los ultimos 7 dias.">Actividad semanal</span></p>
+                    <p class="stat__label"><span class="term-hint" data-term-hint="Porcentaje de restaurantes que han usado la plataforma dentro del periodo activo del dashboard.">Actividad del periodo</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroWeeklyActivity">0%</strong>
-                    <p class="dashboard-card__hint" id="adminHeroWeeklyActivityHint">Restaurantes operando en 7 días</p>
+                    <p class="dashboard-card__hint" id="adminHeroWeeklyActivityHint">Restaurantes operando en el periodo</p>
                   </article>
                   <article class="dashboard-hero__mini">
                     <p class="stat__label"><span class="term-hint" data-term-hint="Cuentas que necesitan contacto comercial o renovacion en este momento.">Renovación inmediata</span></p>
                     <strong class="dashboard-hero__mini-value" id="adminHeroRenewal">0</strong>
-                    <p class="dashboard-card__hint" id="adminHeroRenewalHint">Cuentas para mover hoy</p>
+                    <p class="dashboard-card__hint" id="adminHeroRenewalHint">Cuentas para mover en el periodo</p>
                   </article>
                   <article class="dashboard-hero__mini">
                     <p class="stat__label"><span class="term-hint" data-term-hint="Churn significa perdida de clientes. Aqui señala restaurantes con riesgo de dejar de usar o renovar el producto.">Riesgo de churn</span></p>
@@ -201,19 +209,19 @@
                   <p class="dashboard-card__hint">Cuentas registradas</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Pedidos acumulados</p>
+                  <p class="stat__label">Pedidos del periodo</p>
                   <strong class="dashboard-card__value" id="adminStatTotalOrders">0</strong>
-                  <p class="dashboard-card__hint">Volumen procesado en la plataforma</p>
+                  <p class="dashboard-card__hint">Volumen procesado en el filtro activo</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Operación abierta</p>
+                  <p class="stat__label">Activos del periodo</p>
                   <strong class="dashboard-card__value" id="adminStatActiveOrders">0</strong>
-                  <p class="dashboard-card__hint">Pedidos activos ahora</p>
+                  <p class="dashboard-card__hint">Pedidos abiertos dentro del filtro</p>
                 </article>
                 <article class="dashboard-card">
-                  <p class="stat__label">Pedidos completados</p>
+                  <p class="stat__label">Entregados del periodo</p>
                   <strong class="dashboard-card__value" id="adminStatDelivered">0</strong>
-                  <p class="dashboard-card__hint">Pedidos completados</p>
+                  <p class="dashboard-card__hint">Pedidos completados en el filtro activo</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label">Pendientes de renovar</p>
@@ -235,12 +243,12 @@
                 <div class="dashboard-subsection__top">
                   <div>
                     <p class="panel__kicker">Acciones recomendadas</p>
-                    <h3>Qué mover hoy</h3>
+                    <h3>Qué mover en el periodo</h3>
                   </div>
                 </div>
               <div class="dashboard-grid dashboard-grid--actions">
                 <article class="dashboard-card dashboard-card--action" id="adminActionRenewal" role="button" tabindex="0">
-                  <p class="stat__label">Renovar hoy</p>
+                  <p class="stat__label">Renovar ahora</p>
                   <strong class="dashboard-card__value" id="adminActionRenewalCount">0</strong>
                   <p class="dashboard-card__hint" id="adminActionRenewalHint">Cuentas con acceso vencido o a punto de vencer</p>
                 </article>
@@ -266,7 +274,7 @@
                   <div class="dashboard-panel__top">
                     <div>
                       <p class="panel__kicker">Seguimiento</p>
-                      <h3>Mejor restaurante hoy</h3>
+                      <h3>Mejor restaurante del periodo</h3>
                     </div>
                   </div>
                   <div class="dashboard-insights" id="adminTopRestaurantPanel"></div>

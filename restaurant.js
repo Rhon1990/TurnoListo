@@ -95,6 +95,7 @@ const dashboardHeroLeadHint = document.querySelector("#dashboardHeroLeadHint");
 const dashboardHeroActiveNow = document.querySelector("#dashboardHeroActiveNow");
 const dashboardHeroReadyNow = document.querySelector("#dashboardHeroReadyNow");
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
+const restaurantDashboardPeriod = document.querySelector("#restaurantDashboardPeriod");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
 const dashboardStatusBars = document.querySelector("#dashboardStatusBars");
 const dashboardStatusPerformanceBars = document.querySelector("#dashboardStatusPerformanceBars");
@@ -138,6 +139,9 @@ let activeSection = "orders";
 let lastRenderedRestaurantId = "";
 let lastDashboardStats = null;
 let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-display-mode") || "standard";
+let activeRestaurantDashboardPeriod = normalizeDashboardPeriod(
+  window.localStorage.getItem("turnolisto-restaurant-dashboard-period") || "day",
+);
 let restaurantModeTooltipTimer = 0;
 let restaurantTermTooltipTimer = 0;
 let selectedRestaurantProfileLogoUrl = "";
@@ -191,6 +195,11 @@ sectionTabs.forEach((button) => {
   });
 });
 restaurantPlaybookDismiss?.addEventListener("click", hideRestaurantPlaybook);
+restaurantDashboardPeriod?.addEventListener("change", (event) => {
+  activeRestaurantDashboardPeriod = normalizeDashboardPeriod(event.target.value || "day");
+  window.localStorage.setItem("turnolisto-restaurant-dashboard-period", activeRestaurantDashboardPeriod);
+  renderRestaurant();
+});
 commentBackdrop.addEventListener("click", closeCommentModal);
 commentClose.addEventListener("click", closeCommentModal);
 cancelBackdrop.addEventListener("click", closeCancelModal);
@@ -218,6 +227,9 @@ focusChipReady.addEventListener("click", () => goToOrdersView({ status: "ready",
 
 function bootRestaurantPage() {
   initializeRestaurantTermHints(document.querySelector("#restaurantWorkspace"));
+  if (restaurantDashboardPeriod) {
+    restaurantDashboardPeriod.value = activeRestaurantDashboardPeriod;
+  }
   syncRestaurantAccess();
   if (getCurrentRestaurantSession()) {
     renderRestaurant();
@@ -340,7 +352,7 @@ function renderRestaurant() {
     .filter((order) => matchesActiveFilters(order))
     .sort(compareActiveOrders);
   const filteredArchivedOrders = archivedOrders.filter((order) => matchesArchivedFilters(order));
-  const dashboard = getDashboardStats();
+  const dashboard = getDashboardStats({ period: activeRestaurantDashboardPeriod });
   lastDashboardStats = dashboard;
 
   restaurantList.innerHTML = "";
@@ -1003,6 +1015,9 @@ function syncSectionView() {
 }
 
 function renderDashboard(stats) {
+  if (restaurantDashboardPeriod) {
+    restaurantDashboardPeriod.value = stats.period;
+  }
   dashboardTotalToday.textContent = stats.totalToday;
   dashboardDeliveredToday.textContent = stats.deliveredToday;
   dashboardOnTimeRate.textContent = `${stats.onTimeRate}%`;
@@ -1036,8 +1051,8 @@ function renderDashboard(stats) {
     : "Sin datos";
   dashboardHeroLeadMetric.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
   dashboardHeroLeadHint.textContent = stats.deliveredCount
-    ? `${stats.onTimeRate}% de pedidos resueltos en 15 min o menos · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`
-    : "En cuanto cierres pedidos aqui veras la velocidad real y el aprendizaje del local";
+    ? `${stats.onTimeRate}% de pedidos resueltos en 15 min o menos ${stats.periodScopeLabel} · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`
+    : `En cuanto cierres pedidos ${stats.periodScopeLabel}, aquí verás la velocidad real y el aprendizaje del local`;
   dashboardHeroActiveNow.textContent = stats.activeNow;
   dashboardHeroReadyNow.textContent = stats.readyNow;
   dashboardHeroRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : "Sin datos";
@@ -1196,7 +1211,7 @@ function buildImprovementInsights(stats) {
 
   if (stats.aiDominantBottleneck) {
     insights.push(
-      `Cuello dominante hoy: ${stats.aiDominantBottleneck.label}. Afecta a ${stats.aiDominantBottleneck.count} pedido${stats.aiDominantBottleneck.count === 1 ? "" : "s"} activos.`,
+      `Cuello dominante ${stats.periodScopeLabel}: ${stats.aiDominantBottleneck.label}. Afecta a ${stats.aiDominantBottleneck.count} pedido${stats.aiDominantBottleneck.count === 1 ? "" : "s"} activos.`,
     );
   }
 
@@ -1237,7 +1252,7 @@ function buildImprovementInsights(stats) {
   }
 
   if (stats.lowRatingCount >= 2) {
-    insights.push("Hay varias valoraciones bajas hoy. Conviene revisar esos casos antes de que se repitan en más clientes.");
+    insights.push(`Hay varias valoraciones bajas ${stats.periodScopeLabel}. Conviene revisar esos casos antes de que se repitan en más clientes.`);
   }
 
   return insights.slice(0, 3);

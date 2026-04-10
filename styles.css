@@ -1283,6 +1283,35 @@ button:hover,
   border: 1px solid rgba(29, 26, 22, 0.08);
 }
 
+.dashboard-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.dashboard-filter {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 150px;
+}
+
+.dashboard-filter span {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.dashboard-filter select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  background: #fffdf8;
+  border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
 .focus-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3418,6 +3447,15 @@ button:hover,
   .mode-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+  }
+
+  .dashboard-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-filter {
+    min-width: 0;
   }
 
   .mode-chip {

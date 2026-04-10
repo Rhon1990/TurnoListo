@@ -30,6 +30,7 @@ const adminStatActiveOrders = document.querySelector("#adminStatActiveOrders");
 const adminStatDelivered = document.querySelector("#adminStatDelivered");
 const adminStatDemoRestaurants = document.querySelector("#adminStatDemoRestaurants");
 const adminStatDemoReady = document.querySelector("#adminStatDemoReady");
+const adminDashboardPeriod = document.querySelector("#adminDashboardPeriod");
 const adminHeroActiveBase = document.querySelector("#adminHeroActiveBase");
 const adminHeroActiveBaseHint = document.querySelector("#adminHeroActiveBaseHint");
 const adminHeroWeeklyActivity = document.querySelector("#adminHeroWeeklyActivity");
@@ -111,6 +112,9 @@ let adminTermTooltipTimer = 0;
 let adminContactInquiries = [];
 let adminMessagesUnsubscribe = null;
 let adminUsers = [];
+let activeAdminDashboardPeriod = normalizeDashboardPeriod(
+  window.localStorage.getItem("turnolisto-admin-dashboard-period") || "day",
+);
 const PLAN_DURATIONS = {
   Demo: 7,
   Quincenal: 15,
@@ -139,6 +143,11 @@ adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
 adminDeleteConfirm.addEventListener("click", confirmDeleteRestaurant);
 adminExportDatasetButton?.addEventListener("click", handleExportPredictionDataset);
+adminDashboardPeriod?.addEventListener("change", (event) => {
+  activeAdminDashboardPeriod = normalizeDashboardPeriod(event.target.value || "day");
+  window.localStorage.setItem("turnolisto-admin-dashboard-period", activeAdminDashboardPeriod);
+  renderAdminWorkspace();
+});
 bindAdminActionQueue(adminActionRenewal, "renewal");
 bindAdminActionQueue(adminActionOnboarding, "onboarding");
 bindAdminActionQueue(adminActionRisk, "at-risk");
@@ -556,12 +565,15 @@ function updateAdminInboxBadge() {
 
 function renderAdminWorkspace() {
   if (!isAdminAuthenticated()) return;
+  if (adminDashboardPeriod) {
+    adminDashboardPeriod.value = activeAdminDashboardPeriod;
+  }
 
   syncAdminSections();
   renderAdminAccount();
   renderAdminProfile();
   renderAdminUsersList();
-  const stats = getAdminDashboardStats();
+  const stats = getAdminDashboardStats({ period: activeAdminDashboardPeriod });
   const restaurants = loadRestaurants();
   const orders = loadOrders();
   const enrichedRestaurants = restaurants
@@ -977,6 +989,9 @@ async function toggleAdminInquiryRead(item) {
 }
 
 function renderAdminDashboard(stats) {
+  if (adminDashboardPeriod) {
+    adminDashboardPeriod.value = stats.period;
+  }
   adminRestaurantCount.textContent = stats.totalRestaurants;
   adminStatRestaurants.textContent = stats.totalRestaurants;
   adminStatExpiredRestaurants.textContent = stats.expiredRestaurants;
@@ -995,12 +1010,12 @@ function renderAdminDashboard(stats) {
   adminHeroActiveBase.textContent = stats.activeRestaurants;
   adminHeroActiveBaseHint.textContent = `${activeBaseRate}% de la base con acceso vigente`;
   adminHeroWeeklyActivity.textContent = `${weeklyActivityRate}%`;
-  adminHeroWeeklyActivityHint.textContent = `${stats.recentlyActiveRestaurants} restaurantes operaron en los últimos 7 días`;
+  adminHeroWeeklyActivityHint.textContent = `${stats.recentlyActiveRestaurants} restaurantes operaron ${stats.periodScopeLabel}`;
   adminHeroRenewal.textContent = stats.expiredRestaurants + stats.soonToExpire;
   adminHeroRenewalHint.textContent = `${stats.expiredRestaurants} vencidos y ${stats.soonToExpire} por vencer`;
   adminHeroRisk.textContent = riskCount;
-  adminHeroRiskHint.textContent = `${stats.dormantRestaurants} dormidos y ${stats.restaurantsWithoutOrders} sin activar`;
-  const actionQueues = getAdminActionQueues();
+  adminHeroRiskHint.textContent = `${stats.dormantRestaurants} sin actividad ${stats.periodResultsLabel} y ${stats.restaurantsWithoutOrders} sin activar`;
+  const actionQueues = getAdminActionQueues({ period: stats.period });
   adminActionRenewalCount.textContent = actionQueues.renewal;
   adminActionOnboardingCount.textContent = actionQueues.onboarding;
   adminActionRiskCount.textContent = actionQueues["at-risk"];
@@ -1028,7 +1043,7 @@ function renderAdminDashboard(stats) {
   adminInsights.innerHTML = "";
   adminDatasetInsights.innerHTML = "";
 
-  const dataset = exportPredictionDataset();
+  const dataset = exportPredictionDataset({ period: stats.period });
   const deliveredDataset = dataset.filter((item) => Number.isFinite(item.minutesToDelivered));
   const readyDataset = dataset.filter((item) => Number.isFinite(item.minutesToReady));
   adminDatasetTotal.textContent = dataset.length;
@@ -1044,9 +1059,9 @@ function renderAdminDashboard(stats) {
   topBox.className = "dashboard-insight";
   if (stats.topRestaurant) {
     topBox.textContent =
-      `${stats.topRestaurant.restaurant.name} lidera con ${stats.topRestaurant.orderCount} pedidos y un promedio de ${formatDurationMinutes(stats.topRestaurant.avgDeliveryMinutes)} por entrega.`;
+      `${stats.topRestaurant.restaurant.name} lidera ${stats.periodResultsLabel} con ${stats.topRestaurant.orderCount} pedidos y un promedio de ${formatDurationMinutes(stats.topRestaurant.avgDeliveryMinutes)} por entrega.`;
   } else {
-    topBox.textContent = "Todavía no hay actividad suficiente para destacar un restaurante.";
+    topBox.textContent = `Todavía no hay actividad suficiente ${stats.periodResultsLabel} para destacar un restaurante.`;
   }
   adminTopRestaurantPanel.append(topBox);
 
@@ -1113,7 +1128,10 @@ function buildDatasetInsights(dataset, deliveredDataset, readyDataset, stats) {
 }
 
 function handleExportPredictionDataset() {
-  const dataset = exportPredictionDataset({ includeCancelled: true });
+  const dataset = exportPredictionDataset({
+    includeCancelled: true,
+    period: activeAdminDashboardPeriod,
+  });
   const payload = JSON.stringify(dataset, null, 2);
   const blob = new Blob([payload], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -1218,7 +1236,7 @@ function buildAdminInsights(stats) {
   }
 
   if (stats.activeOrders > stats.deliveredOrders) {
-    insights.push("La operación activa es alta frente a los entregados. Revisa si algunos locales necesitan apoyo.");
+    insights.push(`La operación activa ${stats.periodResultsLabel} es alta frente a los entregados. Revisa si algunos locales necesitan apoyo.`);
   }
 
   if (stats.aiPortfolioAction) {
@@ -1242,7 +1260,7 @@ function buildAdminInsights(stats) {
   }
 
   if (stats.dormantRestaurants > 0) {
-    insights.push(`${stats.dormantRestaurants} restaurantes llevan más de 14 días sin actividad. Aquí puede haber riesgo de churn.`);
+    insights.push(`${stats.dormantRestaurants} restaurantes no registran actividad ${stats.periodResultsLabel}. Aquí puede haber riesgo de churn.`);
   }
 
   if (stats.trainedRestaurantCount > 0) {
@@ -1598,16 +1616,24 @@ function buildOnboardingSummary(restaurant) {
   return "activado y usando el flujo principal.";
 }
 
-function getRestaurantHealthSegment(restaurant, restaurantOrders) {
+function getRestaurantHealthSegment(restaurant, restaurantOrders, options = {}) {
   const remainingDays = getRestaurantRemainingDays(restaurant);
-  const onboardingStage = getRestaurantOnboardingStage(restaurant, restaurantOrders);
-  const hadOrders = restaurantOrders.length > 0;
-  const activeLast7Days = restaurantOrders.some((order) => isWithinLastDays(order.createdAt, 7));
-  const activeLast14Days = restaurantOrders.some((order) => isWithinLastDays(order.createdAt, 14));
+  const safeOrders = Array.isArray(restaurantOrders) ? restaurantOrders : [];
+  const historicalOrders = Array.isArray(options.historicalOrders) ? options.historicalOrders : safeOrders;
+  const dashboardPeriod = options.period ? normalizeDashboardPeriod(options.period) : null;
+  const onboardingStage = getRestaurantOnboardingStage(restaurant, historicalOrders);
+  const hadOrders = historicalOrders.length > 0;
+  const activeLast7Days = safeOrders.some((order) => isWithinLastDays(order.createdAt, 7));
+  const activeLast14Days = safeOrders.some((order) => isWithinLastDays(order.createdAt, 14));
+  const activeInPeriod = safeOrders.length > 0;
 
   if (!isRestaurantAccessActive(restaurant)) return "renewal";
   if (remainingDays !== null && remainingDays <= 7) return "renewal";
   if (onboardingStage !== "activo") return "onboarding";
+  if (dashboardPeriod) {
+    if (hadOrders && !activeInPeriod) return "at-risk";
+    return "healthy";
+  }
   if (hadOrders && !activeLast14Days) return "at-risk";
   if (hadOrders && !activeLast7Days) return "at-risk";
   return "healthy";
@@ -1695,9 +1721,11 @@ function getHealthSegmentPriority(segment) {
   return 4;
 }
 
-function getAdminActionQueues() {
+function getAdminActionQueues(options = {}) {
+  const period = options.period ? normalizeDashboardPeriod(options.period) : null;
   const restaurants = loadRestaurants();
   const orders = loadOrders();
+  const filteredOrders = period ? filterOrdersByDashboardPeriod(orders, period) : orders;
   const counts = {
     renewal: 0,
     onboarding: 0,
@@ -1706,8 +1734,12 @@ function getAdminActionQueues() {
   };
 
   restaurants.forEach((restaurant) => {
-    const restaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
-    const segment = getRestaurantHealthSegment(restaurant, restaurantOrders);
+    const historicalOrders = orders.filter((order) => order.restaurantId === restaurant.id);
+    const restaurantOrders = filteredOrders.filter((order) => order.restaurantId === restaurant.id);
+    const segment = getRestaurantHealthSegment(restaurant, restaurantOrders, {
+      period,
+      historicalOrders,
+    });
     counts[segment] = (counts[segment] || 0) + 1;
   });
 

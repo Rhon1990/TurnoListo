@@ -1903,14 +1903,77 @@ function getStatusDurationMinutes(order, status) {
   return savedMinutes + liveMinutes;
 }
 
+function normalizeDashboardPeriod(period) {
+  return ["day", "month", "year"].includes(period) ? period : "day";
+}
+
+function getDashboardPeriodMeta(period) {
+  const safePeriod = normalizeDashboardPeriod(period);
+  if (safePeriod === "month") {
+    return {
+      key: "month",
+      label: "Mes",
+      scopeLabel: "este mes",
+      resultsLabel: "del mes",
+    };
+  }
+
+  if (safePeriod === "year") {
+    return {
+      key: "year",
+      label: "Año",
+      scopeLabel: "este año",
+      resultsLabel: "del año",
+    };
+  }
+
+  return {
+    key: "day",
+    label: "Día",
+    scopeLabel: "hoy",
+    resultsLabel: "del día",
+  };
+}
+
+function getDashboardPeriodStart(period, referenceDate = new Date()) {
+  const safePeriod = normalizeDashboardPeriod(period);
+  const start = new Date(referenceDate);
+  start.setHours(0, 0, 0, 0);
+
+  if (safePeriod === "month") {
+    start.setDate(1);
+    return start;
+  }
+
+  if (safePeriod === "year") {
+    start.setMonth(0, 1);
+    return start;
+  }
+
+  return start;
+}
+
+function isWithinDashboardPeriod(value, period, referenceDate = new Date()) {
+  if (!value) return false;
+  const current = new Date(value).getTime();
+  if (!Number.isFinite(current)) return false;
+
+  const end = new Date(referenceDate).getTime();
+  const start = getDashboardPeriodStart(period, referenceDate).getTime();
+  return current >= start && current <= end;
+}
+
+function filterOrdersByDashboardPeriod(orders, period, options = {}) {
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safePeriod = normalizeDashboardPeriod(period);
+  const dateField = String(options.dateField || "createdAt");
+  const referenceDate = options.referenceDate instanceof Date ? options.referenceDate : new Date();
+
+  return safeOrders.filter((order) => isWithinDashboardPeriod(order?.[dateField], safePeriod, referenceDate));
+}
+
 function isSameLocalDay(value) {
-  const today = new Date();
-  const current = new Date(value);
-  return (
-    today.getFullYear() === current.getFullYear() &&
-    today.getMonth() === current.getMonth() &&
-    today.getDate() === current.getDate()
-  );
+  return isWithinDashboardPeriod(value, "day");
 }
 
 function isWithinLastDays(value, days) {
@@ -1919,19 +1982,20 @@ function isWithinLastDays(value, days) {
   return diffMs >= 0 && diffMs <= days * 24 * 60 * 60 * 1000;
 }
 
-function getDashboardStats() {
+function getDashboardStats(options = {}) {
+  const period = normalizeDashboardPeriod(options.period);
+  const periodMeta = getDashboardPeriodMeta(period);
   const currentRestaurantId = getCurrentRestaurantSession()?.restaurantId;
   const allOrders = loadOrders();
-  const todayOrders = loadOrders().filter((order) => {
-    if (!isSameLocalDay(order.createdAt)) return false;
+  const periodOrders = filterOrdersByDashboardPeriod(allOrders, period).filter((order) => {
     if (!currentRestaurantId) return true;
     return order.restaurantId === currentRestaurantId;
   });
-  const deliveredOrders = todayOrders.filter((order) => order.status === "delivered");
-  const archivedOrders = todayOrders.filter((order) => Boolean(order.archivedAt));
-  const activeOrders = todayOrders.filter((order) => !order.archivedAt);
+  const deliveredOrders = periodOrders.filter((order) => order.status === "delivered");
+  const archivedOrders = periodOrders.filter((order) => Boolean(order.archivedAt));
+  const activeOrders = periodOrders.filter((order) => !order.archivedAt);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
-  const ratedOrders = todayOrders.filter((order) => order.rating && order.rating.score);
+  const ratedOrders = periodOrders.filter((order) => order.rating && order.rating.score);
   const delayedActiveOrders = activeOrders.filter((order) => getOrderDurationMinutes(order) >= 16);
   const onTimeDeliveredOrders = deliveredOrders.filter((order) => getOrderDurationMinutes(order) <= 15);
   const lowRatedOrders = ratedOrders.filter((order) => Number(order.rating.score || 0) <= 2);
@@ -1940,9 +2004,9 @@ function getDashboardStats() {
     ? Math.max(...activeOrders.map((order) => getOrderDurationMinutes(order)))
     : 0;
   const slowestOrder =
-    [...todayOrders].sort((left, right) => getOrderDurationMinutes(right) - getOrderDurationMinutes(left))[0] || null;
+    [...periodOrders].sort((left, right) => getOrderDurationMinutes(right) - getOrderDurationMinutes(left))[0] || null;
 
-  const ordersByHour = todayOrders.reduce((accumulator, order) => {
+  const ordersByHour = periodOrders.reduce((accumulator, order) => {
     const hour = new Date(order.createdAt).getHours();
     accumulator[hour] = (accumulator[hour] || 0) + 1;
     return accumulator;
@@ -1969,8 +2033,8 @@ function getDashboardStats() {
       ).toFixed(1)
     : null;
 
-  const cancellationRate = todayOrders.length
-    ? Math.round((todayOrders.filter((order) => order.status === "cancelled").length / todayOrders.length) * 100)
+  const cancellationRate = periodOrders.length
+    ? Math.round((periodOrders.filter((order) => order.status === "cancelled").length / periodOrders.length) * 100)
     : 0;
 
   const onTimeRate = deliveredOrders.length ? Math.round((onTimeDeliveredOrders.length / deliveredOrders.length) * 100) : 0;
@@ -1982,7 +2046,7 @@ function getDashboardStats() {
   const dashboardStatuses = ORDER_STATUSES.filter((status) => !["delivered", "cancelled"].includes(status));
 
   const statusPerformance = dashboardStatuses.map((status) => {
-    const relevantOrders = todayOrders.filter(
+    const relevantOrders = periodOrders.filter(
       (order) => Number(order.statusDurations?.[status] || 0) > 0 || order.status === status,
     );
     const totalMinutes = relevantOrders.reduce((total, order) => total + getStatusDurationMinutes(order, status), 0);
@@ -2082,7 +2146,11 @@ function getDashboardStats() {
             };
 
   return {
-    totalToday: todayOrders.length,
+    period,
+    periodLabel: periodMeta.label,
+    periodScopeLabel: periodMeta.scopeLabel,
+    periodResultsLabel: periodMeta.resultsLabel,
+    totalToday: periodOrders.length,
     activeNow: activeOrders.length,
     readyNow: activeOrders.filter((order) => order.status === "ready").length,
     archivedToday: archivedOrders.length,
@@ -2118,7 +2186,7 @@ function getDashboardStats() {
     statusCounts: ORDER_STATUSES.map((status) => ({
       status,
       label: statusMeta[status].label,
-      count: todayOrders.filter((order) => order.status === status).length,
+      count: periodOrders.filter((order) => order.status === status).length,
       color: statusMeta[status].color,
       bg: statusMeta[status].bg,
     })),
@@ -2131,22 +2199,26 @@ function getDashboardStats() {
       { label: "Activos", count: activeOrders.length, color: "#ec7c0d" },
       { label: "Listos", count: activeOrders.filter((order) => order.status === "ready").length, color: "#1f7a63" },
       { label: "Entregados", count: deliveredOrders.length, color: "#0c5b75" },
-      { label: "Cancelados", count: todayOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
+      { label: "Cancelados", count: periodOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
     ],
   };
 }
 
-function getAdminDashboardStats() {
+function getAdminDashboardStats(options = {}) {
+  const period = normalizeDashboardPeriod(options.period);
+  const periodMeta = getDashboardPeriodMeta(period);
   const restaurants = loadRestaurants();
   const orders = loadOrders();
+  const filteredOrders = filterOrdersByDashboardPeriod(orders, period);
   const activeRestaurants = restaurants.filter((restaurant) => isRestaurantAccessActive(restaurant));
   const expiredRestaurants = restaurants.filter((restaurant) => !isRestaurantAccessActive(restaurant));
   const demoRestaurants = restaurants.filter((restaurant) => isDemoRestaurant(restaurant));
   const restaurantsWithOrders = restaurants.map((restaurant) => {
-    const restaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
+    const historicalRestaurantOrders = orders.filter((order) => order.restaurantId === restaurant.id);
+    const restaurantOrders = filteredOrders.filter((order) => order.restaurantId === restaurant.id);
     const deliveredOrders = restaurantOrders.filter((order) => order.status === "delivered");
     const adaptiveModel = buildAdaptiveRestaurantModel(restaurant.id, orders);
-    const demoUsage = getRestaurantDemoUsage(restaurant, orders);
+    const demoUsage = getRestaurantDemoUsage(restaurant, filteredOrders);
     const avgDeliveryMinutes = deliveredOrders.length
       ? Math.round(
           deliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) / deliveredOrders.length,
@@ -2156,7 +2228,9 @@ function getAdminDashboardStats() {
     return {
       restaurant,
       restaurantOrders,
+      historicalRestaurantOrders,
       orderCount: restaurantOrders.length,
+      historicalOrderCount: historicalRestaurantOrders.length,
       activeOrderCount: restaurantOrders.filter((order) => !order.archivedAt).length,
       deliveredCount: deliveredOrders.length,
       avgDeliveryMinutes,
@@ -2167,11 +2241,11 @@ function getAdminDashboardStats() {
 
   const topRestaurant =
     [...restaurantsWithOrders].sort((left, right) => right.orderCount - left.orderCount)[0] || null;
-  const recentlyActiveRestaurants = restaurantsWithOrders.filter((item) =>
-    item.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 7)),
+  const recentlyActiveRestaurants = restaurantsWithOrders.filter((item) => item.orderCount > 0).length;
+  const dormantRestaurants = restaurantsWithOrders.filter(
+    (item) => item.historicalOrderCount > 0 && item.orderCount === 0,
   ).length;
-  const dormantRestaurants = restaurantsWithOrders.filter((item) => item.orderCount > 0 && !item.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 14))).length;
-  const restaurantsWithoutOrders = restaurantsWithOrders.filter((item) => item.orderCount === 0).length;
+  const restaurantsWithoutOrders = restaurantsWithOrders.filter((item) => item.historicalOrderCount === 0).length;
   const soonToExpire = restaurants
     .filter((restaurant) => {
       const remainingDays = getRestaurantRemainingDays(restaurant);
@@ -2189,9 +2263,9 @@ function getAdminDashboardStats() {
   );
   const restaurantsWithModelDropRisk = restaurantsWithOrders.filter(
     (item) =>
-      item.orderCount > 0 &&
+      item.historicalOrderCount > 0 &&
       Number(item.adaptiveModel?.sampleCount || 0) >= 8 &&
-      !item.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 7)),
+      item.orderCount === 0,
   );
   const demoReadyToConvert = restaurantsWithOrders.filter((item) => {
     if (!item.demoUsage?.enabled) return false;
@@ -2249,15 +2323,19 @@ function getAdminDashboardStats() {
       : null;
 
   return {
+    period,
+    periodLabel: periodMeta.label,
+    periodScopeLabel: periodMeta.scopeLabel,
+    periodResultsLabel: periodMeta.resultsLabel,
     totalRestaurants: restaurants.length,
     activeRestaurants: activeRestaurants.length,
     expiredRestaurants: expiredRestaurants.length,
     demoRestaurantCount: demoRestaurants.length,
     demoReadyToConvertCount: demoReadyToConvert.length,
-    totalOrders: orders.length,
-    activeOrders: orders.filter((order) => !order.archivedAt).length,
-    deliveredOrders: orders.filter((order) => order.status === "delivered").length,
-    cancelledOrders: orders.filter((order) => order.status === "cancelled").length,
+    totalOrders: filteredOrders.length,
+    activeOrders: filteredOrders.filter((order) => !order.archivedAt).length,
+    deliveredOrders: filteredOrders.filter((order) => order.status === "delivered").length,
+    cancelledOrders: filteredOrders.filter((order) => order.status === "cancelled").length,
     soonToExpire,
     recentlyActiveRestaurants,
     dormantRestaurants,
@@ -2279,14 +2357,14 @@ function getAdminDashboardStats() {
       { label: "Vencidos", count: expiredRestaurants.length, color: "#b42318" },
     ],
     adoptionMix: [
-      { label: "Activos 7d", count: recentlyActiveRestaurants, color: "#1f7a63" },
-      { label: "Dormidos 14d", count: dormantRestaurants, color: "#ec7c0d" },
+      { label: `Activos ${periodMeta.label.toLowerCase()}`, count: recentlyActiveRestaurants, color: "#1f7a63" },
+      { label: `Sin actividad ${periodMeta.label.toLowerCase()}`, count: dormantRestaurants, color: "#ec7c0d" },
       { label: "Sin pedidos", count: restaurantsWithoutOrders, color: "#ec7c0d" },
     ],
     orderOutcomeMix: [
-      { label: "Activos", count: orders.filter((order) => !order.archivedAt).length, color: "#ec7c0d" },
-      { label: "Entregados", count: orders.filter((order) => order.status === "delivered").length, color: "#1f7a63" },
-      { label: "Cancelados", count: orders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
+      { label: "Activos", count: filteredOrders.filter((order) => !order.archivedAt).length, color: "#ec7c0d" },
+      { label: "Entregados", count: filteredOrders.filter((order) => order.status === "delivered").length, color: "#1f7a63" },
+      { label: "Cancelados", count: filteredOrders.filter((order) => order.status === "cancelled").length, color: "#b42318" },
     ],
   };
 }
@@ -2605,8 +2683,9 @@ function buildPredictionDatasetRow(order, allOrders = loadOrders()) {
 
 function exportPredictionDataset(options = {}) {
   const orders = loadOrders();
-  const safeOptions = { deliveredOnly: false, includeCancelled: false, ...options };
+  const safeOptions = { deliveredOnly: false, includeCancelled: false, period: null, ...options };
   const filteredOrders = orders.filter((order) => {
+    if (safeOptions.period && !isWithinDashboardPeriod(order.createdAt, safeOptions.period)) return false;
     if (safeOptions.deliveredOnly && order.status !== "delivered") return false;
     if (!safeOptions.includeCancelled && order.status === "cancelled") return false;
     return true;
