@@ -3126,8 +3126,13 @@ button:hover,
   max-width: 100%;
   font-size: clamp(1.55rem, 3vw, 2.2rem);
   line-height: 1.05;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.dashboard-card__value--compact {
+  font-size: clamp(1.25rem, 2.25vw, 1.7rem);
+  line-height: 1.08;
 }
 
 .dashboard-card__hint {

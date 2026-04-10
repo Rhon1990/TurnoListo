@@ -1037,6 +1037,10 @@ function renderDashboard(stats) {
   dashboardAiPressure.textContent = stats.aiPressureLabel;
   dashboardAiEtaGap.textContent = `${stats.aiAverageExtraMinutes} min`;
   dashboardAiConfidence.textContent = stats.aiModelConfidenceLabel;
+  dashboardAiConfidence.classList.toggle(
+    "dashboard-card__value--compact",
+    String(stats.aiModelConfidenceLabel || "").trim().length >= 10,
+  );
   dashboardAiConfidenceHint.textContent =
     stats.aiModelSampleSize >= 1
       ? `${stats.aiModelSampleSize} cierres reales del local${stats.aiModelMeanAbsoluteError !== null ? ` · error medio ${stats.aiModelMeanAbsoluteError} min` : ""}`
