@@ -1432,7 +1432,6 @@ function buildOrderCard(order, isArchived) {
   const intelligenceEta = document.createElement("span");
   const intelligenceInfo = document.createElement("button");
   const compactSide = document.createElement("div");
-  const qrCode = document.createElement("strong");
   const ratingRow = document.createElement("div");
   const rating = document.createElement("span");
   const commentButton = document.createElement("button");
@@ -1481,7 +1480,11 @@ function buildOrderCard(order, isArchived) {
   footer.className = "order-card__footer";
 
   compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  compactLine.append(document.createTextNode(`${order.items} · `), buildEtaHintElement(order));
+  compactLine.append(document.createTextNode(order.items));
+  if (order.sourceOrderId) {
+    compactLine.append(document.createTextNode(` · Ticket ${order.sourceOrderId}`));
+  }
+  compactLine.append(document.createTextNode(" · "), buildEtaHintElement(order));
   intelligenceLabel.textContent = "IA TurnoListo";
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
@@ -1515,7 +1518,6 @@ function buildOrderCard(order, isArchived) {
   compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
-  qrCode.textContent = order.publicTrackingToken || order.sourceOrderId || order.id;
   rating.className = "order-card__rating";
   rating.textContent = order.rating ? formatRating(order.rating.score) : "Sin valorar";
   commentButton.type = "button";
@@ -1540,7 +1542,7 @@ function buildOrderCard(order, isArchived) {
   buildQuickStatusButtons(order, quickStatusActions, isArchived, isCounterMode);
   compactMain.append(compactMeta);
   ratingRow.append(rating, commentButton);
-  compactSide.append(qrCode, ratingRow, badge, quickStatusActions);
+  compactSide.append(ratingRow, badge, quickStatusActions);
   compactButton.append(compactMain, compactSide);
   compactButton.addEventListener("click", (event) => {
     if (event.target instanceof Element && event.target.closest(".term-hint")) return;
