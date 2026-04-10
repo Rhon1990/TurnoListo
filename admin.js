@@ -509,6 +509,24 @@ function handleAdminAccountOutsideClick(event) {
   closeAdminAccountMenu();
 }
 
+function activateRestaurantPlan(restaurantId, planName = "Mensual") {
+  const restaurant = getRestaurantById(restaurantId);
+  if (!restaurant) return null;
+
+  const normalizedPlanName = PLAN_DURATIONS[planName] ? planName : "Mensual";
+  const activationDays = PLAN_DURATIONS[normalizedPlanName] || 30;
+  const activatedAt = new Date().toISOString();
+  const activatedUntil = new Date(Date.now() + activationDays * 24 * 60 * 60 * 1000).toISOString();
+
+  return updateRestaurantAccount(restaurantId, {
+    demoMode: false,
+    demoConfig: null,
+    planName: normalizedPlanName,
+    activatedAt,
+    activatedUntil,
+  });
+}
+
 async function initializeAdminInbox() {
   if (!isAdminAuthenticated()) return;
   const backend = await waitForFirebaseBackend();
@@ -1394,6 +1412,7 @@ function renderRestaurantDirectory(restaurants) {
     const onboardingEmail = document.createElement("button");
     const renewalEmail = document.createElement("button");
     const demoUpgradeEmail = document.createElement("button");
+    const activatePlan = document.createElement("button");
     const renew30 = document.createElement("button");
     const renew90 = document.createElement("button");
     const remove = document.createElement("button");
@@ -1526,6 +1545,19 @@ function renderRestaurantDirectory(restaurants) {
     demoUpgradeEmail.addEventListener("click", () => {
       openDemoUpgradeEmail(restaurant);
     });
+    activatePlan.type = "button";
+    activatePlan.className = "comment-button";
+    activatePlan.textContent = "Activar plan";
+    activatePlan.hidden = !isDemoRestaurant(restaurant);
+    activatePlan.addEventListener("click", () => {
+      const updatedRestaurant = activateRestaurantPlan(restaurant.id, "Mensual");
+      if (!updatedRestaurant) return;
+      adminCreateFeedback.textContent = `${restaurant.name} pasó de demo a plan Mensual.`;
+      adminCreateFeedback.className = "form-feedback form-feedback--success";
+      adminCreateFeedback.hidden = false;
+      showTurnoAlert(`${restaurant.name} activado en plan Mensual.`, "success");
+      renderAdminWorkspace();
+    });
     renew30.type = "button";
     renew30.className = "comment-button";
     renew30.textContent = "+30 días";
@@ -1574,7 +1606,7 @@ function renderRestaurantDirectory(restaurants) {
     meta.append(status, health, demoBadge);
     logoField.append(logoFieldLabel, logoInput, logoHint);
     accessWrap.append(accessLabel, accessValue);
-    actions.append(link, resend, onboardingEmail, renewalEmail, demoUpgradeEmail, renew30, renew90, remove);
+    actions.append(link, resend, onboardingEmail, renewalEmail, demoUpgradeEmail, activatePlan, renew30, renew90, remove);
     accountStack.append(logoField, logoPreview, login, accessWrap);
     playbook.append(playbookLabel, playbookText);
     grid.append(owner, contact, address, activation, orders, usage, onboarding, playbook, notes, accountStack);
