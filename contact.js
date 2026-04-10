@@ -6,6 +6,7 @@ const contactCompany = document.querySelector("#contactCompany");
 const contactEmail = document.querySelector("#contactEmail");
 const contactPhone = document.querySelector("#contactPhone");
 const contactInterest = document.querySelector("#contactInterest");
+const contactMessage = document.querySelector("#contactMessage");
 const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
 const restaurantAccountPanel = document.querySelector("#restaurantAccountPanel");
 const restaurantAccountAvatarImage = document.querySelector("#restaurantAccountAvatarImage");
@@ -124,6 +125,8 @@ async function initializeContactPrefill() {
   } catch (error) {
     console.error("No se pudieron precargar los datos del restaurante en contacto.", error);
   }
+
+  applyContactQueryPrefill();
 }
 
 function buildContactPrefillFromRestaurant(restaurant, profile = null, user = null) {
@@ -189,6 +192,20 @@ function applyContactPrefillSnapshot() {
     contactInterest.value = contactPrefillSnapshot.interest;
   } else if (contactInterest && contactInterest.value === "Interés de inversión") {
     contactInterest.value = contactPrefillSnapshot.interest;
+  }
+}
+
+function applyContactQueryPrefill() {
+  const params = new URLSearchParams(window.location.search);
+  const interest = String(params.get("interest") || "").trim();
+  const message = String(params.get("message") || "").trim();
+
+  if (interest && contactInterest) {
+    contactInterest.value = interest;
+  }
+
+  if (message) {
+    setInputValueIfEmpty(contactMessage, message);
   }
 }
 

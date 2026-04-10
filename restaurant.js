@@ -1766,6 +1766,40 @@ function buildEtaHintElement(order) {
   return element;
 }
 
+function setQuickCreateFeedback(message, type = "success", action = null) {
+  if (!quickCreateFeedback) return;
+  quickCreateFeedback.textContent = message;
+  quickCreateFeedback.className = `form-feedback form-feedback--${type}`;
+  quickCreateFeedback.hidden = false;
+
+  if (action?.label && action?.href) {
+    quickCreateFeedback.append(document.createTextNode(" "));
+    const link = document.createElement("a");
+    link.className = "button-secondary button-secondary--primary form-feedback__action";
+    link.href = action.href;
+    link.textContent = action.label;
+    quickCreateFeedback.append(link);
+  }
+}
+
+function clearQuickCreateFeedback() {
+  if (!quickCreateFeedback) return;
+  quickCreateFeedback.hidden = true;
+  quickCreateFeedback.textContent = "";
+}
+
+function buildActivationRequestUrl(restaurant, demoUsage) {
+  const params = new URLSearchParams();
+  const restaurantName = String(restaurant?.name || "Restaurante demo").trim();
+  params.set("interest", "Seguimiento de cuenta");
+  params.set(
+    "message",
+    `Hola, hemos alcanzado el limite de la demo (${demoUsage.usedOrders}/${demoUsage.maxOrders}) y queremos activar la cuenta de ${restaurantName}. Por favor, contactadnos para completar la activacion del plan.`,
+  );
+  params.set("activationRequest", "1");
+  return `./contact.html?${params.toString()}`;
+}
+
 function handleCreateOrder(event) {
   event.preventDefault();
   const formData = new FormData(quickCreateForm);
@@ -1780,16 +1814,12 @@ function handleCreateOrder(event) {
     });
   } catch (error) {
     if (error instanceof Error && error.message === "missing-source-order") {
-      quickCreateFeedback.textContent = "Necesitas pegar el codigo de factura o ticket.";
-      quickCreateFeedback.className = "form-feedback form-feedback--error";
-      quickCreateFeedback.hidden = false;
+      setQuickCreateFeedback("Necesitas pegar el codigo de factura o ticket.", "error");
       return;
     }
 
     if (error instanceof Error && error.message === "duplicate-source-order") {
-      quickCreateFeedback.textContent = "Ese pedido ya existe.";
-      quickCreateFeedback.className = "form-feedback form-feedback--error";
-      quickCreateFeedback.hidden = false;
+      setQuickCreateFeedback("Ese pedido ya existe.", "error");
       return;
     }
 
@@ -1797,9 +1827,14 @@ function handleCreateOrder(event) {
       const session = getCurrentRestaurantSession();
       const restaurant = session ? getRestaurantById(session.restaurantId) : null;
       const demoUsage = getRestaurantDemoUsage(restaurant);
-      quickCreateFeedback.textContent = `Has alcanzado el limite de la demo (${demoUsage.maxOrders} pedidos). Activa el plan completo para seguir operando con pedidos reales, historico e IA sin tope.`;
-      quickCreateFeedback.className = "form-feedback form-feedback--error";
-      quickCreateFeedback.hidden = false;
+      setQuickCreateFeedback(
+        `Has alcanzado el limite de la demo (${demoUsage.maxOrders} pedidos). Activa el plan completo para seguir operando con pedidos reales, historico e IA sin tope.`,
+        "error",
+        {
+          label: "Solicitar activacion",
+          href: buildActivationRequestUrl(restaurant, demoUsage),
+        },
+      );
       return;
     }
 
@@ -1811,15 +1846,23 @@ function handleCreateOrder(event) {
   const restaurant = session ? getRestaurantById(session.restaurantId) : null;
   if (isDemoRestaurant(restaurant)) {
     const demoUsage = getRestaurantDemoUsage(restaurant);
-    quickCreateFeedback.textContent =
-      demoUsage.remainingOrders > 0
-        ? `Pedido creado. La demo ya va por ${demoUsage.usedOrders}/${demoUsage.maxOrders}. Quedan ${demoUsage.remainingOrders} pedidos para seguir mostrando el valor del producto.`
-        : `Pedido creado. Has completado ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos de demo. Es un gran momento para activar el plan completo.`;
-    quickCreateFeedback.className = "form-feedback form-feedback--success";
-    quickCreateFeedback.hidden = false;
+    if (demoUsage.remainingOrders > 0) {
+      setQuickCreateFeedback(
+        `Pedido creado. La demo ya va por ${demoUsage.usedOrders}/${demoUsage.maxOrders}. Quedan ${demoUsage.remainingOrders} pedidos para seguir mostrando el valor del producto.`,
+        "success",
+      );
+    } else {
+      setQuickCreateFeedback(
+        `Pedido creado. Has completado ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos de demo. Es un gran momento para activar el plan completo.`,
+        "success",
+        {
+          label: "Solicitar activacion",
+          href: buildActivationRequestUrl(restaurant, demoUsage),
+        },
+      );
+    }
   } else {
-    quickCreateFeedback.hidden = true;
-    quickCreateFeedback.textContent = "";
+    clearQuickCreateFeedback();
   }
   expandedOrderId = order.id;
   editingOrderId = null;

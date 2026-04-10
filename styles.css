@@ -1542,6 +1542,15 @@ button:hover,
   font-weight: 700;
 }
 
+.form-feedback__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.75rem;
+  vertical-align: middle;
+  text-decoration: none;
+}
+
 .form-feedback--error {
   color: #9a4a10;
   background: rgba(236, 124, 13, 0.12);
