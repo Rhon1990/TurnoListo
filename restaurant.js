@@ -352,6 +352,7 @@ function renderRestaurant() {
     .filter((order) => matchesActiveFilters(order))
     .sort(compareActiveOrders);
   const filteredArchivedOrders = archivedOrders.filter((order) => matchesArchivedFilters(order));
+  const quickStats = getDashboardStats({ period: "day" });
   const dashboard = getDashboardStats({ period: activeRestaurantDashboardPeriod });
   lastDashboardStats = dashboard;
 
@@ -360,8 +361,8 @@ function renderRestaurant() {
   renderRestaurantHeroSignals(dashboard, restaurant, allOrders);
   renderRestaurantCreateHints(restaurant, allOrders);
   renderRestaurantPlaybook(restaurant, allOrders);
-  readyCount.textContent = `${dashboard.deliveredToday} entregados hoy`;
-  archivedCount.textContent = `${dashboard.archivedToday} archivados hoy`;
+  readyCount.textContent = `${quickStats.deliveredToday} entregados hoy`;
+  archivedCount.textContent = `${quickStats.archivedToday} archivados hoy`;
   syncRestaurantDisplayMode();
   renderFocusStrip(orders);
   syncSectionView();
