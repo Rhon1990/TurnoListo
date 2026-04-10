@@ -1561,7 +1561,14 @@ function buildOrderCard(order, isArchived) {
     buildField("Origen", "sourceSystem", order.sourceSystem, !isEditing),
     buildField("Cliente", "customerName", order.customerName, !isEditing),
     buildField("Recogida", "pickupPoint", order.pickupPoint, !isEditing),
-    buildField("Tiempo estimado (min)", "estimatedReadyMinutes", String(order.estimatedReadyMinutes || 15), !isEditing, false, "number"),
+    buildField(
+      "Tiempo estimado (min)",
+      "estimatedReadyMinutes",
+      order.estimatedReadyMinutes ? String(order.estimatedReadyMinutes) : "",
+      !isEditing,
+      false,
+      "number",
+    ),
     buildField("Pedido", "items", order.items, !isEditing, true),
     buildField("Diligencias opcionales", "notes", order.notes, !isEditing, true),
   );
@@ -1575,7 +1582,7 @@ function buildOrderCard(order, isArchived) {
         sourceSystem: String(formData.get("sourceSystem") || "").trim() || "Alta manual",
         customerName: String(formData.get("customerName") || "").trim() || "Cliente mostrador",
         pickupPoint: String(formData.get("pickupPoint") || "").trim() || "Mostrador 1",
-        estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "15"),
+        estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "").trim(),
         items: String(formData.get("items") || "").trim() || "Pedido rápido",
         notes: String(formData.get("notes") || "").trim(),
       });
@@ -1735,6 +1742,7 @@ function handleCreateOrder(event) {
   try {
     order = createOrder({
       sourceOrderId: String(formData.get("sourceOrderId") || ""),
+      estimatedReadyMinutes: String(formData.get("estimatedReadyMinutes") || "").trim(),
       customerName: String(formData.get("customerName") || ""),
       items: String(formData.get("items") || ""),
     });
