@@ -1711,9 +1711,12 @@ function updateOrder(id, updates) {
     Object.prototype.hasOwnProperty.call(nextUpdates, "estimatedReadyMinutes") ||
     Object.prototype.hasOwnProperty.call(nextUpdates, "createdAt")
   ) {
+    const nextEstimatedReadyMinutes = Object.prototype.hasOwnProperty.call(nextUpdates, "estimatedReadyMinutes")
+      ? nextUpdates.estimatedReadyMinutes
+      : currentOrder.estimatedReadyMinutes;
     nextUpdates.promisedReadyAt = buildPromisedReadyAt(
       nextUpdates.createdAt || currentOrder.createdAt,
-      nextUpdates.estimatedReadyMinutes || currentOrder.estimatedReadyMinutes,
+      nextEstimatedReadyMinutes,
     );
   }
 
