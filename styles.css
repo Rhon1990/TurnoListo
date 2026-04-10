@@ -1021,9 +1021,58 @@ button:hover,
   border: 1px solid rgba(29, 26, 22, 0.08);
 }
 
+.quick-form--order-create {
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
+  gap: 1rem 1.1rem;
+  padding: 1.1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 251, 245, 0.62)),
+    rgba(255, 255, 255, 0.55);
+}
+
+.quick-form__block {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.quick-form__block--lead {
+  grid-column: 1 / -1;
+  background:
+    linear-gradient(135deg, rgba(232, 133, 42, 0.1), rgba(255, 253, 248, 0.92) 55%),
+    rgba(255, 253, 248, 0.92);
+  border-color: rgba(232, 133, 42, 0.18);
+}
+
+.quick-form__block--main {
+  min-width: 0;
+}
+
+.quick-form__block--aside {
+  align-content: start;
+}
+
+.quick-form__section-title {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(29, 26, 22, 0.48);
+}
+
 .quick-form__actions {
   display: flex;
   align-items: end;
+}
+
+.quick-form__actions--order-create {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  padding-top: 0.2rem;
 }
 
 .section-switcher {
@@ -1747,6 +1796,12 @@ button:hover,
   font-family: var(--font-sans);
 }
 
+.field--primary span {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
 .field input,
 .field select {
   width: 100%;
@@ -1754,6 +1809,15 @@ button:hover,
   border-radius: 16px;
   background: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.field--primary input {
+  min-height: 64px;
+  padding: 1rem 1.1rem;
+  font-size: 1.05rem;
+  border-radius: 18px;
+  border-color: rgba(232, 133, 42, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .password-field {
@@ -3438,6 +3502,7 @@ button:hover,
   }
 
   .quick-form,
+  .quick-form--order-create,
   .admin-create-form,
   .list-toolbar,
   .focus-strip,
@@ -3451,6 +3516,14 @@ button:hover,
 
   .section-switcher {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .quick-form__block,
+  .quick-form__block--lead,
+  .quick-form__block--main,
+  .quick-form__block--aside,
+  .quick-form__actions--order-create {
+    grid-column: 1 / -1;
   }
 
   .mode-strip {

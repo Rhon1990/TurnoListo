@@ -277,24 +277,33 @@
             <div class="restaurant-grid" id="restaurantOrders"></div>
           </section>
           <section class="restaurant-section" data-section-panel="create" hidden>
-            <form class="quick-form" id="quickCreateForm">
-              <label class="field">
-                <span>Código de factura / ticket</span>
-                <input id="sourceOrderId" name="sourceOrderId" type="text" placeholder="Ej. FAC-804 o POS-804" required />
-              </label>
-              <label class="field">
-                <span>Tiempo estimado (min) (opcional)</span>
-                <input id="estimatedReadyMinutes" name="estimatedReadyMinutes" type="number" min="1" inputmode="numeric" placeholder="Ej. 15" />
-              </label>
-              <label class="field">
-                <span>Cliente (opcional)</span>
-                <input id="customerName" name="customerName" type="text" placeholder="Nombre o alias" />
-              </label>
-              <label class="field field--wide">
-                <span>Pedido / resumen (opcional)</span>
-                <input id="items" name="items" type="text" placeholder="Burger doble + bebida" />
-              </label>
-              <div class="quick-form__actions">
+            <form class="quick-form quick-form--order-create" id="quickCreateForm">
+              <section class="quick-form__block quick-form__block--lead" aria-labelledby="quickCreateLeadTitle">
+                <p class="quick-form__section-title" id="quickCreateLeadTitle">Dato clave</p>
+                <label class="field field--primary">
+                  <span>Código de factura / ticket</span>
+                  <input id="sourceOrderId" name="sourceOrderId" type="text" placeholder="Ej. FAC-804 o POS-804" required />
+                </label>
+              </section>
+              <section class="quick-form__block quick-form__block--main" aria-labelledby="quickCreateMainTitle">
+                <p class="quick-form__section-title" id="quickCreateMainTitle">Qué se ha pedido</p>
+                <label class="field">
+                  <span>Pedido / resumen (opcional)</span>
+                  <input id="items" name="items" type="text" placeholder="Burger doble + bebida" />
+                </label>
+              </section>
+              <section class="quick-form__block quick-form__block--aside" aria-labelledby="quickCreateAsideTitle">
+                <p class="quick-form__section-title" id="quickCreateAsideTitle">Contexto adicional</p>
+                <label class="field">
+                  <span>Tiempo estimado (min) (opcional)</span>
+                  <input id="estimatedReadyMinutes" name="estimatedReadyMinutes" type="number" min="1" inputmode="numeric" placeholder="Ej. 15" />
+                </label>
+                <label class="field">
+                  <span>Cliente (opcional)</span>
+                  <input id="customerName" name="customerName" type="text" placeholder="Nombre o alias" />
+                </label>
+              </section>
+              <div class="quick-form__actions quick-form__actions--order-create">
                 <button type="submit" class="launcher">Crear pedido</button>
               </div>
             </form>
