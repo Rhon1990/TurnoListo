@@ -124,6 +124,7 @@ const adminMessageSortOrder = document.querySelector("#adminMessageSortOrder");
 const adminMessagesTotalChip = document.querySelector("#adminMessagesTotalChip");
 const adminMessagesUnreadChip = document.querySelector("#adminMessagesUnreadChip");
 const adminMessagesReadChip = document.querySelector("#adminMessagesReadChip");
+const adminMessageQuickFilters = document.querySelectorAll("[data-message-quick-filter]");
 const adminAccountButton = document.querySelector("#adminAccountButton");
 const adminAccountPanel = document.querySelector("#adminAccountPanel");
 const adminAccountAvatarImage = document.querySelector("#adminAccountAvatarImage");
@@ -270,6 +271,13 @@ adminDashboardLinks.forEach((link) => {
   if (!control) return;
   control.addEventListener("input", renderAdminMessagesPanel);
   control.addEventListener("change", renderAdminMessagesPanel);
+});
+adminMessageQuickFilters.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!adminMessageStatusFilter) return;
+    adminMessageStatusFilter.value = button.dataset.messageQuickFilter || "all";
+    renderAdminMessagesPanel();
+  });
 });
 adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
 adminMenuLogout?.addEventListener("click", async () => {
@@ -1316,6 +1324,9 @@ function renderAdminMessagesPanel() {
   adminMessagesTotalChip.textContent = `${adminContactInquiries.length} mensajes`;
   adminMessagesUnreadChip.textContent = `${adminContactInquiries.filter((item) => !item.isRead).length} sin leer`;
   adminMessagesReadChip.textContent = `${adminContactInquiries.filter((item) => item.isRead).length} leídos`;
+  adminMessageQuickFilters.forEach((button) => {
+    button.classList.toggle("is-active", (button.dataset.messageQuickFilter || "all") === statusFilter);
+  });
   adminMessageList.innerHTML = "";
 
   if (!filtered.length) {

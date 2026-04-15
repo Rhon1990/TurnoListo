@@ -542,10 +542,16 @@
                   <p class="panel__kicker">Bandeja</p>
                   <h2>Mensajes de Contáctenos</h2>
                 </div>
-                <div class="summary-strip">
-                  <span class="summary-chip" id="adminMessagesTotalChip">0 mensajes</span>
-                  <span class="summary-chip" id="adminMessagesUnreadChip">0 sin leer</span>
-                  <span class="summary-chip" id="adminMessagesReadChip">0 leídos</span>
+                <div class="admin-inbox-quick-filters" aria-label="Filtros rápidos de mensajes">
+                  <button class="admin-inbox-quick-filter is-active" id="adminMessagesTotalChip" type="button" data-message-quick-filter="all">
+                    0 mensajes
+                  </button>
+                  <button class="admin-inbox-quick-filter" id="adminMessagesUnreadChip" type="button" data-message-quick-filter="unread">
+                    0 sin leer
+                  </button>
+                  <button class="admin-inbox-quick-filter" id="adminMessagesReadChip" type="button" data-message-quick-filter="read">
+                    0 leídos
+                  </button>
                 </div>
               </div>
 

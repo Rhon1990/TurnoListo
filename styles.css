@@ -872,6 +872,44 @@ body.celebration-active::after {
   grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(180px, 0.6fr));
 }
 
+.admin-inbox-quick-filters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.admin-inbox-quick-filter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(29, 26, 22, 0.06);
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.admin-inbox-quick-filter:hover,
+.admin-inbox-quick-filter:focus-visible {
+  background: rgba(255, 247, 236, 0.98);
+  border-color: rgba(236, 124, 13, 0.18);
+  color: var(--brand-dark);
+}
+
+.admin-inbox-quick-filter.is-active {
+  background: linear-gradient(180deg, rgba(236, 124, 13, 0.98), rgba(216, 101, 0, 0.98));
+  border-color: transparent;
+  color: #fff7f1;
+  box-shadow: 0 12px 24px rgba(236, 124, 13, 0.18);
+}
+
 .admin-inbox-list {
   display: grid;
   gap: 1rem;
