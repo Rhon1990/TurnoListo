@@ -2784,6 +2784,8 @@ function getTurnoAlertRoot() {
 }
 
 function showTurnoAlert(message, type = "error", options = {}) {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   const root = getTurnoAlertRoot();
   const alert = document.createElement("article");
   const title = document.createElement("strong");
@@ -2798,14 +2800,18 @@ function showTurnoAlert(message, type = "error", options = {}) {
   body.className = "turno-alert__body";
   close.className = "turno-alert__close";
   close.type = "button";
-  close.setAttribute("aria-label", "Cerrar alerta");
+  close.setAttribute("aria-label", translateText("Cerrar alerta"));
   closeIcon.className = "material-symbols-rounded";
   closeIcon.setAttribute("aria-hidden", "true");
   closeIcon.dataset.icon = "close";
-  closeLabel.textContent = "Cerrar";
+  closeLabel.textContent = translateText("Cerrar");
   title.textContent =
-    type === "success" ? "Todo correcto" : type === "warning" ? "Revisa esto" : "Algo ha fallado";
-  body.textContent = String(message || "Ha ocurrido un error inesperado.");
+    type === "success"
+      ? translateText("Todo correcto")
+      : type === "warning"
+        ? translateText("Revisa esto")
+        : translateText("Algo ha fallado");
+  body.textContent = translateText(String(message || "Ha ocurrido un error inesperado."));
 
   close.addEventListener("click", () => {
     alert.remove();
