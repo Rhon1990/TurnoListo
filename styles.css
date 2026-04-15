@@ -380,7 +380,8 @@ body.celebration-active::after {
   transform: translateY(-1px);
 }
 
-.workspace-mail-button {
+.workspace-mail-button,
+.workspace-home-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -394,9 +395,12 @@ body.celebration-active::after {
   font-weight: 700;
   position: relative;
   flex: 0 0 auto;
+  text-decoration: none;
 }
 
-.workspace-mail-button.is-active {
+.workspace-mail-button.is-active,
+.workspace-home-button:hover,
+.workspace-home-button:focus-visible {
   background: rgba(236, 124, 13, 0.12);
   color: var(--brand-dark);
 }
@@ -4064,12 +4068,14 @@ button:hover,
   }
 
   .workspace-mail-button,
+  .workspace-home-button,
   .workspace-contact-button,
   .contact-back {
     width: auto;
   }
 
-  .workspace-mail-button {
+  .workspace-mail-button,
+  .workspace-home-button {
     width: 50px;
     height: 50px;
   }
