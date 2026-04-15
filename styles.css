@@ -1498,10 +1498,10 @@ button:hover,
   align-items: center;
   gap: 0.55rem;
   min-height: 52px;
-  padding: 0 0.85rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(29, 26, 22, 0.08);
+  padding: 0 0.2rem;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
 }
 
 .phone-country-search__icon {
