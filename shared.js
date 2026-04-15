@@ -2784,6 +2784,8 @@ function getTurnoAlertRoot() {
 }
 
 function showTurnoAlert(message, type = "error", options = {}) {
+  const translateKey = (key, fallback = "") =>
+    window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
   const translateText = (value) =>
     window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   const root = getTurnoAlertRoot();
@@ -2800,18 +2802,18 @@ function showTurnoAlert(message, type = "error", options = {}) {
   body.className = "turno-alert__body";
   close.className = "turno-alert__close";
   close.type = "button";
-  close.setAttribute("aria-label", translateText("Cerrar alerta"));
+  close.setAttribute("aria-label", translateKey("alert.closeAria", translateText("Cerrar alerta")));
   closeIcon.className = "material-symbols-rounded";
   closeIcon.setAttribute("aria-hidden", "true");
   closeIcon.dataset.icon = "close";
-  closeLabel.textContent = translateText("Cerrar");
+  closeLabel.textContent = translateKey("client.close", translateText("Cerrar"));
   title.textContent =
     type === "success"
-      ? translateText("Todo correcto")
+      ? translateKey("alert.successTitle", translateText("Todo correcto"))
       : type === "warning"
-        ? translateText("Revisa esto")
-        : translateText("Algo ha fallado");
-  body.textContent = translateText(String(message || "Ha ocurrido un error inesperado."));
+        ? translateKey("alert.warningTitle", translateText("Revisa esto"))
+        : translateKey("alert.errorTitle", translateText("Algo ha fallado"));
+  body.textContent = translateText(String(message || translateKey("alert.unexpected", "Ha ocurrido un error inesperado.")));
 
   close.addEventListener("click", () => {
     alert.remove();

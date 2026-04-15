@@ -21,20 +21,20 @@
   </head>
   <body>
     <div class="app-shell">
-      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo" data-i18n-aria-label-key="layout.topbar.aria">
         <div class="workspace-topbar__inner">
-          <a class="workspace-brand workspace-brand--link" href="./index.html" aria-label="Ir al inicio de TurnoListo">
+          <a class="workspace-brand workspace-brand--link" href="./index.html" aria-label="Ir al inicio de TurnoListo" data-i18n-aria-label-key="layout.home.aria">
             <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
             <div class="workspace-brand__copy">
               <p class="workspace-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
-              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+              <p class="workspace-brand__tagline" data-i18n-key="brand.tagline">Tecnología que Agiliza tu Restaurante</p>
             </div>
           </a>
-          <div class="workspace-actions" aria-label="Acciones de cabecera">
-            <span class="workspace-status">Inicio</span>
+          <div class="workspace-actions" aria-label="Acciones de cabecera" data-i18n-aria-label-key="layout.actions.aria">
+            <span class="workspace-status" data-i18n-key="layout.home">Inicio</span>
             <a class="workspace-contact-button" href="./contact.html">
               <span class="workspace-action-icon material-symbols-rounded" data-icon="support_agent" aria-hidden="true"></span>
-              <span>Contáctenos</span>
+              <span data-i18n-key="layout.contact">Contáctenos</span>
             </a>
           </div>
         </div>
@@ -42,8 +42,8 @@
       <header class="hero hero--landing">
         <div class="hero__copy">
           <p class="eyebrow">TurnoListo</p>
-          <h1>Dos códigos, un mismo pedido.</h1>
-          <p class="hero__text">
+          <h1 data-i18n-key="landing.hero.title">Dos códigos, un mismo pedido.</h1>
+          <p class="hero__text" data-i18n-key="landing.hero.text">
             Una pantalla para el restaurante y otra para el cliente, conectadas por el mismo flujo.
           </p>
         </div>
@@ -51,33 +51,33 @@
 
       <main class="grid">
         <section class="panel glass-card">
-          <p class="panel__kicker">Código 0</p>
-          <h2>Panel administrador</h2>
-          <p class="hero__hint">
+          <p class="panel__kicker" data-i18n-key="landing.admin.code">Código 0</p>
+          <h2 data-i18n-key="landing.admin.title">Panel administrador</h2>
+          <p class="hero__hint" data-i18n-key="landing.admin.text">
             Crea restaurantes, define su usuario y contraseña y controla quién entra al panel operativo.
           </p>
-          <a class="launcher" href="./admin.html">Abrir administrador</a>
+          <a class="launcher" href="./admin.html" data-i18n-key="landing.admin.cta">Abrir administrador</a>
         </section>
 
         <section class="panel glass-card">
-          <p class="panel__kicker">Código 1</p>
-          <h2>Panel restaurante</h2>
-          <p class="hero__hint">
+          <p class="panel__kicker" data-i18n-key="landing.restaurant.code">Código 1</p>
+          <h2 data-i18n-key="landing.restaurant.title">Panel restaurante</h2>
+          <p class="hero__hint" data-i18n-key="landing.restaurant.text">
             Cambia el estado de cada pedido de forma amigable y entrega un QR al cliente.
           </p>
-          <a class="launcher" href="./restaurant.html">Abrir restaurante</a>
+          <a class="launcher" href="./restaurant.html" data-i18n-key="landing.restaurant.cta">Abrir restaurante</a>
         </section>
 
         <section class="panel glass-card">
-          <p class="panel__kicker">Código 2</p>
-          <h2>Vista cliente</h2>
-          <p class="hero__hint">
+          <p class="panel__kicker" data-i18n-key="landing.client.code">Código 2</p>
+          <h2 data-i18n-key="landing.client.title">Vista cliente</h2>
+          <p class="hero__hint" data-i18n-key="landing.client.text">
             El usuario lee su QR y ve el estado por colores junto a los pedidos anteriores.
           </p>
-          <a class="launcher" href="./client.html">Abrir cliente</a>
+          <a class="launcher" href="./client.html" data-i18n-key="landing.client.cta">Abrir cliente</a>
         </section>
       </main>
     </div>
-    <script src="./i18n.js?v=20260415b"></script>
+    <script src="./i18n.js?v=20260415c"></script>
   </body>
 </html>

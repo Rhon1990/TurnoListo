@@ -23,11 +23,11 @@
                 <img class="auth-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
                 <div class="auth-brand__copy" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
                   <p class="auth-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
-                  <p class="auth-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+                  <p class="auth-brand__tagline" data-i18n-key="brand.tagline">Tecnología que Agiliza tu Restaurante</p>
                 </div>
               </div>
               <div class="auth-showcase__copy">
-                <p class="panel__kicker">Acceso restaurante</p>
+                <p class="panel__kicker" data-i18n-key="restaurant.login.kicker">Acceso restaurante</p>
                 <h2>Convierte cada pedido en una decisión guiada por IA adaptativa, clara y lista para escalar.</h2>
                 <p class="auth-showcase__text">
                   TurnoListo combina seguimiento en tiempo real, aprendizaje por restaurante y recomendaciones operativas
@@ -61,7 +61,7 @@
             <div class="auth-entry">
               <div class="panel__heading">
                 <div>
-                  <p class="panel__kicker">Acceso restaurante</p>
+                  <p class="panel__kicker" data-i18n-key="restaurant.login.kicker">Acceso restaurante</p>
                   <h2>Inicia sesión para operar con IA que aprende de tu restaurante</h2>
                 </div>
               </div>
@@ -70,20 +70,20 @@
               </p>
               <form class="quick-form auth-form" id="restaurantLoginForm">
                 <label class="field">
-                  <span>Correo de acceso</span>
+                  <span data-i18n-key="restaurant.login.email">Correo de acceso</span>
                   <input id="restaurantLoginUsername" name="username" type="email" placeholder="correo@restaurante.com" required />
                 </label>
                 <label class="field">
-                  <span>Contraseña</span>
+                  <span data-i18n-key="restaurant.login.password">Contraseña</span>
                   <div class="password-field">
-                    <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" required />
-                    <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
+                    <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" data-i18n-placeholder-key="restaurant.login.password" required />
+                    <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña" data-i18n-aria-label-key="restaurant.login.showPassword">
                       <span class="material-symbols-rounded" data-icon="visibility" aria-hidden="true"></span>
                     </button>
                   </div>
                 </label>
                 <div class="quick-form__actions auth-form__actions">
-                  <button type="submit" class="launcher">Entrar al restaurante</button>
+                  <button type="submit" class="launcher" data-i18n-key="restaurant.login.submit">Entrar al restaurante</button>
                 </div>
               </form>
               <p class="form-feedback" id="restaurantLoginFeedback" hidden></p>
@@ -95,22 +95,22 @@
 
     <div class="app-shell" id="restaurantWorkspace" hidden>
       <div class="floating-tooltip floating-tooltip--fixed" id="restaurantTermTooltip" hidden></div>
-      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo" data-i18n-aria-label-key="layout.topbar.aria">
         <div class="workspace-topbar__inner">
-          <a class="workspace-brand workspace-brand--link" href="./restaurant.html" aria-label="Ir al panel principal del restaurante">
+          <a class="workspace-brand workspace-brand--link" href="./restaurant.html" aria-label="Ir al panel principal del restaurante" data-i18n-aria-label-key="layout.restaurantPanel.aria">
             <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
             <div class="workspace-brand__copy">
               <p class="workspace-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
-              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+              <p class="workspace-brand__tagline" data-i18n-key="brand.tagline">Tecnología que Agiliza tu Restaurante</p>
             </div>
           </a>
-          <div class="workspace-actions" aria-label="Acciones de cabecera">
-            <a class="workspace-mail-button workspace-home-button" href="./restaurant.html" aria-label="Ir al panel principal">
+          <div class="workspace-actions" aria-label="Acciones de cabecera" data-i18n-aria-label-key="layout.actions.aria">
+            <a class="workspace-mail-button workspace-home-button" href="./restaurant.html" aria-label="Ir al panel principal" data-i18n-aria-label-key="layout.homePanel.aria">
               <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="home" aria-hidden="true"></span>
-              <span class="workspace-mail-button__label">Inicio</span>
+              <span class="workspace-mail-button__label" data-i18n-key="layout.home">Inicio</span>
             </a>
             <div class="account-menu" id="restaurantAccountMenu">
-              <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+              <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false" data-i18n-aria-label-key="layout.accountMenu.aria">
                 <span class="account-menu__avatar" id="restaurantAccountAvatar">
                   <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
                   <span id="restaurantAccountAvatarFallback">?</span>
@@ -119,21 +119,21 @@
               </button>
               <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
                 <div class="account-menu__identity">
-                  <strong id="restaurantAccountName">Sin datos cargados</strong>
-                  <p id="restaurantAccountMeta">Cuenta no cargada</p>
+                  <strong id="restaurantAccountName" data-i18n-key="restaurant.account.emptyName">Sin datos cargados</strong>
+                  <p id="restaurantAccountMeta" data-i18n-key="restaurant.account.emptyMeta">Cuenta no cargada</p>
                 </div>
                 <div class="account-menu__actions">
                   <a class="account-menu__item" id="restaurantMenuProfile" href="./restaurant-profile.html">
                     <span class="material-symbols-rounded" data-icon="storefront" aria-hidden="true"></span>
-                    <span>Perfil</span>
+                    <span data-i18n-key="layout.profile">Perfil</span>
                   </a>
                   <a class="account-menu__item" href="./contact.html">
                     <span class="material-symbols-rounded" data-icon="support_agent" aria-hidden="true"></span>
-                    <span>Contáctenos</span>
+                    <span data-i18n-key="layout.contact">Contáctenos</span>
                   </a>
                   <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">
                     <span class="material-symbols-rounded" data-icon="logout" aria-hidden="true"></span>
-                    <span>Cerrar sesión</span>
+                    <span data-i18n-key="layout.logout">Cerrar sesión</span>
                   </button>
                 </div>
               </div>
@@ -639,7 +639,7 @@
     <script>
       window.TURNO_LISTO_PRIVATE_ROLE = "restaurant";
     </script>
-    <script src="./i18n.js?v=20260415b"></script>
+    <script src="./i18n.js?v=20260415c"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>

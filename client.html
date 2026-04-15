@@ -27,18 +27,18 @@
               <img class="hero-brand__logo" id="clientBrandLogo" alt="Logo del restaurante" />
             </div>
             <div class="hero-brand__copy">
-              <p class="eyebrow">Restaurante</p>
+              <p class="eyebrow" data-i18n-key="client.brand.eyebrow">Restaurante</p>
               <p class="hero-brand__name" id="clientBrandName"></p>
             </div>
           </div>
           <div class="stats stats--client" id="clientStats">
             <div class="stat">
-              <span class="stat__label">Pedidos antes que tú</span>
+              <span class="stat__label" data-i18n-key="client.queue.label">Pedidos antes que tú</span>
               <strong class="stat__value" id="clientQueueCount">0</strong>
             </div>
             <div class="client-meta-strip" id="clientMetaStrip" hidden>
               <span class="client-meta-item" id="clientEtaStat" hidden>
-                <span class="client-meta-item__label">Tiempo estimado</span>
+                <span class="client-meta-item__label" data-i18n-key="client.eta.label">Tiempo estimado</span>
                 <strong class="client-meta-item__value" id="clientEtaValue">--</strong>
               </span>
             </div>
@@ -50,7 +50,7 @@
                 <h3 id="clientOrderNumber">--</h3>
                 <p class="ticket__label" id="clientCustomer"></p>
               </div>
-              <span class="status-pill" id="clientStatus">Recibido</span>
+              <span class="status-pill" id="clientStatus" data-i18n-key="client.status.received">Recibido</span>
             </div>
 
             <div class="progress">
@@ -58,54 +58,54 @@
                 <span id="clientProgress"></span>
               </div>
               <div class="progress-steps" id="clientProgressSteps">
-                <span class="progress-step" data-step="received">Recibido</span>
-                <span class="progress-step" data-step="preparing">Preparando</span>
-                <span class="progress-step" data-step="ready">Listo</span>
-                <span class="progress-step" data-step="delivered">Entregado</span>
+                <span class="progress-step" data-step="received" data-i18n-key="client.status.received">Recibido</span>
+                <span class="progress-step" data-step="preparing" data-i18n-key="client.status.preparing">Preparando</span>
+                <span class="progress-step" data-step="ready" data-i18n-key="client.status.ready">Listo</span>
+                <span class="progress-step" data-step="delivered" data-i18n-key="client.status.delivered">Entregado</span>
               </div>
             </div>
 
             <div class="callout" id="clientReadyBanner" hidden>
-              <strong>Tu pedido ya está listo.</strong>
-              <span>Ya puedes acercarte al punto de recogida.</span>
+              <strong data-i18n-key="client.ready.title">Tu pedido ya está listo.</strong>
+              <span data-i18n-key="client.ready.text">Ya puedes acercarte al punto de recogida.</span>
             </div>
 
             <div class="callout callout--alerts" id="clientAlertsBanner">
-              <strong id="clientAlertsTitle">Activa los avisos del pedido.</strong>
-              <span id="clientAlertsStatus">Recibiras sonido si tienes la app abierta, y notificacion si el movil esta bloqueado.</span>
+              <strong id="clientAlertsTitle" data-i18n-key="client.alerts.title">Activa los avisos del pedido.</strong>
+              <span id="clientAlertsStatus" data-i18n-key="client.alerts.default">Recibiras sonido si tienes la app abierta, y notificacion si el movil esta bloqueado.</span>
               <button class="button-secondary ghost-button--full" id="clientEnableAlertsButton" type="button">
-                Activar avisos
+                <span data-i18n-key="client.alerts.button">Activar avisos</span>
               </button>
             </div>
 
             <div class="callout callout--ios-install" id="clientIosInstallBanner" hidden>
-              <strong id="clientIosInstallTitle">Mejora los avisos en tu iPhone.</strong>
-              <span id="clientIosInstallText">
+              <strong id="clientIosInstallTitle" data-i18n-key="client.ios.title">Mejora los avisos en tu iPhone.</strong>
+              <span id="clientIosInstallText" data-i18n-key="client.ios.text">
                 Para que TurnoListo pueda avisarte mejor, abre este pedido en Safari, anadelo a pantalla de inicio y activalo desde ese icono.
               </span>
-              <button class="button-secondary ghost-button--full" id="clientIosInstallButton" type="button">
+              <button class="button-secondary ghost-button--full" id="clientIosInstallButton" type="button" data-i18n-key="client.ios.button">
                 Como activarlo en iPhone
               </button>
               <div class="client-ios-install-steps" id="clientIosInstallSteps" hidden>
-                <button class="button-secondary button-secondary--primary ghost-button--full" id="clientCopyLinkButton" type="button">
+                <button class="button-secondary button-secondary--primary ghost-button--full" id="clientCopyLinkButton" type="button" data-i18n-key="client.ios.copyLink">
                   Copiar enlace de este pedido
                 </button>
-                <p id="clientIosStepCopy">1. Copia el enlace de este pedido.</p>
-                <p id="clientIosStepSafari">2. Abre Safari y pega el enlace.</p>
-                <p id="clientIosStepShare">3. Toca Compartir.</p>
-                <p id="clientIosStepInstall">4. Elige "Anadir a pantalla de inicio".</p>
-                <p id="clientIosStepOpen">5. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".</p>
+                <p id="clientIosStepCopy" data-i18n-key="client.ios.step.copy">1. Copia el enlace de este pedido.</p>
+                <p id="clientIosStepSafari" data-i18n-key="client.ios.step.safari">2. Abre Safari y pega el enlace.</p>
+                <p id="clientIosStepShare" data-i18n-key="client.ios.step.share">3. Toca Compartir.</p>
+                <p id="clientIosStepInstall" data-i18n-key="client.ios.step.install">4. Elige "Anadir a pantalla de inicio".</p>
+                <p id="clientIosStepOpen" data-i18n-key="client.ios.step.open">5. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".</p>
               </div>
             </div>
 
-            <p class="client-alerts-confirmation" id="clientAlertsConfirmation" hidden>
+            <p class="client-alerts-confirmation" id="clientAlertsConfirmation" hidden data-i18n-key="client.alerts.confirmation">
               Tienes las notificaciones activadas.
             </p>
 
             <section class="feedback-card" id="clientFeedbackCard" hidden>
-              <p class="ticket__label">Pedido entregado</p>
-              <h4>Gracias por su compra, vuelva pronto</h4>
-              <p class="feedback-card__text">Valora tu experiencia</p>
+              <p class="ticket__label" data-i18n-key="client.feedback.kicker">Pedido entregado</p>
+              <h4 data-i18n-key="client.feedback.title">Gracias por su compra, vuelva pronto</h4>
+              <p class="feedback-card__text" data-i18n-key="client.feedback.text">Valora tu experiencia</p>
               <div class="rating-actions" id="clientRatingActions">
                 <button type="button" class="rating-button" data-score="1">1</button>
                 <button type="button" class="rating-button" data-score="2">2</button>
@@ -115,13 +115,11 @@
               </div>
               <div class="feedback-comment" id="clientFeedbackComment" hidden>
                 <label class="field">
-                  <span>¿Qué podemos mejorar?</span>
-                  <input id="clientCommentInput" type="text" maxlength="160" placeholder="Escribe un comentario corto" />
+                  <span data-i18n-key="client.feedback.improve">¿Qué podemos mejorar?</span>
+                  <input id="clientCommentInput" type="text" maxlength="160" placeholder="Escribe un comentario corto" data-i18n-placeholder-key="client.feedback.placeholder" />
                 </label>
-                <button type="button" class="button-secondary ghost-button--full" id="clientCommentSave">
-                  Enviar comentario
-                </button>
-                <p class="feedback-card__value" id="clientCommentSentMessage" hidden>
+                <button type="button" class="button-secondary ghost-button--full" id="clientCommentSave" data-i18n-key="client.feedback.send">Enviar comentario</button>
+                <p class="feedback-card__value" id="clientCommentSentMessage" hidden data-i18n-key="client.feedback.sent">
                   Gracias por sus comentarios.
                 </p>
               </div>
@@ -132,10 +130,10 @@
           <div class="scan-box scan-box--client scan-box--client-compact">
             <div class="scan-box__header">
               <div>
-                <p class="ticket__label">Herramientas del pedido</p>
-                <label for="clientOrderInput">Abrir otro pedido</label>
+                <p class="ticket__label" data-i18n-key="client.tools.kicker">Herramientas del pedido</p>
+                <label for="clientOrderInput" data-i18n-key="client.tools.openAnother">Abrir otro pedido</label>
               </div>
-              <button class="ghost-button scan-box__qr-button" id="clientShowQrButton" type="button">
+              <button class="ghost-button scan-box__qr-button" id="clientShowQrButton" type="button" data-i18n-key="client.tools.showQr">
                 Mostrar mi QR
               </button>
             </div>
@@ -143,7 +141,7 @@
               <input id="clientOrderInput" type="text" placeholder="Ej. TL-ANA2048Q2Z9" />
               <button id="clientLoadButton" type="button">Abrir</button>
             </div>
-            <p class="scan-box__hint">Escribe el código seguro del pedido solo si quieres consultar uno distinto.</p>
+            <p class="scan-box__hint" data-i18n-key="client.tools.hint">Escribe el código seguro del pedido solo si quieres consultar uno distinto.</p>
           </div>
         </section>
       </main>
@@ -152,16 +150,16 @@
     <div class="qr-modal" id="clientQrModal" hidden>
       <div class="qr-modal__backdrop" id="clientQrBackdrop"></div>
       <div class="qr-modal__card glass-card">
-        <button class="qr-modal__close" id="clientQrClose" type="button" aria-label="Cerrar QR">
+        <button class="qr-modal__close" id="clientQrClose" type="button" aria-label="Cerrar QR" data-i18n-aria-label-key="client.qr.closeAria">
           <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
-          <span>Cerrar</span>
+          <span data-i18n-key="client.close">Cerrar</span>
         </button>
         <div class="qr-card qr-card--modal">
           <div class="qr-card__media">
             <img id="clientQrImage" alt="QR del pedido" />
           </div>
           <div class="qr-card__content">
-            <p class="ticket__label">Tu código</p>
+            <p class="ticket__label" data-i18n-key="client.code.label">Tu código</p>
             <strong id="clientQrValue">TL-ANA2048Q2Z9</strong>
             <p class="scan-box__hint" id="clientQrHint"></p>
           </div>
@@ -169,7 +167,7 @@
       </div>
     </div>
 
-    <script src="./i18n.js?v=20260415b"></script>
+    <script src="./i18n.js?v=20260415c"></script>
     <script src="./firebase-config.js?v=20260408e"></script>
     <script type="module" src="./firebase-bridge.js?v=20260408e"></script>
     <script src="./shared.js?v=20260408e"></script>

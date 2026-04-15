@@ -20,6 +20,97 @@
     ".hero-brand__name",
   ].join(", ");
 
+  const KEY_TRANSLATION_SOURCES = {
+    "brand.tagline": "Tecnología que Agiliza tu Restaurante",
+    "layout.topbar.aria": "Cabecera principal TurnoListo",
+    "layout.actions.aria": "Acciones de cabecera",
+    "layout.home.aria": "Ir al inicio de TurnoListo",
+    "layout.homePanel.aria": "Ir al panel principal",
+    "layout.adminPanel.aria": "Ir al panel principal de administración",
+    "layout.restaurantPanel.aria": "Ir al panel principal del restaurante",
+    "layout.home": "Inicio",
+    "layout.contact": "Contáctenos",
+    "layout.profile": "Perfil",
+    "layout.logout": "Cerrar sesión",
+    "layout.accountMenu.aria": "Abrir menú de cuenta",
+    "layout.messages": "Mensajes",
+    "layout.messagesInbox.aria": "Abrir bandeja de mensajes",
+    "alert.closeAria": "Cerrar alerta",
+    "alert.successTitle": "Todo correcto",
+    "alert.warningTitle": "Revisa esto",
+    "alert.errorTitle": "Algo ha fallado",
+    "alert.unexpected": "Ha ocurrido un error inesperado.",
+
+    "landing.hero.title": "Dos códigos, un mismo pedido.",
+    "landing.hero.text": "Una pantalla para el restaurante y otra para el cliente, conectadas por el mismo flujo.",
+    "landing.admin.code": "Código 0",
+    "landing.admin.title": "Panel administrador",
+    "landing.admin.text": "Crea restaurantes, define su usuario y contraseña y controla quién entra al panel operativo.",
+    "landing.admin.cta": "Abrir administrador",
+    "landing.restaurant.code": "Código 1",
+    "landing.restaurant.title": "Panel restaurante",
+    "landing.restaurant.text": "Cambia el estado de cada pedido de forma amigable y entrega un QR al cliente.",
+    "landing.restaurant.cta": "Abrir restaurante",
+    "landing.client.code": "Código 2",
+    "landing.client.title": "Vista cliente",
+    "landing.client.text": "El usuario lee su QR y ve el estado por colores junto a los pedidos anteriores.",
+    "landing.client.cta": "Abrir cliente",
+
+    "client.brand.eyebrow": "Restaurante",
+    "client.queue.label": "Pedidos antes que tú",
+    "client.eta.label": "Tiempo estimado",
+    "client.status.received": "Recibido",
+    "client.status.preparing": "Preparando",
+    "client.status.ready": "Listo",
+    "client.status.delivered": "Entregado",
+    "client.ready.title": "Tu pedido ya está listo.",
+    "client.ready.text": "Ya puedes acercarte al punto de recogida.",
+    "client.alerts.title": "Activa los avisos del pedido.",
+    "client.alerts.default": "Recibiras sonido si tienes la app abierta, y notificacion si el movil esta bloqueado.",
+    "client.alerts.button": "Activar avisos",
+    "client.ios.title": "Mejora los avisos en tu iPhone.",
+    "client.ios.text": "Para que TurnoListo pueda avisarte mejor, abre este pedido en Safari, anadelo a pantalla de inicio y activalo desde ese icono.",
+    "client.ios.button": "Como activarlo en iPhone",
+    "client.ios.copyLink": "Copia el enlace de este pedido",
+    "client.ios.step.copy": "1. Copia el enlace de este pedido.",
+    "client.ios.step.safari": "2. Abre Safari y pega el enlace.",
+    "client.ios.step.share": "3. Toca Compartir.",
+    "client.ios.step.install": "4. Elige \"Anadir a pantalla de inicio\".",
+    "client.ios.step.open": "5. Abre TurnoListo desde el nuevo icono y toca \"Activar avisos\".",
+    "client.alerts.confirmation": "Tienes las notificaciones activadas.",
+    "client.feedback.kicker": "Pedido entregado",
+    "client.feedback.title": "Gracias por su compra, vuelva pronto",
+    "client.feedback.text": "Valora tu experiencia",
+    "client.feedback.improve": "¿Qué podemos mejorar?",
+    "client.feedback.placeholder": "Escribe un comentario corto",
+    "client.feedback.send": "Enviar comentario",
+    "client.feedback.sent": "Gracias por sus comentarios.",
+    "client.tools.kicker": "Herramientas del pedido",
+    "client.tools.openAnother": "Abrir otro pedido",
+    "client.tools.showQr": "Mostrar mi QR",
+    "client.tools.hint": "Escribe el código seguro del pedido solo si quieres consultar uno distinto.",
+    "client.qr.closeAria": "Cerrar QR",
+    "client.close": "Cerrar",
+    "client.code.label": "Tu código",
+
+    "admin.login.kicker": "Acceso administrador",
+    "admin.login.title": "Accede al panel maestro",
+    "admin.login.email": "Correo administrador",
+    "admin.login.password": "Contraseña",
+    "admin.login.showPassword": "Mostrar contraseña",
+    "admin.login.submit": "Entrar al panel",
+    "admin.account.emptyName": "Sin datos cargados",
+    "admin.account.emptyMeta": "Cuenta no cargada",
+
+    "restaurant.login.kicker": "Acceso restaurante",
+    "restaurant.login.email": "Correo de acceso",
+    "restaurant.login.password": "Contraseña",
+    "restaurant.login.showPassword": "Mostrar contraseña",
+    "restaurant.login.submit": "Entrar al restaurante",
+    "restaurant.account.emptyName": "Sin datos cargados",
+    "restaurant.account.emptyMeta": "Cuenta no cargada",
+  };
+
   const EXACT_TRANSLATIONS = {
     en: {
       "TurnoListo | Cliente": "TurnoListo | Customer",
@@ -195,6 +286,12 @@
       "Lista de países para contacto": "Country list for contact",
       "Lista de países para móvil del restaurante": "Country list for restaurant mobile",
       "Lista de países para móvil admin": "Country list for admin mobile",
+      "Abrir menú de cuenta": "Open account menu",
+      "Abrir bandeja de mensajes": "Open messages inbox",
+      "Para que TurnoListo pueda avisarte mejor, abre este pedido en Safari, anadelo a pantalla de inicio y activalo desde ese icono.": "To let TurnoListo notify you better, open this order in Safari, add it to your home screen, and enable it from that icon.",
+      "3. Toca Compartir.": "3. Tap Share.",
+      "4. Elige \"Anadir a pantalla de inicio\".": "4. Choose \"Add to Home Screen\".",
+      "5. Abre TurnoListo desde el nuevo icono y toca \"Activar avisos\".": "5. Open TurnoListo from the new icon and tap \"Enable alerts\".",
       "Tecnología que Agiliza tu Restaurante": "Technology that streamlines your restaurant",
       "Cerrar sesión": "Log out",
       "Acceso verificado": "Verified access",
@@ -469,6 +566,12 @@
       "Lista de países para contacto": "Liste des pays pour le contact",
       "Lista de países para móvil del restaurante": "Liste des pays pour le mobile du restaurant",
       "Lista de países para móvil admin": "Liste des pays pour le mobile admin",
+      "Abrir menú de cuenta": "Ouvrir le menu du compte",
+      "Abrir bandeja de mensajes": "Ouvrir la boîte de messages",
+      "Para que TurnoListo pueda avisarte mejor, abre este pedido en Safari, anadelo a pantalla de inicio y activalo desde ese icono.": "Pour que TurnoListo puisse mieux vous avertir, ouvrez cette commande dans Safari, ajoutez-la à l'écran d'accueil et activez-la depuis cette icône.",
+      "3. Toca Compartir.": "3. Touchez Partager.",
+      "4. Elige \"Anadir a pantalla de inicio\".": "4. Choisissez \"Ajouter à l'écran d'accueil\".",
+      "5. Abre TurnoListo desde el nuevo icono y toca \"Activar avisos\".": "5. Ouvrez TurnoListo depuis la nouvelle icône et touchez \"Activer les alertes\".",
       "Tecnología que Agiliza tu Restaurante": "La technologie qui fluidifie votre restaurant",
       "Cerrar sesión": "Se déconnecter",
       "Acceso verificado": "Accès vérifié",
@@ -631,6 +734,16 @@
     return normalized.replace(matchedPattern.regex, (...args) => matchedPattern.render(...args));
   }
 
+  function getTranslationSourceByKey(key) {
+    return KEY_TRANSLATION_SOURCES[String(key || "").trim()] || "";
+  }
+
+  function translateKey(key, language = getCurrentLanguage(), fallback = "") {
+    const source = getTranslationSourceByKey(key);
+    if (source) return translateCoreText(source, language);
+    return fallback || "";
+  }
+
   function shouldSkipTranslation(target) {
     return target instanceof Element && Boolean(target.closest(SKIP_TRANSLATION_SELECTOR));
   }
@@ -671,6 +784,27 @@
     return element.readOnly || element.disabled || ["button", "submit", "reset"].includes(type);
   }
 
+  function translateElementKeys(element, language) {
+    if (!(element instanceof Element)) return;
+
+    const textKey = element.getAttribute("data-i18n-key");
+    if (textKey) {
+      const translated = translateKey(textKey, language, element.textContent);
+      if (translated) element.textContent = translated;
+    }
+
+    ["placeholder", "title", "aria-label", "value"].forEach((attributeName) => {
+      const key = element.getAttribute(`data-i18n-${attributeName}-key`);
+      if (!key) return;
+      const translated = translateKey(key, language, element.getAttribute(attributeName) || "");
+      if (attributeName === "value" && "value" in element) {
+        element.value = translated;
+      } else {
+        element.setAttribute(attributeName, translated);
+      }
+    });
+  }
+
   function translateElementAttributes(element, language) {
     if (shouldSkipTranslation(element)) return;
 
@@ -699,6 +833,10 @@
 
     if (!titleOrigin) titleOrigin = document.title;
     document.title = translateCoreText(titleOrigin, safeLanguage);
+
+    document.querySelectorAll("[data-i18n-key], [data-i18n-placeholder-key], [data-i18n-title-key], [data-i18n-aria-label-key], [data-i18n-value-key]").forEach((element) => {
+      translateElementKeys(element, safeLanguage);
+    });
 
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
@@ -835,6 +973,7 @@
   window.TurnoListoI18n = {
     getLanguage: getCurrentLanguage,
     setLanguage: setCurrentLanguage,
+    translateKey,
     translateText(value, language = getCurrentLanguage()) {
       return translateCoreText(value, language);
     },
