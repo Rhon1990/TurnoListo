@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260415b" />
+    <link rel="stylesheet" href="./styles.css?v=20260415c" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -386,10 +386,53 @@
                 <span>Correo electrónico</span>
                 <input name="email" type="email" placeholder="correo@restaurante.com" required />
               </label>
-              <label class="field">
+              <div class="field field--phone">
                 <span>Número móvil</span>
-                <input name="phone" type="text" placeholder="+34 600 000 000" required />
-              </label>
+                <div class="phone-field" id="adminPhoneField">
+                  <input id="adminRestaurantPhoneFull" name="phone" type="hidden" value="" />
+                  <div class="phone-field__country">
+                    <button
+                      class="phone-country-trigger"
+                      id="adminPhoneCountryTrigger"
+                      type="button"
+                      aria-haspopup="dialog"
+                      aria-expanded="false"
+                      aria-controls="adminPhoneCountryPanel"
+                    >
+                      <span class="phone-country-trigger__flag" id="adminPhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                      <span class="phone-country-trigger__meta">
+                        <span class="phone-country-trigger__dial" id="adminPhoneCountryDial">+34</span>
+                        <span class="phone-country-trigger__name" id="adminPhoneCountryName">España</span>
+                      </span>
+                      <span class="phone-country-trigger__chevron" aria-hidden="true">⌄</span>
+                    </button>
+                    <div class="phone-country-panel glass-card" id="adminPhoneCountryPanel" hidden>
+                      <label class="phone-country-search">
+                        <span class="phone-country-search__icon" aria-hidden="true">⌕</span>
+                        <input
+                          id="adminPhoneCountrySearch"
+                          type="search"
+                          placeholder="Buscar país o indicativo"
+                          autocomplete="off"
+                        />
+                      </label>
+                      <div class="phone-country-list" id="adminPhoneCountryList" role="listbox" aria-label="Lista de países"></div>
+                    </div>
+                  </div>
+                  <label class="phone-field__number" for="adminRestaurantPhoneLocal">
+                    <span class="phone-field__number-label">Número</span>
+                    <input
+                      id="adminRestaurantPhoneLocal"
+                      type="tel"
+                      inputmode="tel"
+                      placeholder="600 000 000"
+                      autocomplete="tel-national"
+                      required
+                    />
+                  </label>
+                </div>
+                <span class="field__hint">Selecciona el país del móvil y escribe el número local sin preocuparte por el prefijo.</span>
+              </div>
               <label class="field">
                 <span>Ciudad</span>
                 <input name="city" type="text" placeholder="Ciudad" />
@@ -679,6 +722,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin.js?v=20260415b"></script>
+    <script src="./admin.js?v=20260415c"></script>
   </body>
 </html>

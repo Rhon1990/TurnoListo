@@ -14,7 +14,16 @@ const adminPlanSelect = document.querySelector("#adminPlanSelect");
 const adminActivationDays = document.querySelector("#adminActivationDays");
 const adminCreateRestaurantName = adminCreateRestaurantForm.querySelector('[name="name"]');
 const adminCreateRestaurantOwner = adminCreateRestaurantForm.querySelector('[name="ownerName"]');
-const adminCreateRestaurantPhone = adminCreateRestaurantForm.querySelector('[name="phone"]');
+const adminCreateRestaurantPhone = document.querySelector("#adminRestaurantPhoneFull");
+const adminPhoneField = document.querySelector("#adminPhoneField");
+const adminPhoneCountryTrigger = document.querySelector("#adminPhoneCountryTrigger");
+const adminPhoneCountryPanel = document.querySelector("#adminPhoneCountryPanel");
+const adminPhoneCountryFlag = document.querySelector("#adminPhoneCountryFlag");
+const adminPhoneCountryDial = document.querySelector("#adminPhoneCountryDial");
+const adminPhoneCountryName = document.querySelector("#adminPhoneCountryName");
+const adminPhoneCountrySearch = document.querySelector("#adminPhoneCountrySearch");
+const adminPhoneCountryList = document.querySelector("#adminPhoneCountryList");
+const adminRestaurantPhoneLocal = document.querySelector("#adminRestaurantPhoneLocal");
 const adminRestaurantList = document.querySelector("#adminRestaurantList");
 const adminRestaurantCount = document.querySelector("#adminRestaurantCount");
 const adminTabs = document.querySelectorAll("[data-admin-section]");
@@ -163,6 +172,31 @@ const PLAN_DURATIONS = {
 };
 const RENEWABLE_PLAN_NAMES = ["Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"];
 const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
+const PHONE_COUNTRIES = [
+  { iso: "ES", flag: "🇪🇸", name: "España", dialCode: "+34", placeholder: "600 000 000" },
+  { iso: "PT", flag: "🇵🇹", name: "Portugal", dialCode: "+351", placeholder: "912 345 678" },
+  { iso: "FR", flag: "🇫🇷", name: "Francia", dialCode: "+33", placeholder: "6 12 34 56 78" },
+  { iso: "IT", flag: "🇮🇹", name: "Italia", dialCode: "+39", placeholder: "312 345 6789" },
+  { iso: "DE", flag: "🇩🇪", name: "Alemania", dialCode: "+49", placeholder: "1512 3456789" },
+  { iso: "GB", flag: "🇬🇧", name: "Reino Unido", dialCode: "+44", placeholder: "7400 123456" },
+  { iso: "IE", flag: "🇮🇪", name: "Irlanda", dialCode: "+353", placeholder: "85 123 4567" },
+  { iso: "NL", flag: "🇳🇱", name: "Países Bajos", dialCode: "+31", placeholder: "6 12345678" },
+  { iso: "BE", flag: "🇧🇪", name: "Bélgica", dialCode: "+32", placeholder: "470 12 34 56" },
+  { iso: "CH", flag: "🇨🇭", name: "Suiza", dialCode: "+41", placeholder: "78 123 45 67" },
+  { iso: "AT", flag: "🇦🇹", name: "Austria", dialCode: "+43", placeholder: "664 1234567" },
+  { iso: "US", flag: "🇺🇸", name: "Estados Unidos", dialCode: "+1", placeholder: "(201) 555 0123" },
+  { iso: "MX", flag: "🇲🇽", name: "México", dialCode: "+52", placeholder: "55 1234 5678" },
+  { iso: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54", placeholder: "11 2345 6789" },
+  { iso: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56", placeholder: "9 6123 4567" },
+  { iso: "CO", flag: "🇨🇴", name: "Colombia", dialCode: "+57", placeholder: "320 123 4567" },
+  { iso: "PE", flag: "🇵🇪", name: "Perú", dialCode: "+51", placeholder: "912 345 678" },
+  { iso: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593", placeholder: "99 123 4567" },
+  { iso: "UY", flag: "🇺🇾", name: "Uruguay", dialCode: "+598", placeholder: "94 123 456" },
+  { iso: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55", placeholder: "11 91234 5678" },
+];
+const DEFAULT_PHONE_COUNTRY_ISO = "ES";
+
+let selectedPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
 
 initializeAdminFirebaseAuth();
 waitForDataReady().then(bootAdminPage);
@@ -177,6 +211,10 @@ adminLoginTogglePassword.addEventListener("click", (event) => {
 adminCreateRestaurantForm.addEventListener("submit", handleCreateRestaurant);
 adminRestaurantLogoInput.addEventListener("change", handleRestaurantLogoSelection);
 adminPlanSelect.addEventListener("change", syncActivationDaysWithPlan);
+adminPhoneCountryTrigger?.addEventListener("click", toggleAdminPhoneCountryPanel);
+adminPhoneCountrySearch?.addEventListener("input", renderAdminPhoneCountryList);
+adminRestaurantPhoneLocal?.addEventListener("input", syncAdminPhoneHiddenValue);
+adminRestaurantPhoneLocal?.addEventListener("blur", syncAdminPhoneHiddenValue);
 adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
@@ -230,6 +268,8 @@ adminProfileForm?.addEventListener("submit", handleAdminProfileSubmit);
 adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
 adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
 window.addEventListener("click", handleAdminAccountOutsideClick);
+window.addEventListener("click", handleAdminPhoneCountryOutsideClick);
+window.addEventListener("keydown", handleAdminPhoneCountryKeydown);
 window.addEventListener("hashchange", () => {
   syncAdminSectionFromHash();
   if (isAdminAuthenticated()) {
@@ -240,6 +280,7 @@ window.addEventListener("hashchange", () => {
 function bootAdminPage() {
   syncAdminSectionFromHash();
   initializeTermHints(document.querySelector("#adminWorkspace"));
+  initializeAdminPhoneField();
   syncAdminAccess();
   syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
@@ -274,8 +315,20 @@ function syncActivationDaysWithPlan() {
 
   adminActivationDays.readOnly = true;
   if (adminCreateRestaurantOwner) adminCreateRestaurantOwner.required = !isDemo;
-  if (adminCreateRestaurantPhone) adminCreateRestaurantPhone.required = !isDemo;
+  if (adminRestaurantPhoneLocal) adminRestaurantPhoneLocal.required = !isDemo;
   if (adminCreateRestaurantName) adminCreateRestaurantName.placeholder = isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro";
+}
+
+function handleAdminPhoneCountryOutsideClick(event) {
+  if (!adminPhoneField || adminPhoneCountryPanel?.hidden) return;
+  if (adminPhoneField.contains(event.target)) return;
+  closeAdminPhoneCountryPanel();
+}
+
+function handleAdminPhoneCountryKeydown(event) {
+  if (event.key !== "Escape" || adminPhoneCountryPanel?.hidden) return;
+  closeAdminPhoneCountryPanel();
+  adminPhoneCountryTrigger?.focus();
 }
 
 function isAdminAuthenticated() {
@@ -367,11 +420,19 @@ async function handleCreateRestaurant(event) {
   }
 
   try {
+    const phoneValue = syncAdminPhoneHiddenValue();
+    if (!phoneValue) {
+      adminRestaurantPhoneLocal?.focus();
+      adminRestaurantPhoneLocal?.setCustomValidity("Introduce un número móvil válido.");
+      adminRestaurantPhoneLocal?.reportValidity();
+      return;
+    }
+    adminRestaurantPhoneLocal?.setCustomValidity("");
     const result = await backend.createRestaurantAccount({
       name: formData.get("name"),
       ownerName: formData.get("ownerName"),
       email: formData.get("email"),
-      phone: formData.get("phone"),
+      phone: phoneValue,
       city: formData.get("city"),
       address: formData.get("address"),
       logoUrl: selectedRestaurantLogoUrl,
@@ -388,6 +449,7 @@ async function handleCreateRestaurant(event) {
 
     adminCreateRestaurantForm.reset();
     resetRestaurantLogoPreview();
+    resetAdminPhoneField();
     syncActivationDaysWithPlan();
     await reconnectDataStoreToFirebase();
     adminCreateFeedback.textContent =
@@ -416,6 +478,153 @@ async function handleCreateRestaurant(event) {
     adminCreateFeedback.hidden = false;
     showTurnoAlert(message, "error");
   }
+}
+
+function getPhoneCountryByIso(iso) {
+  return PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+}
+
+function renderAdminPhoneCountryState() {
+  const country = getPhoneCountryByIso(selectedPhoneCountryIso);
+  if (adminPhoneCountryFlag) adminPhoneCountryFlag.textContent = country.flag;
+  if (adminPhoneCountryDial) adminPhoneCountryDial.textContent = country.dialCode;
+  if (adminPhoneCountryName) adminPhoneCountryName.textContent = country.name;
+  if (adminRestaurantPhoneLocal && !adminRestaurantPhoneLocal.value.trim()) {
+    adminRestaurantPhoneLocal.placeholder = country.placeholder;
+  }
+}
+
+function buildAdminPhoneNumber() {
+  const country = getPhoneCountryByIso(selectedPhoneCountryIso);
+  const localValue = String(adminRestaurantPhoneLocal?.value || "")
+    .replace(/[^\d\s()-]/g, "")
+    .trim();
+
+  if (!localValue) {
+    if (adminCreateRestaurantPhone) adminCreateRestaurantPhone.value = "";
+    return "";
+  }
+
+  const digitsOnly = localValue.replace(/\D/g, "");
+  const dialDigits = country.dialCode.replace(/\D/g, "");
+  const normalizedLocal =
+    digitsOnly.startsWith(dialDigits) && localValue.replace(/\s+/g, "").startsWith(dialDigits)
+      ? digitsOnly.slice(dialDigits.length)
+      : localValue;
+  const fullPhone = `${country.dialCode} ${String(normalizedLocal).trim()}`.trim();
+  if (adminCreateRestaurantPhone) adminCreateRestaurantPhone.value = fullPhone;
+  return fullPhone;
+}
+
+function syncAdminPhoneHiddenValue() {
+  if (adminRestaurantPhoneLocal?.value.trim()) {
+    adminRestaurantPhoneLocal.setCustomValidity("");
+  }
+  return buildAdminPhoneNumber();
+}
+
+function renderAdminPhoneCountryList() {
+  if (!adminPhoneCountryList) return;
+  const query = String(adminPhoneCountrySearch?.value || "")
+    .trim()
+    .toLowerCase();
+  adminPhoneCountryList.innerHTML = "";
+
+  const filteredCountries = PHONE_COUNTRIES.filter((country) => {
+    if (!query) return true;
+    return (
+      country.name.toLowerCase().includes(query) ||
+      country.dialCode.toLowerCase().includes(query) ||
+      country.iso.toLowerCase().includes(query)
+    );
+  });
+
+  if (!filteredCountries.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "phone-country-list__empty";
+    emptyState.textContent = "No encontramos ningún país con esa búsqueda.";
+    adminPhoneCountryList.append(emptyState);
+    return;
+  }
+
+  filteredCountries.forEach((country) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "phone-country-option";
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", String(country.iso === selectedPhoneCountryIso));
+    if (country.iso === selectedPhoneCountryIso) option.classList.add("is-active");
+    option.addEventListener("click", () => {
+      selectedPhoneCountryIso = country.iso;
+      renderAdminPhoneCountryState();
+      syncAdminPhoneHiddenValue();
+      closeAdminPhoneCountryPanel();
+    });
+
+    const flag = document.createElement("span");
+    flag.className = "phone-country-option__flag";
+    flag.textContent = country.flag;
+
+    const meta = document.createElement("span");
+    meta.className = "phone-country-option__meta";
+
+    const name = document.createElement("span");
+    name.className = "phone-country-option__name";
+    name.textContent = country.name;
+
+    const dial = document.createElement("span");
+    dial.className = "phone-country-option__dial";
+    dial.textContent = `${country.dialCode} · ${country.iso}`;
+
+    meta.append(name, dial);
+    option.append(flag, meta);
+    adminPhoneCountryList.append(option);
+  });
+}
+
+function openAdminPhoneCountryPanel() {
+  if (!adminPhoneCountryPanel || !adminPhoneCountryTrigger) return;
+  adminPhoneCountryPanel.hidden = false;
+  adminPhoneField?.classList.add("is-open");
+  adminPhoneCountryTrigger.setAttribute("aria-expanded", "true");
+  renderAdminPhoneCountryList();
+  window.requestAnimationFrame(() => {
+    adminPhoneCountrySearch?.focus();
+    adminPhoneCountrySearch?.select();
+  });
+}
+
+function closeAdminPhoneCountryPanel() {
+  if (!adminPhoneCountryPanel || !adminPhoneCountryTrigger) return;
+  adminPhoneCountryPanel.hidden = true;
+  adminPhoneField?.classList.remove("is-open");
+  adminPhoneCountryTrigger.setAttribute("aria-expanded", "false");
+}
+
+function toggleAdminPhoneCountryPanel() {
+  if (adminPhoneCountryPanel?.hidden) {
+    openAdminPhoneCountryPanel();
+    return;
+  }
+  closeAdminPhoneCountryPanel();
+}
+
+function resetAdminPhoneField() {
+  selectedPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+  if (adminPhoneCountrySearch) adminPhoneCountrySearch.value = "";
+  if (adminRestaurantPhoneLocal) {
+    adminRestaurantPhoneLocal.value = "";
+    adminRestaurantPhoneLocal.setCustomValidity("");
+  }
+  if (adminCreateRestaurantPhone) adminCreateRestaurantPhone.value = "";
+  renderAdminPhoneCountryState();
+  renderAdminPhoneCountryList();
+  closeAdminPhoneCountryPanel();
+}
+
+function initializeAdminPhoneField() {
+  if (!adminPhoneField) return;
+  resetAdminPhoneField();
 }
 
 async function handleRestaurantLogoSelection(event) {
