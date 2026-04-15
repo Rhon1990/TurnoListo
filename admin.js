@@ -89,6 +89,8 @@ const adminRenewPlanConfirm = document.querySelector("#adminRenewPlanConfirm");
 const adminRenewPlanMeta = document.querySelector("#adminRenewPlanMeta");
 const adminRenewPlanSelect = document.querySelector("#adminRenewPlanSelect");
 const adminRenewPlanDays = document.querySelector("#adminRenewPlanDays");
+const adminRenewPlanStartsAt = document.querySelector("#adminRenewPlanStartsAt");
+const adminRenewPlanEndsAt = document.querySelector("#adminRenewPlanEndsAt");
 const adminEmailTemplatesModal = document.querySelector("#adminEmailTemplatesModal");
 const adminEmailTemplatesBackdrop = document.querySelector("#adminEmailTemplatesBackdrop");
 const adminEmailTemplatesClose = document.querySelector("#adminEmailTemplatesClose");
@@ -589,11 +591,8 @@ function renewRestaurantPlan(restaurantId, planName = "Mensual") {
   if (!restaurant) return null;
 
   const normalizedPlanName = PLAN_DURATIONS[planName] ? planName : "Mensual";
-  const activationDays = PLAN_DURATIONS[normalizedPlanName] || 30;
-  const now = Date.now();
-  const currentUntil = restaurant.activatedUntil ? new Date(restaurant.activatedUntil).getTime() : now;
-  const baseTime = Math.max(now, currentUntil);
-  const activatedUntil = new Date(baseTime + activationDays * 24 * 60 * 60 * 1000).toISOString();
+  const renewalWindow = buildRenewPlanWindow(restaurant, normalizedPlanName);
+  const activatedUntil = renewalWindow.endDate.toISOString();
 
   return updateRestaurantAccount(restaurantId, {
     demoMode: false,
@@ -605,8 +604,28 @@ function renewRestaurantPlan(restaurantId, planName = "Mensual") {
 
 function syncRenewPlanDays() {
   if (!adminRenewPlanSelect || !adminRenewPlanDays) return;
+  const restaurant = pendingRenewPlanRestaurantId ? getRestaurantById(pendingRenewPlanRestaurantId) : null;
   const plan = adminRenewPlanSelect.value || "Mensual";
-  adminRenewPlanDays.value = String(PLAN_DURATIONS[plan] || 30);
+  const renewalWindow = buildRenewPlanWindow(restaurant, plan);
+  adminRenewPlanDays.value = String(renewalWindow.days);
+  if (adminRenewPlanStartsAt) adminRenewPlanStartsAt.value = formatAdminDate(renewalWindow.startDate);
+  if (adminRenewPlanEndsAt) adminRenewPlanEndsAt.value = formatAdminDate(renewalWindow.endDate);
+}
+
+function buildRenewPlanWindow(restaurant, planName = "Mensual") {
+  const normalizedPlanName = PLAN_DURATIONS[planName] ? planName : "Mensual";
+  const days = PLAN_DURATIONS[normalizedPlanName] || 30;
+  const now = Date.now();
+  const currentUntil = restaurant?.activatedUntil ? new Date(restaurant.activatedUntil).getTime() : now;
+  const startTime = Math.max(now, currentUntil);
+  const endTime = startTime + days * 24 * 60 * 60 * 1000;
+
+  return {
+    planName: normalizedPlanName,
+    days,
+    startDate: new Date(startTime),
+    endDate: new Date(endTime),
+  };
 }
 
 async function initializeAdminInbox() {
@@ -2177,10 +2196,10 @@ function confirmRenewRestaurantPlan() {
   const updatedRestaurant = renewRestaurantPlan(pendingRenewPlanRestaurantId, selectedPlan);
   if (!updatedRestaurant) return;
 
-  adminCreateFeedback.textContent = `${pendingRenewPlanRestaurantName} quedó renovado en plan ${selectedPlan}.`;
+  adminCreateFeedback.textContent = `${pendingRenewPlanRestaurantName} quedó renovado en plan ${selectedPlan} hasta ${formatAdminDate(updatedRestaurant.activatedUntil)}.`;
   adminCreateFeedback.className = "form-feedback form-feedback--success";
   adminCreateFeedback.hidden = false;
-  showTurnoAlert(`${pendingRenewPlanRestaurantName} renovado en plan ${selectedPlan}.`, "success");
+  showTurnoAlert(`${pendingRenewPlanRestaurantName} renovado en plan ${selectedPlan} hasta ${formatAdminDate(updatedRestaurant.activatedUntil)}.`, "success");
   closeRenewPlanModal();
   renderAdminWorkspace();
 }
