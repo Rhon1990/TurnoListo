@@ -29,6 +29,7 @@ const adminRestaurantList = document.querySelector("#adminRestaurantList");
 const adminRestaurantCount = document.querySelector("#adminRestaurantCount");
 const adminTabs = document.querySelectorAll("[data-admin-section]");
 const adminPanels = document.querySelectorAll("[data-admin-panel]");
+const adminDashboardLinks = document.querySelectorAll('.workspace-brand--link[href="./admin.html"], .workspace-home-button[href="./admin.html"]');
 const adminSearchInput = document.querySelector("#adminSearchInput");
 const adminStatusFilter = document.querySelector("#adminStatusFilter");
 const adminActivityFilter = document.querySelector("#adminActivityFilter");
@@ -257,6 +258,9 @@ adminTabs.forEach((button) => {
   button.addEventListener("click", () => {
     navigateAdminSection(button.dataset.adminSection || "dashboard");
   });
+});
+adminDashboardLinks.forEach((link) => {
+  link.addEventListener("click", handleAdminDashboardShortcut);
 });
 [adminSearchInput, adminStatusFilter, adminActivityFilter, adminLifecycleFilter].forEach((control) => {
   control.addEventListener("input", renderAdminWorkspace);
@@ -838,6 +842,17 @@ function navigateAdminSection(section) {
     history.replaceState(null, "", `${window.location.pathname}${nextHash}`);
   }
   syncAdminSections();
+}
+
+function handleAdminDashboardShortcut(event) {
+  const currentPath = String(window.location.pathname || "").trim();
+  if (!currentPath.endsWith("/admin.html") && currentPath !== "/admin.html") {
+    return;
+  }
+
+  event.preventDefault();
+  navigateAdminSection("dashboard");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function toggleAdminAccountMenu(event) {
