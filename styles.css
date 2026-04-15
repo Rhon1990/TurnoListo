@@ -1580,27 +1580,26 @@ button:hover,
   display: flex;
   align-items: center;
   min-height: 82px;
+  padding: 0;
+}
+
+.phone-field__number input {
+  width: 100%;
+  min-height: 82px;
   padding: 0.95rem 1.2rem;
   border-radius: 20px;
   background: rgba(255, 252, 248, 0.98);
   border: 1px solid rgba(29, 26, 22, 0.08);
   box-shadow: 0 10px 24px rgba(105, 66, 28, 0.04);
-}
-
-.phone-field__number:focus-within {
-  border-color: rgba(236, 124, 13, 0.24);
-  background: rgba(255, 248, 240, 0.98);
-}
-
-.phone-field__number input {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
   color: var(--ink);
   font-size: 1.08rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.phone-field__number input:focus {
+  border-color: rgba(236, 124, 13, 0.24);
+  background: rgba(255, 248, 240, 0.98);
 }
 
 .phone-field__number input::placeholder {
