@@ -1378,8 +1378,10 @@ button:hover,
 .phone-field {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(280px, 0.95fr) minmax(320px, 1.05fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 0.9rem;
+  width: 100%;
+  max-width: 100%;
   padding: 0.9rem;
   border-radius: 24px;
   background:
