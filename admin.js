@@ -81,6 +81,18 @@ const adminActivatePlanConfirm = document.querySelector("#adminActivatePlanConfi
 const adminActivatePlanMeta = document.querySelector("#adminActivatePlanMeta");
 const adminActivatePlanSelect = document.querySelector("#adminActivatePlanSelect");
 const adminActivatePlanDays = document.querySelector("#adminActivatePlanDays");
+const adminEmailTemplatesModal = document.querySelector("#adminEmailTemplatesModal");
+const adminEmailTemplatesBackdrop = document.querySelector("#adminEmailTemplatesBackdrop");
+const adminEmailTemplatesClose = document.querySelector("#adminEmailTemplatesClose");
+const adminEmailTemplatesMeta = document.querySelector("#adminEmailTemplatesMeta");
+const adminEmailTemplateOptions = document.querySelector("#adminEmailTemplateOptions");
+const adminEmailTemplateTo = document.querySelector("#adminEmailTemplateTo");
+const adminEmailTemplateSubject = document.querySelector("#adminEmailTemplateSubject");
+const adminEmailTemplateBody = document.querySelector("#adminEmailTemplateBody");
+const adminEmailCopySubject = document.querySelector("#adminEmailCopySubject");
+const adminEmailCopyBody = document.querySelector("#adminEmailCopyBody");
+const adminEmailCopyAll = document.querySelector("#adminEmailCopyAll");
+const adminEmailOpenMail = document.querySelector("#adminEmailOpenMail");
 const adminUnreadMessagesBadge = document.querySelector("#adminUnreadMessagesBadge");
 const adminMessageList = document.querySelector("#adminMessageList");
 const adminMessageSearchInput = document.querySelector("#adminMessageSearchInput");
@@ -116,6 +128,9 @@ let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
 let pendingActivatePlanRestaurantId = null;
 let pendingActivatePlanRestaurantName = "";
+let pendingEmailTemplateRestaurantId = null;
+let activeEmailTemplateKey = "credentials";
+let activeEmailTemplateDraft = null;
 let selectedRestaurantLogoUrl = "";
 let selectedAdminAvatarUrl = "";
 let adminTermTooltipTimer = 0;
@@ -157,6 +172,12 @@ adminActivatePlanClose?.addEventListener("click", closeActivatePlanModal);
 adminActivatePlanBack?.addEventListener("click", closeActivatePlanModal);
 adminActivatePlanConfirm?.addEventListener("click", confirmActivateRestaurantPlan);
 adminActivatePlanSelect?.addEventListener("change", syncActivatePlanDays);
+adminEmailTemplatesBackdrop?.addEventListener("click", closeEmailTemplatesModal);
+adminEmailTemplatesClose?.addEventListener("click", closeEmailTemplatesModal);
+adminEmailCopySubject?.addEventListener("click", () => copyEmailTemplatePart("subject"));
+adminEmailCopyBody?.addEventListener("click", () => copyEmailTemplatePart("body"));
+adminEmailCopyAll?.addEventListener("click", () => copyEmailTemplatePart("all"));
+adminEmailOpenMail?.addEventListener("click", openSelectedEmailTemplateInMailApp);
 adminExportDatasetButton?.addEventListener("click", handleExportPredictionDataset);
 adminDashboardPeriod?.addEventListener("change", (event) => {
   activeAdminDashboardPeriod = normalizeDashboardPeriod(event.target.value || "day");
@@ -1438,10 +1459,7 @@ function renderRestaurantDirectory(restaurants) {
     const secondaryActions = document.createElement("div");
     const link = document.createElement("a");
     const logoInput = document.createElement("input");
-    const resend = document.createElement("button");
-    const onboardingEmail = document.createElement("button");
-    const renewalEmail = document.createElement("button");
-    const demoUpgradeEmail = document.createElement("button");
+    const templatesButton = document.createElement("button");
     const activatePlan = document.createElement("button");
     const renew30 = document.createElement("button");
     const renew90 = document.createElement("button");
@@ -1567,30 +1585,12 @@ function renderRestaurantDirectory(restaurants) {
         logoInput.disabled = false;
       }
     });
-    resend.type = "button";
-    resend.className = "comment-button";
-    resend.textContent = "Preparar email de acceso";
-    resend.addEventListener("click", async () => {
-      await openCredentialsEmail(restaurant);
-    });
-    onboardingEmail.type = "button";
-    onboardingEmail.className = "comment-button";
-    onboardingEmail.textContent = "Email onboarding";
-    onboardingEmail.addEventListener("click", async () => {
-      await openOnboardingEmail(restaurant);
-    });
-    renewalEmail.type = "button";
-    renewalEmail.className = "comment-button";
-    renewalEmail.textContent = "Email renovación";
-    renewalEmail.addEventListener("click", () => {
-      openRenewalEmail(restaurant);
-    });
-    demoUpgradeEmail.type = "button";
-    demoUpgradeEmail.className = "comment-button";
-    demoUpgradeEmail.textContent = "Email upgrade demo";
-    demoUpgradeEmail.hidden = !isDemoRestaurant(restaurant);
-    demoUpgradeEmail.addEventListener("click", () => {
-      openDemoUpgradeEmail(restaurant);
+    templatesButton.type = "button";
+    templatesButton.className = "comment-button";
+    templatesButton.textContent = "Plantillas";
+    templatesButton.disabled = !restaurant.email;
+    templatesButton.addEventListener("click", async () => {
+      await openEmailTemplatesModal(restaurant);
     });
     activatePlan.type = "button";
     activatePlan.className = "launcher admin-card__priority-button";
@@ -1647,8 +1647,8 @@ function renderRestaurantDirectory(restaurants) {
     meta.append(status, health, demoBadge);
     logoField.append(logoFieldLabel, logoInput, logoHint);
     accessWrap.append(accessLabel, accessValue);
-    primaryActions.append(link, resend, onboardingEmail, renewalEmail);
-    secondaryActions.append(demoUpgradeEmail, renew30, renew90, remove);
+    primaryActions.append(link, templatesButton);
+    secondaryActions.append(renew30, renew90, remove);
     actions.append(primaryActions, secondaryActions);
     priorityAction.append(priorityActionCopy, activatePlan);
     priorityActionCopy.append(priorityActionLabel, priorityActionTitle, priorityActionText);
@@ -1872,65 +1872,18 @@ function buildAdminAccessUrl() {
 }
 
 async function openCredentialsEmail(restaurant) {
-  if (!restaurant.email) return;
-  const emailRestaurant = { ...restaurant };
-  const backend = await waitForFirebaseBackend();
-
-  if (!emailRestaurant.accessLink && backend?.enabled && typeof backend.createRestaurantAccessLink === "function") {
-    try {
-      const result = await backend.createRestaurantAccessLink({
-        restaurantId: restaurant.id,
-        appUrl: buildRestaurantAccessUrl(),
-      });
-      emailRestaurant.accessLink = String(result?.accessLink || "").trim();
-    } catch (error) {
-      console.error("No se pudo preparar el enlace de acceso del restaurante.", error);
-      adminCreateFeedback.textContent = "No se pudo generar el enlace seguro del restaurante.";
-      adminCreateFeedback.className = "form-feedback form-feedback--error";
-      adminCreateFeedback.hidden = false;
-      showTurnoAlert("No se pudo generar el enlace seguro del restaurante.", "error");
-      return;
-    }
-  }
-
-  if (!emailRestaurant.accessLink) {
-    adminCreateFeedback.textContent = "No hay enlace seguro disponible para este restaurante.";
-    adminCreateFeedback.className = "form-feedback form-feedback--error";
-    adminCreateFeedback.hidden = false;
-    return;
-  }
-
-  const email = buildRestaurantCredentialsEmail(emailRestaurant, {
-    accessUrl: buildRestaurantAccessUrl(),
-  });
+  const email = await buildAdminEmailDraft("credentials", restaurant);
+  if (!email) return;
   window.location.href = email.href;
 }
 
 async function openOnboardingEmail(restaurant) {
-  if (!restaurant.email) return;
-  const emailRestaurant = { ...restaurant };
-  const backend = await waitForFirebaseBackend();
-
-  if (!emailRestaurant.accessLink && backend?.enabled && typeof backend.createRestaurantAccessLink === "function") {
-    try {
-      const result = await backend.createRestaurantAccessLink({
-        restaurantId: restaurant.id,
-        appUrl: buildRestaurantAccessUrl(),
-      });
-      emailRestaurant.accessLink = String(result?.accessLink || "").trim();
-    } catch (error) {
-      console.error("No se pudo preparar el enlace de onboarding del restaurante.", error);
-    }
-  }
-
-  const email = buildRestaurantOnboardingEmail(emailRestaurant, {
-    accessUrl: buildRestaurantAccessUrl(),
-  });
+  const email = await buildAdminEmailDraft("onboarding", restaurant);
+  if (!email) return;
   window.location.href = email.href;
 }
 
 function openRenewalEmail(restaurant) {
-  if (!restaurant.email) return;
   const email = buildRestaurantRenewalEmail(restaurant, {
     accessUrl: buildRestaurantAccessUrl(),
   });
@@ -1943,6 +1896,165 @@ function openDemoUpgradeEmail(restaurant) {
     accessUrl: buildRestaurantAccessUrl(),
   });
   window.location.href = email.href;
+}
+
+async function ensureRestaurantAccessLinkForEmail(restaurant, options = {}) {
+  const emailRestaurant = { ...restaurant };
+  if (emailRestaurant.accessLink) return emailRestaurant;
+
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.createRestaurantAccessLink !== "function") {
+    if (options.requireLink) {
+      adminCreateFeedback.textContent = "No hay enlace seguro disponible para este restaurante.";
+      adminCreateFeedback.className = "form-feedback form-feedback--error";
+      adminCreateFeedback.hidden = false;
+    }
+    return options.requireLink ? null : emailRestaurant;
+  }
+
+  try {
+    const result = await backend.createRestaurantAccessLink({
+      restaurantId: restaurant.id,
+      appUrl: buildRestaurantAccessUrl(),
+    });
+    emailRestaurant.accessLink = String(result?.accessLink || "").trim();
+    return emailRestaurant;
+  } catch (error) {
+    console.error("No se pudo preparar el enlace seguro del restaurante.", error);
+    if (options.requireLink) {
+      adminCreateFeedback.textContent = "No se pudo generar el enlace seguro del restaurante.";
+      adminCreateFeedback.className = "form-feedback form-feedback--error";
+      adminCreateFeedback.hidden = false;
+      showTurnoAlert("No se pudo generar el enlace seguro del restaurante.", "error");
+      return null;
+    }
+    return emailRestaurant;
+  }
+}
+
+async function buildAdminEmailDraft(kind, restaurant) {
+  if (!restaurant?.email) return null;
+  const accessUrl = buildRestaurantAccessUrl();
+
+  if (kind === "credentials") {
+    const emailRestaurant = await ensureRestaurantAccessLinkForEmail(restaurant, { requireLink: true });
+    if (!emailRestaurant?.accessLink) return null;
+    return buildRestaurantCredentialsEmail(emailRestaurant, { accessUrl });
+  }
+
+  if (kind === "onboarding") {
+    const emailRestaurant = await ensureRestaurantAccessLinkForEmail(restaurant, { requireLink: false });
+    return buildRestaurantOnboardingEmail(emailRestaurant || restaurant, { accessUrl });
+  }
+
+  if (kind === "renewal") {
+    return buildRestaurantRenewalEmail(restaurant, { accessUrl });
+  }
+
+  if (kind === "upgrade") {
+    return buildRestaurantDemoUpgradeEmail(restaurant, { accessUrl });
+  }
+
+  return null;
+}
+
+function getAdminEmailTemplateDefinitions(restaurant) {
+  const templates = [
+    { key: "credentials", label: "Acceso" },
+    { key: "onboarding", label: "Onboarding" },
+    { key: "renewal", label: "Renovación" },
+  ];
+
+  if (isDemoRestaurant(restaurant)) {
+    templates.push({ key: "upgrade", label: "Upgrade" });
+  }
+
+  return templates;
+}
+
+async function openEmailTemplatesModal(restaurant) {
+  if (!restaurant?.email || !adminEmailTemplatesModal) return;
+  pendingEmailTemplateRestaurantId = restaurant.id;
+  activeEmailTemplateKey = "credentials";
+  adminEmailTemplatesMeta.textContent = `${restaurant.name} · ${restaurant.email}`;
+  adminEmailTemplatesModal.hidden = false;
+  await renderEmailTemplateSelector(restaurant);
+  await selectEmailTemplate(activeEmailTemplateKey);
+}
+
+async function renderEmailTemplateSelector(restaurant) {
+  if (!adminEmailTemplateOptions) return;
+  adminEmailTemplateOptions.innerHTML = "";
+
+  getAdminEmailTemplateDefinitions(restaurant).forEach((template) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "email-template-switcher__button";
+    button.textContent = template.label;
+    button.dataset.templateKey = template.key;
+    button.addEventListener("click", async () => {
+      await selectEmailTemplate(template.key);
+    });
+    adminEmailTemplateOptions.append(button);
+  });
+}
+
+async function selectEmailTemplate(templateKey) {
+  const restaurant = pendingEmailTemplateRestaurantId ? getRestaurantById(pendingEmailTemplateRestaurantId) : null;
+  if (!restaurant) return;
+  activeEmailTemplateKey = templateKey;
+  adminEmailTemplateBody.textContent = "Preparando plantilla...";
+  adminEmailTemplateSubject.textContent = "-";
+  adminEmailTemplateTo.textContent = restaurant.email || "-";
+
+  const draft = await buildAdminEmailDraft(templateKey, restaurant);
+  if (!draft) {
+    activeEmailTemplateDraft = null;
+    adminEmailTemplateSubject.textContent = "No disponible";
+    adminEmailTemplateBody.textContent = "No se pudo preparar esta plantilla.";
+  } else {
+    activeEmailTemplateDraft = draft;
+    adminEmailTemplateTo.textContent = draft.to || restaurant.email || "-";
+    adminEmailTemplateSubject.textContent = draft.subject || "-";
+    adminEmailTemplateBody.textContent = draft.body || "";
+  }
+
+  adminEmailTemplateOptions?.querySelectorAll(".email-template-switcher__button").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.templateKey === templateKey);
+  });
+}
+
+function closeEmailTemplatesModal() {
+  if (!adminEmailTemplatesModal) return;
+  adminEmailTemplatesModal.hidden = true;
+  pendingEmailTemplateRestaurantId = null;
+  activeEmailTemplateDraft = null;
+  activeEmailTemplateKey = "credentials";
+}
+
+async function copyEmailTemplatePart(part) {
+  if (!activeEmailTemplateDraft) return;
+  const text =
+    part === "subject"
+      ? activeEmailTemplateDraft.subject
+      : part === "body"
+        ? activeEmailTemplateDraft.body
+        : `Para: ${activeEmailTemplateDraft.to}\nAsunto: ${activeEmailTemplateDraft.subject}\n\n${activeEmailTemplateDraft.body}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    showTurnoAlert(
+      part === "subject" ? "Asunto copiado." : part === "body" ? "Texto copiado." : "Correo completo copiado.",
+      "success",
+    );
+  } catch (error) {
+    console.error("No se pudo copiar la plantilla.", error);
+    showTurnoAlert("No se pudo copiar el contenido.", "error");
+  }
+}
+
+function openSelectedEmailTemplateInMailApp() {
+  if (!activeEmailTemplateDraft?.href) return;
+  window.location.href = activeEmailTemplateDraft.href;
 }
 
 function togglePasswordVisibility(input, button) {

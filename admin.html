@@ -588,6 +588,43 @@
       </div>
     </div>
 
+    <div class="qr-modal" id="adminEmailTemplatesModal" hidden>
+      <div class="qr-modal__backdrop" id="adminEmailTemplatesBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal comment-modal--wide">
+        <button class="qr-modal__close" id="adminEmailTemplatesClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Plantillas</p>
+          <h3>Mensajes listos para enviar</h3>
+          <p class="comment-modal__meta" id="adminEmailTemplatesMeta"></p>
+          <div class="email-template-switcher" id="adminEmailTemplateOptions"></div>
+          <div class="email-template-preview">
+            <div class="email-template-preview__field">
+              <span class="email-template-preview__label">Destinatario</span>
+              <strong id="adminEmailTemplateTo">-</strong>
+            </div>
+            <div class="email-template-preview__field">
+              <span class="email-template-preview__label">Asunto</span>
+              <p id="adminEmailTemplateSubject">-</p>
+            </div>
+            <div class="email-template-preview__field email-template-preview__field--body">
+              <span class="email-template-preview__label">Mensaje</span>
+              <div class="comment-modal__quote">
+                <p id="adminEmailTemplateBody">Selecciona una plantilla.</p>
+              </div>
+            </div>
+          </div>
+          <div class="cancel-modal__actions email-template-actions">
+            <button class="button-secondary" id="adminEmailCopySubject" type="button">Copiar asunto</button>
+            <button class="button-secondary" id="adminEmailCopyBody" type="button">Copiar texto</button>
+            <button class="button-secondary button-secondary--primary" id="adminEmailCopyAll" type="button">Copiar todo</button>
+            <button class="button-tertiary" id="adminEmailOpenMail" type="button">Abrir en correo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       window.TURNO_LISTO_PRIVATE_ROLE = "admin";
     </script>
