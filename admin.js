@@ -161,6 +161,7 @@ const PLAN_DURATIONS = {
   Semestral: 180,
   Anual: 365,
 };
+const RENEWABLE_PLAN_NAMES = ["Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"];
 const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
 
 initializeAdminFirebaseAuth();
@@ -631,13 +632,13 @@ function buildRenewPlanWindow(restaurant, planName = "Mensual") {
 
 function resolveRenewablePlanName(restaurant, preferredPlanName = "") {
   const preferred = String(preferredPlanName || "").trim();
-  if (PLAN_DURATIONS[preferred]) return preferred;
+  if (RENEWABLE_PLAN_NAMES.includes(preferred)) return preferred;
 
   const current = String(restaurant?.planName || "").trim();
-  if (PLAN_DURATIONS[current]) return current;
+  if (RENEWABLE_PLAN_NAMES.includes(current)) return current;
 
   const previous = String(restaurant?.previousPlanName || "").trim();
-  if (PLAN_DURATIONS[previous]) return previous;
+  if (RENEWABLE_PLAN_NAMES.includes(previous)) return previous;
 
   return "Mensual";
 }
