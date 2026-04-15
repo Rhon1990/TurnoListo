@@ -2875,10 +2875,10 @@ button:hover,
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  min-height: 40px;
-  padding: 0.45rem 0.85rem 0.45rem 0.55rem;
-  border-radius: 14px;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
   background: linear-gradient(180deg, #cf3d32, #b42318);
   border: 1px solid rgba(127, 29, 29, 0.26);
   color: #fff7f3;
@@ -2887,20 +2887,7 @@ button:hover,
   text-decoration: none;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 10px 18px rgba(180, 35, 24, 0.18);
-}
-
-.admin-card__action-delete span:first-child {
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.18);
-  color: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1;
+    0 12px 24px rgba(180, 35, 24, 0.18);
 }
 
 .admin-card__action-delete:hover,
