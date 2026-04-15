@@ -19,8 +19,10 @@ const restaurantList = document.querySelector("#restaurantOrders");
 const restaurantHeroMetricLabel = document.querySelector("#restaurantHeroMetricLabel");
 const restaurantHeroMetricValue = document.querySelector("#restaurantHeroMetricValue");
 const restaurantHeroMetricHint = document.querySelector("#restaurantHeroMetricHint");
-const readyCount = document.querySelector("#restaurantReadyCount");
-const archivedCount = document.querySelector("#restaurantArchivedCount");
+const restaurantTotalTodayChip = document.querySelector("#restaurantTotalTodayChip");
+const restaurantDeliveredTodayChip = document.querySelector("#restaurantDeliveredTodayChip");
+const restaurantCancelledTodayChip = document.querySelector("#restaurantCancelledTodayChip");
+const restaurantHistoryQuickFilters = document.querySelectorAll("[data-restaurant-history-filter]");
 const restaurantSpotlightTitle = document.querySelector("#restaurantSpotlightTitle");
 const restaurantSpotlightBody = document.querySelector("#restaurantSpotlightBody");
 const restaurantSpotlightChipPrimary = document.querySelector("#restaurantSpotlightChipPrimary");
@@ -229,11 +231,13 @@ restaurantProfilePhoneLocal?.addEventListener("input", () => {
 restaurantProfilePhoneLocal?.addEventListener("blur", () => {
   validateRestaurantProfilePhoneNumber({ report: Boolean(restaurantProfilePhoneLocal?.value.trim()) });
 });
-readyCount?.addEventListener("click", () => {
-  goToHistoryView({ status: "delivered", rating: "all", search: "" });
-});
-archivedCount?.addEventListener("click", () => {
-  goToHistoryView({ status: "all", rating: "all", search: "" });
+restaurantHistoryQuickFilters.forEach((button) => {
+  button.addEventListener("click", () => {
+    activeArchivedPeriod = "day";
+    if (archivedPeriodFilter) archivedPeriodFilter.value = activeArchivedPeriod;
+    window.localStorage.setItem("turnolisto-restaurant-archived-period", activeArchivedPeriod);
+    goToHistoryView({ status: button.dataset.restaurantHistoryFilter || "all", rating: "all", search: "" });
+  });
 });
 window.addEventListener("click", handleRestaurantAccountOutsideClick);
 window.addEventListener("click", handleRestaurantProfilePhoneOutsideClick);
@@ -432,8 +436,10 @@ function renderRestaurant() {
   renderRestaurantHeroSignals(dashboard, restaurant, allOrders);
   renderRestaurantCreateHints(restaurant, allOrders);
   renderRestaurantPlaybook(restaurant, allOrders);
-  readyCount.textContent = `${quickStats.deliveredToday} entregados hoy`;
-  archivedCount.textContent = `${quickStats.archivedToday} archivados hoy`;
+  restaurantTotalTodayChip.textContent = `${quickStats.archivedToday} total hoy`;
+  restaurantDeliveredTodayChip.textContent = `${quickStats.deliveredToday} entregados hoy`;
+  restaurantCancelledTodayChip.textContent = `${quickStats.cancelledToday} cancelados hoy`;
+  syncRestaurantHistoryQuickFilters();
   syncRestaurantDisplayMode();
   renderFocusStrip(orders);
   syncSectionView();
@@ -1295,6 +1301,14 @@ function goToHistoryView({ status = "all", rating = "all", search = "" }) {
   archivedRatingFilter.value = rating;
   archivedSearchInput.value = search;
   renderRestaurant();
+}
+
+function syncRestaurantHistoryQuickFilters() {
+  const isTodayHistory = activeSection === "history" && activeArchivedPeriod === "day";
+  restaurantHistoryQuickFilters.forEach((button) => {
+    const matchesStatus = (button.dataset.restaurantHistoryFilter || "all") === String(archivedStatusFilter?.value || "all");
+    button.classList.toggle("is-active", isTodayHistory && matchesStatus);
+  });
 }
 
 function focusSlowestOrder() {

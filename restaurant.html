@@ -169,9 +169,16 @@
               <p class="panel__kicker">Gestión</p>
               <h2>Operación de pedidos con IA adaptativa</h2>
             </div>
-            <div class="summary-strip summary-strip--inline">
-              <button class="summary-chip summary-chip--action" id="restaurantReadyCount" type="button">0 entregados hoy</button>
-              <button class="summary-chip summary-chip--action" id="restaurantArchivedCount" type="button">0 archivados hoy</button>
+            <div class="admin-inbox-quick-filters" aria-label="Filtros rápidos de pedidos de hoy">
+              <button class="admin-inbox-quick-filter is-active" id="restaurantTotalTodayChip" type="button" data-restaurant-history-filter="all">
+                0 total hoy
+              </button>
+              <button class="admin-inbox-quick-filter" id="restaurantDeliveredTodayChip" type="button" data-restaurant-history-filter="delivered">
+                0 entregados hoy
+              </button>
+              <button class="admin-inbox-quick-filter" id="restaurantCancelledTodayChip" type="button" data-restaurant-history-filter="cancelled">
+                0 cancelados hoy
+              </button>
             </div>
           </div>
           <section class="restaurant-spotlight">
