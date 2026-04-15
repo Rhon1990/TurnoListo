@@ -1553,22 +1553,14 @@ button:hover,
 }
 
 .phone-field__number {
-  display: grid;
-  gap: 0.45rem;
-  align-content: start;
+  display: flex;
+  align-items: center;
   min-height: 76px;
-  padding: 0.95rem 1rem;
+  padding: 0.95rem 1.1rem;
   border-radius: 20px;
   background: rgba(255, 252, 248, 0.98);
   border: 1px solid rgba(29, 26, 22, 0.08);
   box-shadow: 0 10px 24px rgba(105, 66, 28, 0.04);
-}
-
-.phone-field__number-label {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
 }
 
 .phone-field__number input {
