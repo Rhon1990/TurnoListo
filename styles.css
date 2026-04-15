@@ -872,18 +872,33 @@ body.celebration-active::after {
   grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(180px, 0.6fr));
 }
 
+.admin-inbox-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+
 .admin-inbox-quick-filters {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.55rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: max-content;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-inbox-quick-filters::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-inbox-quick-filter {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   min-height: 42px;
   padding: 0.65rem 0.95rem;
   border-radius: 999px;
