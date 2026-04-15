@@ -2760,6 +2760,27 @@ button:hover,
   color: var(--ink);
 }
 
+.admin-card__notes {
+  display: grid;
+  gap: 0.3rem;
+  align-content: start;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(29, 26, 22, 0.03);
+  border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.admin-card__notes-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.admin-card__notes p {
+  margin: 0;
+}
+
 .admin-card__account-stack {
   display: grid;
   gap: 0.55rem;

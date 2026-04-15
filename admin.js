@@ -1411,8 +1411,10 @@ function renderRestaurantDirectory(restaurants) {
     const activation = document.createElement("p");
     const orders = document.createElement("p");
     const usage = document.createElement("p");
-    const notes = document.createElement("p");
+    const notesSummary = document.createElement("div");
+    const notesSummaryLabel = document.createElement("span");
     const onboarding = document.createElement("p");
+    const notes = document.createElement("p");
     const playbook = document.createElement("div");
     const playbookLabel = document.createElement("span");
     const playbookText = document.createElement("strong");
@@ -1480,6 +1482,8 @@ function renderRestaurantDirectory(restaurants) {
     logoField.className = "field field--wide admin-card__logo-field";
     logoHint.className = "field__hint";
     logoPreview.className = "logo-upload-preview admin-card__logo-preview";
+    notesSummary.className = "admin-card__notes";
+    notesSummaryLabel.className = "admin-card__notes-label";
     title.textContent = restaurant.name;
     login.textContent = `Correo auth: ${restaurant.username}`;
     owner.textContent = `Responsable: ${restaurant.ownerName || "Sin definir"}`;
@@ -1507,6 +1511,7 @@ function renderRestaurantDirectory(restaurants) {
       : restaurant.notes
         ? `Notas: ${restaurant.notes}`
         : "Notas: sin observaciones";
+    notesSummaryLabel.textContent = "Contexto";
     playbookLabel.textContent = "Siguiente paso";
     playbookText.textContent = isDemoRestaurant(restaurant)
       ? demoUsage.usedOrders >= demoUsage.maxOrders
@@ -1647,9 +1652,10 @@ function renderRestaurantDirectory(restaurants) {
     actions.append(primaryActions, secondaryActions);
     priorityAction.append(priorityActionCopy, activatePlan);
     priorityActionCopy.append(priorityActionLabel, priorityActionTitle, priorityActionText);
+    notesSummary.append(notesSummaryLabel, onboarding, notes);
     accountStack.append(logoField, logoPreview, login, accessWrap);
     playbook.append(playbookLabel, playbookText);
-    grid.append(owner, contact, address, activation, orders, usage, priorityAction, playbook, onboarding, notes, accountStack);
+    grid.append(owner, contact, address, activation, orders, usage, priorityAction, playbook, notesSummary, accountStack);
     card.append(top, grid, actions);
     top.append(brand);
     adminRestaurantList.append(card);
