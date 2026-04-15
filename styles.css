@@ -2210,6 +2210,8 @@ button:hover,
   width: min(92vw, 420px);
   padding: 1rem;
   border-radius: var(--radius-lg);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
 }
 
 .qr-modal__close {
@@ -2936,6 +2938,8 @@ button:hover,
   font-size: 1.05rem;
   line-height: 1.65;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cancel-modal__actions {
@@ -2972,6 +2976,7 @@ button:hover,
   border-radius: 20px;
   background: rgba(255, 252, 248, 0.92);
   border: 1px solid rgba(29, 26, 22, 0.08);
+  min-width: 0;
 }
 
 .email-template-preview__field {
@@ -2994,6 +2999,7 @@ button:hover,
 .email-template-preview__field p {
   margin: 0;
   color: var(--ink);
+  min-width: 0;
 }
 
 .email-template-actions .button-secondary,
