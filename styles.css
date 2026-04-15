@@ -2877,13 +2877,15 @@ button:hover,
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 124px;
   min-height: 46px;
-  padding: 0.85rem 1.3rem;
+  padding: 0.85rem 1.55rem;
   border-radius: 999px;
   background: linear-gradient(180deg, #cf3d32, #b42318);
   border: 1px solid rgba(127, 29, 29, 0.26);
   color: #fff7f3;
   font-weight: 700;
+  line-height: 1;
   letter-spacing: 0.01em;
   text-decoration: none;
   box-shadow:
