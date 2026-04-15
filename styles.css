@@ -1924,7 +1924,7 @@ button:hover,
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
   border-radius: 16px;
-  background: #fffdf8;
+  background-color: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
 }
 
@@ -2099,7 +2099,7 @@ button:hover,
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
   border-radius: 16px;
-  background: #fffdf8;
+  background-color: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
 }
 
@@ -2394,7 +2394,7 @@ button:hover,
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
   border-radius: 16px;
-  background: #fffdf8;
+  background-color: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
 }
 

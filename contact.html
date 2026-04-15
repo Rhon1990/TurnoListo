@@ -104,10 +104,52 @@
               <span>Correo de contacto</span>
               <input id="contactEmail" name="email" type="email" placeholder="correo@empresa.com" required />
             </label>
-            <label class="field">
-              <span>Teléfono</span>
-              <input id="contactPhone" name="phone" type="tel" placeholder="+34 ..." />
-            </label>
+            <div class="field field--phone">
+              <span>Número móvil</span>
+              <div class="phone-field" id="contactPhoneField">
+                <input id="contactPhone" name="phone" type="hidden" value="" />
+                <div class="phone-field__country">
+                  <button
+                    class="phone-country-trigger"
+                    id="contactPhoneCountryTrigger"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="contactPhoneCountryPanel"
+                  >
+                    <span class="phone-country-trigger__flag" id="contactPhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                    <span class="phone-country-trigger__meta">
+                      <span class="phone-country-trigger__dial" id="contactPhoneCountryDial">+34</span>
+                      <span class="phone-country-trigger__name" id="contactPhoneCountryName">España</span>
+                    </span>
+                    <span class="phone-country-trigger__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+                  </button>
+                  <div class="phone-country-panel glass-card" id="contactPhoneCountryPanel" hidden>
+                    <label class="phone-country-search">
+                      <span class="phone-country-search__icon material-symbols-rounded" data-icon="search" aria-hidden="true"></span>
+                      <input
+                        id="contactPhoneCountrySearch"
+                        type="search"
+                        placeholder="Buscar país o indicativo"
+                        autocomplete="off"
+                      />
+                    </label>
+                    <div class="phone-country-list" id="contactPhoneCountryList" role="listbox" aria-label="Lista de países para contacto"></div>
+                  </div>
+                </div>
+                <label class="phone-field__number" for="contactPhoneLocal">
+                  <input
+                    id="contactPhoneLocal"
+                    type="tel"
+                    inputmode="tel"
+                    placeholder="600 000 000"
+                    autocomplete="tel-national"
+                  />
+                </label>
+              </div>
+              <span class="field__hint">Selecciona el país del móvil y escribe el número local sin preocuparte por el prefijo.</span>
+              <p class="field__error" id="contactPhoneError" hidden></p>
+            </div>
             <label class="field field--wide">
               <span>Motivo</span>
               <select id="contactInterest" name="interest" required>
@@ -196,6 +238,6 @@
     </div>
     <script src="./firebase-config.js"></script>
     <script type="module" src="./firebase-bridge.js"></script>
-    <script type="module" src="./contact.js?v=20260409l"></script>
+    <script type="module" src="./contact.js?v=20260415m"></script>
   </body>
 </html>

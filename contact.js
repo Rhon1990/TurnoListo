@@ -5,6 +5,16 @@ const contactName = document.querySelector("#contactName");
 const contactCompany = document.querySelector("#contactCompany");
 const contactEmail = document.querySelector("#contactEmail");
 const contactPhone = document.querySelector("#contactPhone");
+const contactPhoneField = document.querySelector("#contactPhoneField");
+const contactPhoneCountryTrigger = document.querySelector("#contactPhoneCountryTrigger");
+const contactPhoneCountryPanel = document.querySelector("#contactPhoneCountryPanel");
+const contactPhoneCountryFlag = document.querySelector("#contactPhoneCountryFlag");
+const contactPhoneCountryDial = document.querySelector("#contactPhoneCountryDial");
+const contactPhoneCountryName = document.querySelector("#contactPhoneCountryName");
+const contactPhoneCountrySearch = document.querySelector("#contactPhoneCountrySearch");
+const contactPhoneCountryList = document.querySelector("#contactPhoneCountryList");
+const contactPhoneLocal = document.querySelector("#contactPhoneLocal");
+const contactPhoneError = document.querySelector("#contactPhoneError");
 const contactInterest = document.querySelector("#contactInterest");
 const contactMessage = document.querySelector("#contactMessage");
 const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
@@ -16,17 +26,55 @@ const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
 const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
 const RESTAURANT_STORAGE_KEY = "turnolisto-restaurants-v1";
 const RESTAURANT_SESSION_KEY = "turnolisto-restaurant-session-v1";
+const PHONE_COUNTRIES = [
+  { iso: "ES", flag: "🇪🇸", name: "España", dialCode: "+34", placeholder: "600 000 000", minDigits: 9, maxDigits: 9 },
+  { iso: "PT", flag: "🇵🇹", name: "Portugal", dialCode: "+351", placeholder: "912 345 678", minDigits: 9, maxDigits: 9 },
+  { iso: "FR", flag: "🇫🇷", name: "Francia", dialCode: "+33", placeholder: "6 12 34 56 78", minDigits: 9, maxDigits: 9 },
+  { iso: "IT", flag: "🇮🇹", name: "Italia", dialCode: "+39", placeholder: "312 345 6789", minDigits: 9, maxDigits: 10 },
+  { iso: "DE", flag: "🇩🇪", name: "Alemania", dialCode: "+49", placeholder: "1512 3456789", minDigits: 10, maxDigits: 11 },
+  { iso: "GB", flag: "🇬🇧", name: "Reino Unido", dialCode: "+44", placeholder: "7400 123456", minDigits: 10, maxDigits: 10 },
+  { iso: "IE", flag: "🇮🇪", name: "Irlanda", dialCode: "+353", placeholder: "85 123 4567", minDigits: 9, maxDigits: 9 },
+  { iso: "NL", flag: "🇳🇱", name: "Países Bajos", dialCode: "+31", placeholder: "6 12345678", minDigits: 9, maxDigits: 9 },
+  { iso: "BE", flag: "🇧🇪", name: "Bélgica", dialCode: "+32", placeholder: "470 12 34 56", minDigits: 9, maxDigits: 9 },
+  { iso: "CH", flag: "🇨🇭", name: "Suiza", dialCode: "+41", placeholder: "78 123 45 67", minDigits: 9, maxDigits: 9 },
+  { iso: "AT", flag: "🇦🇹", name: "Austria", dialCode: "+43", placeholder: "664 1234567", minDigits: 10, maxDigits: 11 },
+  { iso: "US", flag: "🇺🇸", name: "Estados Unidos", dialCode: "+1", placeholder: "(201) 555 0123", minDigits: 10, maxDigits: 10 },
+  { iso: "MX", flag: "🇲🇽", name: "México", dialCode: "+52", placeholder: "55 1234 5678", minDigits: 10, maxDigits: 10 },
+  { iso: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54", placeholder: "11 2345 6789", minDigits: 10, maxDigits: 10 },
+  { iso: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56", placeholder: "9 6123 4567", minDigits: 9, maxDigits: 9 },
+  { iso: "CO", flag: "🇨🇴", name: "Colombia", dialCode: "+57", placeholder: "320 123 4567", minDigits: 10, maxDigits: 10 },
+  { iso: "PE", flag: "🇵🇪", name: "Perú", dialCode: "+51", placeholder: "912 345 678", minDigits: 9, maxDigits: 9 },
+  { iso: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593", placeholder: "99 123 4567", minDigits: 9, maxDigits: 9 },
+  { iso: "UY", flag: "🇺🇾", name: "Uruguay", dialCode: "+598", placeholder: "94 123 456", minDigits: 8, maxDigits: 9 },
+  { iso: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55", placeholder: "11 91234 5678", minDigits: 11, maxDigits: 11 },
+];
+const DEFAULT_PHONE_COUNTRY_ISO = "ES";
 
 let contactPrefillSnapshot = null;
+let selectedContactPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
 
 if (contactForm && contactFeedback && contactSubmitButton) {
   contactForm.addEventListener("submit", handleContactSubmit);
+  contactPhoneCountryTrigger?.addEventListener("click", toggleContactPhoneCountryPanel);
+  contactPhoneCountrySearch?.addEventListener("input", renderContactPhoneCountryList);
+  contactPhoneLocal?.addEventListener("input", () => {
+    syncContactPhoneHiddenValue();
+    if (contactPhoneError && !contactPhoneError.hidden) {
+      validateContactPhoneNumber({ report: true });
+    }
+  });
+  contactPhoneLocal?.addEventListener("blur", () => {
+    validateContactPhoneNumber({ report: Boolean(contactPhoneLocal?.value.trim()) });
+  });
   restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
   restaurantMenuLogout?.addEventListener("click", async () => {
     closeRestaurantAccountMenu();
     await handleRestaurantLogout();
   });
   window.addEventListener("click", handleRestaurantAccountOutsideClick);
+  window.addEventListener("click", handleContactPhoneOutsideClick);
+  window.addEventListener("keydown", handleContactPhoneKeydown);
+  initializeContactPhoneField();
   initializeContactPrefill();
 }
 
@@ -45,6 +93,13 @@ async function handleContactSubmit(event) {
   event.preventDefault();
   clearContactFeedback();
   contactSubmitButton.disabled = true;
+
+  const phoneValidation = validateContactPhoneNumber({ report: true });
+  if (!phoneValidation.valid) {
+    setContactFeedback(phoneValidation.message, "error");
+    contactSubmitButton.disabled = false;
+    return;
+  }
 
   const formData = new FormData(contactForm);
   const payload = {
@@ -186,7 +241,7 @@ function applyContactPrefillSnapshot() {
   setInputValueIfEmpty(contactName, contactPrefillSnapshot.name);
   setInputValueIfEmpty(contactCompany, contactPrefillSnapshot.company);
   setInputValueIfEmpty(contactEmail, contactPrefillSnapshot.email);
-  setInputValueIfEmpty(contactPhone, contactPrefillSnapshot.phone);
+  setContactPhoneValueIfEmpty(contactPrefillSnapshot.phone);
 
   if (contactInterest && !String(contactInterest.value || "").trim()) {
     contactInterest.value = contactPrefillSnapshot.interest;
@@ -213,6 +268,236 @@ function setInputValueIfEmpty(element, value) {
   if (!element) return;
   if (String(element.value || "").trim()) return;
   element.value = String(value || "").trim();
+}
+
+function getPhoneCountryByIso(iso) {
+  return PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+}
+
+function setContactPhoneError(message = "") {
+  const safeMessage = String(message || "").trim();
+  if (contactPhoneError) {
+    contactPhoneError.textContent = safeMessage;
+    contactPhoneError.hidden = !safeMessage;
+  }
+  contactPhoneField?.classList.toggle("has-error", Boolean(safeMessage));
+  contactPhoneLocal?.setCustomValidity(safeMessage);
+}
+
+function renderContactPhoneCountryState() {
+  const country = getPhoneCountryByIso(selectedContactPhoneCountryIso);
+  if (contactPhoneCountryFlag) contactPhoneCountryFlag.textContent = country.flag;
+  if (contactPhoneCountryDial) contactPhoneCountryDial.textContent = country.dialCode;
+  if (contactPhoneCountryName) contactPhoneCountryName.textContent = country.name;
+  if (contactPhoneLocal && !contactPhoneLocal.value.trim()) {
+    contactPhoneLocal.placeholder = country.placeholder;
+  }
+}
+
+function buildContactPhoneNumber() {
+  const country = getPhoneCountryByIso(selectedContactPhoneCountryIso);
+  const localValue = String(contactPhoneLocal?.value || "")
+    .replace(/[^\d\s()-]/g, "")
+    .trim();
+
+  if (!localValue) {
+    if (contactPhone) contactPhone.value = "";
+    return "";
+  }
+
+  const digitsOnly = localValue.replace(/\D/g, "");
+  const dialDigits = country.dialCode.replace(/\D/g, "");
+  const normalizedLocal =
+    digitsOnly.startsWith(dialDigits) && localValue.replace(/\s+/g, "").startsWith(dialDigits)
+      ? digitsOnly.slice(dialDigits.length)
+      : localValue;
+  const fullPhone = `${country.dialCode} ${String(normalizedLocal).trim()}`.trim();
+  if (contactPhone) contactPhone.value = fullPhone;
+  return fullPhone;
+}
+
+function syncContactPhoneHiddenValue() {
+  if (contactPhoneLocal?.value.trim()) {
+    setContactPhoneError("");
+  }
+  return buildContactPhoneNumber();
+}
+
+function validateContactPhoneNumber(options = {}) {
+  const country = getPhoneCountryByIso(selectedContactPhoneCountryIso);
+  const rawValue = String(contactPhoneLocal?.value || "").trim();
+  const digitsOnly = rawValue.replace(/\D/g, "");
+  const dialDigits = country.dialCode.replace(/\D/g, "");
+  let localDigits = digitsOnly;
+
+  if (!rawValue) {
+    setContactPhoneError("");
+    if (contactPhone) contactPhone.value = "";
+    return { valid: true, phone: "", message: "" };
+  }
+
+  if (localDigits.startsWith(dialDigits)) {
+    localDigits = localDigits.slice(dialDigits.length);
+  }
+
+  if (localDigits.length < country.minDigits || localDigits.length > country.maxDigits) {
+    const message =
+      country.minDigits === country.maxDigits
+        ? `El móvil de ${country.name} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`
+        : `El móvil de ${country.name} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`;
+    if (options.report) setContactPhoneError(message);
+    return { valid: false, message };
+  }
+
+  const formattedPhone = `${country.dialCode} ${localDigits}`.trim();
+  if (contactPhone) contactPhone.value = formattedPhone;
+  setContactPhoneError("");
+  return { valid: true, phone: formattedPhone, message: "" };
+}
+
+function renderContactPhoneCountryList() {
+  if (!contactPhoneCountryList) return;
+  const query = String(contactPhoneCountrySearch?.value || "").trim().toLowerCase();
+  contactPhoneCountryList.innerHTML = "";
+
+  const filteredCountries = PHONE_COUNTRIES.filter((country) => {
+    if (!query) return true;
+    return (
+      country.name.toLowerCase().includes(query) ||
+      country.dialCode.toLowerCase().includes(query) ||
+      country.iso.toLowerCase().includes(query)
+    );
+  });
+
+  if (!filteredCountries.length) {
+    const emptyState = document.createElement("p");
+    emptyState.className = "phone-country-list__empty";
+    emptyState.textContent = "No encontramos ningún país con esa búsqueda.";
+    contactPhoneCountryList.append(emptyState);
+    return;
+  }
+
+  filteredCountries.forEach((country) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "phone-country-option";
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", String(country.iso === selectedContactPhoneCountryIso));
+    if (country.iso === selectedContactPhoneCountryIso) option.classList.add("is-active");
+    option.addEventListener("click", () => {
+      selectedContactPhoneCountryIso = country.iso;
+      renderContactPhoneCountryState();
+      syncContactPhoneHiddenValue();
+      validateContactPhoneNumber({ report: Boolean(contactPhoneLocal?.value.trim()) });
+      closeContactPhoneCountryPanel();
+    });
+
+    const flag = document.createElement("span");
+    flag.className = "phone-country-option__flag";
+    flag.textContent = country.flag;
+
+    const meta = document.createElement("span");
+    meta.className = "phone-country-option__meta";
+
+    const name = document.createElement("span");
+    name.className = "phone-country-option__name";
+    name.textContent = country.name;
+
+    const dial = document.createElement("span");
+    dial.className = "phone-country-option__dial";
+    dial.textContent = `${country.dialCode} · ${country.iso}`;
+
+    meta.append(name, dial);
+    option.append(flag, meta);
+    contactPhoneCountryList.append(option);
+  });
+}
+
+function openContactPhoneCountryPanel() {
+  if (!contactPhoneCountryPanel || !contactPhoneCountryTrigger) return;
+  contactPhoneCountryPanel.hidden = false;
+  contactPhoneField?.classList.add("is-open");
+  contactPhoneCountryTrigger.setAttribute("aria-expanded", "true");
+  renderContactPhoneCountryList();
+  window.requestAnimationFrame(() => {
+    contactPhoneCountrySearch?.focus();
+    contactPhoneCountrySearch?.select();
+  });
+}
+
+function closeContactPhoneCountryPanel() {
+  if (!contactPhoneCountryPanel || !contactPhoneCountryTrigger) return;
+  contactPhoneCountryPanel.hidden = true;
+  contactPhoneField?.classList.remove("is-open");
+  contactPhoneCountryTrigger.setAttribute("aria-expanded", "false");
+}
+
+function toggleContactPhoneCountryPanel() {
+  if (contactPhoneCountryPanel?.hidden) {
+    openContactPhoneCountryPanel();
+    return;
+  }
+  closeContactPhoneCountryPanel();
+}
+
+function handleContactPhoneOutsideClick(event) {
+  if (!contactPhoneField || contactPhoneCountryPanel?.hidden) return;
+  if (contactPhoneField.contains(event.target)) return;
+  closeContactPhoneCountryPanel();
+}
+
+function handleContactPhoneKeydown(event) {
+  if (event.key !== "Escape" || contactPhoneCountryPanel?.hidden) return;
+  closeContactPhoneCountryPanel();
+  contactPhoneCountryTrigger?.focus();
+}
+
+function initializeContactPhoneField() {
+  if (!contactPhoneField) return;
+  selectedContactPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+  if (contactPhoneCountrySearch) contactPhoneCountrySearch.value = "";
+  if (contactPhoneLocal) {
+    contactPhoneLocal.value = "";
+    contactPhoneLocal.setCustomValidity("");
+  }
+  if (contactPhone) contactPhone.value = "";
+  setContactPhoneError("");
+  renderContactPhoneCountryState();
+  renderContactPhoneCountryList();
+  closeContactPhoneCountryPanel();
+}
+
+function splitContactPhoneValue(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized) {
+    return { iso: DEFAULT_PHONE_COUNTRY_ISO, local: "" };
+  }
+
+  const matchedCountry = PHONE_COUNTRIES
+    .slice()
+    .sort((left, right) => right.dialCode.length - left.dialCode.length)
+    .find((country) => normalized.startsWith(country.dialCode));
+
+  if (!matchedCountry) {
+    return { iso: DEFAULT_PHONE_COUNTRY_ISO, local: normalized.replace(/^\+/, "").trim() };
+  }
+
+  return {
+    iso: matchedCountry.iso,
+    local: normalized.slice(matchedCountry.dialCode.length).trim(),
+  };
+}
+
+function setContactPhoneValueIfEmpty(value) {
+  if (!contactPhoneLocal || !contactPhone) return;
+  if (String(contactPhoneLocal.value || "").trim() || String(contactPhone.value || "").trim()) return;
+
+  const parsed = splitContactPhoneValue(value);
+  selectedContactPhoneCountryIso = parsed.iso;
+  renderContactPhoneCountryState();
+  contactPhoneLocal.value = parsed.local;
+  syncContactPhoneHiddenValue();
+  validateContactPhoneNumber({ report: false });
 }
 
 function renderRestaurantAccount(restaurant) {
