@@ -283,7 +283,7 @@ body.celebration-active::after {
 }
 
 .material-symbols-rounded {
-  font-family: "Material Symbols Rounded";
+  font-family: "Material Icons Round";
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -294,11 +294,9 @@ body.celebration-active::after {
   word-wrap: normal;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 500,
-    "GRAD" 0,
-    "opsz" 24;
+  text-rendering: optimizeLegibility;
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
 }
 
 .workspace-brand {
