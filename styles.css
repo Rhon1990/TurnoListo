@@ -2863,11 +2863,28 @@ button:hover,
 .admin-card__actions-group--secondary {
   padding-top: 0.1rem;
   border-top: 1px dashed rgba(29, 26, 22, 0.1);
+  width: 100%;
 }
 
 .admin-card__actions .comment-button {
   padding: 0.2rem 0.1rem;
   font-size: 0.9rem;
+}
+
+.admin-card__action-delete {
+  margin-left: auto;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(180, 35, 24, 0.1);
+  border: 1px solid rgba(180, 35, 24, 0.18);
+  color: #b42318;
+  font-weight: 700;
+}
+
+.admin-card__action-delete:hover,
+.admin-card__action-delete:focus-visible {
+  background: rgba(180, 35, 24, 0.16);
+  color: #8f1d18;
 }
 
 .password-toggle {
@@ -3614,6 +3631,10 @@ button:hover,
 
   .admin-card__actions-group {
     gap: 0.6rem 0.9rem;
+  }
+
+  .admin-card__action-delete {
+    margin-left: 0;
   }
 }
 

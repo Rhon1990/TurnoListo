@@ -1624,7 +1624,7 @@ function renderRestaurantDirectory(restaurants) {
       renderAdminWorkspace();
     });
     remove.type = "button";
-    remove.className = "comment-button";
+    remove.className = "comment-button admin-card__action-delete";
     remove.textContent = "Eliminar restaurante";
     remove.addEventListener("click", () => {
       openDeleteModal(restaurant);
