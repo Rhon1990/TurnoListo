@@ -385,8 +385,8 @@ body.celebration-active::after {
   align-items: center;
   justify-content: center;
   gap: 0;
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   padding: 0;
   border-radius: 999px;
   background: rgba(29, 26, 22, 0.06);
@@ -402,8 +402,8 @@ body.celebration-active::after {
 }
 
 .workspace-mail-button__icon {
-  font-size: 1.35rem;
-  line-height: 1;
+  font-size: 1.6rem;
+  line-height: 0.9;
 }
 
 .workspace-mail-button__label {
@@ -532,17 +532,17 @@ body.celebration-active::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 0.35rem;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.28rem;
   border-radius: 999px;
   background: var(--brand-accent);
   color: #fff7f1;
   font-size: 0.76rem;
   font-weight: 700;
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 4px;
+  right: 4px;
 }
 
 .contact-page {
@@ -4070,8 +4070,8 @@ button:hover,
   }
 
   .workspace-mail-button {
-    width: 58px;
-    height: 58px;
+    width: 50px;
+    height: 50px;
   }
 
   .account-menu {
