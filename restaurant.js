@@ -226,6 +226,12 @@ restaurantProfilePhoneLocal?.addEventListener("input", () => {
 restaurantProfilePhoneLocal?.addEventListener("blur", () => {
   validateRestaurantProfilePhoneNumber({ report: Boolean(restaurantProfilePhoneLocal?.value.trim()) });
 });
+readyCount?.addEventListener("click", () => {
+  goToHistoryView({ status: "delivered", rating: "all", search: "" });
+});
+archivedCount?.addEventListener("click", () => {
+  goToHistoryView({ status: "all", rating: "all", search: "" });
+});
 window.addEventListener("click", handleRestaurantAccountOutsideClick);
 window.addEventListener("click", handleRestaurantProfilePhoneOutsideClick);
 window.addEventListener("keydown", handleRestaurantProfilePhoneKeydown);
