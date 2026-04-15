@@ -2843,7 +2843,7 @@ button:hover,
 
 .admin-card__priority-button {
   min-height: 46px;
-  padding-inline: 1.2rem;
+  padding-inline: 1.45rem;
   white-space: nowrap;
   box-shadow: 0 12px 24px rgba(196, 31, 55, 0.16);
 }
@@ -2878,7 +2878,7 @@ button:hover,
   align-items: center;
   justify-content: center;
   min-height: 46px;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 1.3rem;
   border-radius: 999px;
   background: linear-gradient(180deg, #cf3d32, #b42318);
   border: 1px solid rgba(127, 29, 29, 0.26);
