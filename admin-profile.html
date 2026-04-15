@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260415e" />
+    <link rel="stylesheet" href="./styles.css?v=20260415f" />
   </head>
   <body>
     <div class="app-shell contact-page">
@@ -185,10 +185,57 @@
                 <span>Correo</span>
                 <input name="email" type="email" required />
               </label>
-              <label class="field">
+              <div class="field field--phone">
                 <span>Teléfono</span>
-                <input name="phone" type="text" />
-              </label>
+                <div class="phone-field" id="adminCreateAdminPhoneField">
+                  <input id="adminCreateAdminPhoneFull" name="phone" type="hidden" value="" />
+                  <div class="phone-field__country">
+                    <button
+                      class="phone-country-trigger"
+                      id="adminCreateAdminPhoneCountryTrigger"
+                      type="button"
+                      aria-haspopup="dialog"
+                      aria-expanded="false"
+                      aria-controls="adminCreateAdminPhoneCountryPanel"
+                    >
+                      <span class="phone-country-trigger__flag" id="adminCreateAdminPhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                      <span class="phone-country-trigger__meta">
+                        <span class="phone-country-trigger__dial" id="adminCreateAdminPhoneCountryDial">+34</span>
+                        <span class="phone-country-trigger__name" id="adminCreateAdminPhoneCountryName">España</span>
+                      </span>
+                      <span class="phone-country-trigger__chevron" aria-hidden="true">⌄</span>
+                    </button>
+                    <div class="phone-country-panel glass-card" id="adminCreateAdminPhoneCountryPanel" hidden>
+                      <label class="phone-country-search">
+                        <span class="phone-country-search__icon" aria-hidden="true">⌕</span>
+                        <input
+                          id="adminCreateAdminPhoneCountrySearch"
+                          type="search"
+                          placeholder="Buscar país o indicativo"
+                          autocomplete="off"
+                        />
+                      </label>
+                      <div
+                        class="phone-country-list"
+                        id="adminCreateAdminPhoneCountryList"
+                        role="listbox"
+                        aria-label="Lista de países para móvil admin"
+                      ></div>
+                    </div>
+                  </div>
+                  <label class="phone-field__number" for="adminCreateAdminPhoneLocal">
+                    <input
+                      id="adminCreateAdminPhoneLocal"
+                      type="tel"
+                      inputmode="tel"
+                      placeholder="600 000 000"
+                      autocomplete="tel-national"
+                    />
+                  </label>
+                </div>
+                <span class="field__hint">Selecciona el país y escribe el número local del administrador sin añadir el prefijo.</span>
+                <p class="field__error" id="adminCreateAdminPhoneError" hidden></p>
+              </div>
               <label class="field">
                 <span>Cargo</span>
                 <input name="title" type="text" placeholder="Ej. Comercial / Operaciones" />
@@ -218,6 +265,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin-profile.js?v=20260415a"></script>
+    <script src="./admin-profile.js?v=20260415b"></script>
   </body>
 </html>

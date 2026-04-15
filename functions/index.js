@@ -506,7 +506,10 @@ exports.createAdminAccount = onCall(async (request) => {
   }
 
   const displayName = trimValue(data.displayName) || "Administrador";
-  const phone = trimValue(data.phone);
+  const phoneCountry = normalizePhoneCountry(data.phoneCountry);
+  const normalizedPhone = normalizeRestaurantPhone(data.phone, phoneCountry);
+  const phone = normalizedPhone.phone;
+  const country = normalizedPhone.country;
   const title = trimValue(data.title) || "Administrador";
   const avatarUrl = normalizeProfileImage(data.avatarUrl);
   const appUrl = normalizeAppUrl(data.appUrl);
@@ -534,6 +537,8 @@ exports.createAdminAccount = onCall(async (request) => {
       email,
       displayName,
       phone,
+      country,
+      phoneCountry: normalizedPhone.phoneCountry,
       title,
       avatarUrl,
       createdAt: nowIso,
