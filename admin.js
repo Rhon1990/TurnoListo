@@ -1080,7 +1080,7 @@ function buildAdminInquiryCard(item) {
   meta.textContent = [item.company || "Sin empresa", item.email || "Sin correo", item.phone || "Sin teléfono"].join(" · ");
   interest.textContent = item.interest;
   state.textContent = item.isRead ? "Leído" : "Sin leer";
-  body.textContent = item.message || "Sin mensaje";
+  renderTextWithClickableLinks(body, item.message || "Sin mensaje");
   submitted.textContent = `Recibido ${formatAdminDateTime(item.submittedAt)}`;
 
   toggle.type = "button";
@@ -1909,6 +1909,58 @@ function formatAdminDayLabel(value) {
   }).format(new Date(value));
 }
 
+function renderTextWithClickableLinks(element, value) {
+  if (!element) return;
+  const text = String(value || "");
+  const fragment = document.createDocumentFragment();
+  const urlPattern = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+  let lastIndex = 0;
+  let match = urlPattern.exec(text);
+
+  while (match) {
+    const startIndex = match.index;
+    const matchedUrl = match[0];
+    let displayUrl = matchedUrl;
+    let trailingText = "";
+
+    while (/[),.;:!?]$/.test(displayUrl)) {
+      trailingText = `${displayUrl.slice(-1)}${trailingText}`;
+      displayUrl = displayUrl.slice(0, -1);
+    }
+
+    if (startIndex > lastIndex) {
+      fragment.append(document.createTextNode(text.slice(lastIndex, startIndex)));
+    }
+
+    if (displayUrl) {
+      const link = document.createElement("a");
+      link.href = /^https?:\/\//i.test(displayUrl) ? displayUrl : `https://${displayUrl}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.className = "inline-message-link";
+      link.textContent = displayUrl;
+      fragment.append(link);
+    }
+
+    if (trailingText) {
+      fragment.append(document.createTextNode(trailingText));
+    }
+
+    lastIndex = startIndex + matchedUrl.length;
+    match = urlPattern.exec(text);
+  }
+
+  if (lastIndex < text.length) {
+    fragment.append(document.createTextNode(text.slice(lastIndex)));
+  }
+
+  if (!fragment.childNodes.length) {
+    fragment.append(document.createTextNode(text));
+  }
+
+  element.replaceChildren(fragment);
+}
+
 function buildRemainingAccessLabel(restaurant) {
   const days =
     typeof restaurant?.remainingDays === "number" && Number.isFinite(restaurant.remainingDays)
@@ -2061,7 +2113,7 @@ async function selectEmailTemplate(templateKey) {
   const restaurant = pendingEmailTemplateRestaurantId ? getRestaurantById(pendingEmailTemplateRestaurantId) : null;
   if (!restaurant) return;
   activeEmailTemplateKey = templateKey;
-  adminEmailTemplateBody.textContent = "Preparando plantilla...";
+  renderTextWithClickableLinks(adminEmailTemplateBody, "Preparando plantilla...");
   adminEmailTemplateSubject.textContent = "-";
   adminEmailTemplateTo.textContent = restaurant.email || "-";
 
@@ -2069,12 +2121,12 @@ async function selectEmailTemplate(templateKey) {
   if (!draft) {
     activeEmailTemplateDraft = null;
     adminEmailTemplateSubject.textContent = "No disponible";
-    adminEmailTemplateBody.textContent = "No se pudo preparar esta plantilla.";
+    renderTextWithClickableLinks(adminEmailTemplateBody, "No se pudo preparar esta plantilla.");
   } else {
     activeEmailTemplateDraft = draft;
     adminEmailTemplateTo.textContent = draft.to || restaurant.email || "-";
     adminEmailTemplateSubject.textContent = draft.subject || "-";
-    adminEmailTemplateBody.textContent = draft.body || "";
+    renderTextWithClickableLinks(adminEmailTemplateBody, draft.body || "");
   }
 
   adminEmailTemplateOptions?.querySelectorAll(".email-template-switcher__button").forEach((button) => {

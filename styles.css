@@ -790,6 +790,28 @@ body.celebration-active::after {
   color: var(--ink);
 }
 
+.admin-inbox-card__message a,
+.comment-modal__quote a {
+  color: #c96810;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+  word-break: break-word;
+}
+
+.admin-inbox-card__message a:hover,
+.comment-modal__quote a:hover {
+  color: #9a4a10;
+}
+
+.admin-inbox-card__message a:focus-visible,
+.comment-modal__quote a:focus-visible {
+  outline: 2px solid rgba(236, 124, 13, 0.35);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
 .admin-inbox-card__pill--read {
   background: rgba(31, 122, 99, 0.12);
   color: #1f7a63;
