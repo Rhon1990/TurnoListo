@@ -10,6 +10,10 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:FILL@0..1&display=swap"
+      rel="stylesheet"
+    />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260415d" />
   </head>
@@ -105,11 +109,11 @@
           </a>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
             <a class="workspace-mail-button workspace-home-button" href="./admin.html" aria-label="Ir al panel principal">
-              <span class="workspace-mail-button__icon" aria-hidden="true">⌂</span>
+              <span class="workspace-mail-button__icon material-symbols-rounded" aria-hidden="true">home</span>
               <span class="workspace-mail-button__label">Inicio</span>
             </a>
             <button class="workspace-mail-button" type="button" data-admin-section="messages" aria-label="Abrir bandeja de mensajes">
-              <span class="workspace-mail-button__icon" aria-hidden="true">✉</span>
+              <span class="workspace-mail-button__icon material-symbols-rounded" aria-hidden="true">mail</span>
               <span class="workspace-mail-button__label">Mensajes</span>
               <span class="workspace-mail-button__badge" id="adminUnreadMessagesBadge" hidden>0</span>
             </button>
@@ -119,6 +123,7 @@
                   <img id="adminAccountAvatarImage" alt="Foto del administrador" hidden />
                   <span id="adminAccountAvatarFallback">A</span>
                 </span>
+                <span class="account-menu__chevron material-symbols-rounded" aria-hidden="true">expand_more</span>
               </button>
               <div class="account-menu__panel glass-card" id="adminAccountPanel" hidden>
                 <div class="account-menu__identity">

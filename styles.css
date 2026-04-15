@@ -282,6 +282,25 @@ body.celebration-active::after {
   overflow: visible;
 }
 
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 500,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
 .workspace-brand {
   display: inline-flex;
   align-items: center;
@@ -374,19 +393,24 @@ body.celebration-active::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   width: fit-content;
-  padding: 0.72rem 0.95rem;
+  padding: 0.76rem 1rem;
   border-radius: 999px;
-  background: var(--brand);
+  background: linear-gradient(135deg, rgba(236, 124, 13, 0.96), rgba(196, 31, 55, 0.92));
   color: #fff7f1;
   text-decoration: none;
   font-weight: 700;
-  box-shadow: 0 12px 24px rgba(236, 124, 13, 0.22);
+  box-shadow: 0 14px 28px rgba(216, 101, 0, 0.24);
 }
 
 .workspace-contact-button:hover,
 .workspace-contact-button:focus-visible {
   transform: translateY(-1px);
+}
+
+.workspace-action-icon {
+  font-size: 1.2rem;
 }
 
 .workspace-mail-button,
@@ -399,24 +423,37 @@ body.celebration-active::after {
   height: 52px;
   padding: 0;
   border-radius: 999px;
-  background: rgba(29, 26, 22, 0.06);
-  color: var(--ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 242, 234, 0.92));
+  border: 1px solid rgba(29, 26, 22, 0.08);
+  box-shadow: 0 10px 24px rgba(105, 66, 28, 0.1);
+  color: rgba(78, 57, 40, 0.92);
   font-weight: 700;
   position: relative;
   flex: 0 0 auto;
   text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
 .workspace-mail-button.is-active,
 .workspace-home-button:hover,
-.workspace-home-button:focus-visible {
-  background: rgba(236, 124, 13, 0.12);
+.workspace-home-button:focus-visible,
+.workspace-mail-button:hover,
+.workspace-mail-button:focus-visible {
+  background: linear-gradient(180deg, rgba(255, 248, 242, 0.98), rgba(255, 237, 223, 0.96));
+  border-color: rgba(236, 124, 13, 0.22);
   color: var(--brand-dark);
+  box-shadow: 0 14px 28px rgba(216, 101, 0, 0.16);
+  transform: translateY(-1px);
 }
 
 .workspace-mail-button__icon {
-  font-size: 1.6rem;
-  line-height: 0.9;
+  font-size: 1.45rem;
+  line-height: 1;
 }
 
 .workspace-mail-button__label {
@@ -432,13 +469,18 @@ body.celebration-active::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
+  gap: 0.18rem;
+  width: auto;
   height: 56px;
-  padding: 0;
+  padding: 0.28rem 0.38rem 0.28rem 0.28rem;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(252, 244, 234, 0.92));
   border: 1px solid rgba(29, 26, 22, 0.08);
   box-shadow: 0 14px 28px rgba(105, 66, 28, 0.14);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .account-menu__trigger:hover,
@@ -1880,6 +1922,12 @@ button:hover,
   background: linear-gradient(135deg, rgba(236, 124, 13, 0.18), rgba(196, 31, 55, 0.18));
   color: var(--brand-dark);
   font-weight: 800;
+}
+
+.account-menu__chevron {
+  font-size: 1.1rem;
+  color: rgba(78, 57, 40, 0.7);
+  margin-right: 0.08rem;
 }
 
 .admin-user-card__avatar img {
