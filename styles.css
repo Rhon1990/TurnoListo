@@ -3,6 +3,8 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-brand-soft: "Poppins", sans-serif;
   --app-shell-max: 1280px;
+  --control-inline-padding: 1rem;
+  --control-inline-padding-end: 3rem;
   --ink: #1d1a16;
   --muted: #6e6258;
   --card: rgba(255, 250, 243, 0.72);
@@ -1173,6 +1175,22 @@ select {
   outline: none;
 }
 
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-left: var(--control-inline-padding);
+  padding-right: var(--control-inline-padding-end);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%236e6258' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m5.5 7.5 4.5 4.5 4.5-4.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 0.95rem;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
 input::file-selector-button {
   font: inherit;
 }
@@ -1675,7 +1693,7 @@ button:hover,
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.65rem 0.9rem;
+  padding: 0.65rem 1rem;
   border-radius: 16px;
   background: rgba(255, 252, 248, 0.98);
   border: 1px solid rgba(29, 26, 22, 0.08);
@@ -1728,6 +1746,7 @@ button:hover,
   --app-icon-size: 1rem;
   line-height: 1;
   color: var(--muted);
+  justify-self: end;
 }
 
 .phone-country-panel {
@@ -1902,7 +1921,8 @@ button:hover,
 .dashboard-filter select {
   width: 100%;
   min-height: 48px;
-  padding: 0.85rem 0.95rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
   border-radius: 16px;
   background: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
@@ -2076,7 +2096,8 @@ button:hover,
 .list-toolbar__filter select {
   width: 100%;
   min-height: 48px;
-  padding: 0.85rem 0.95rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
   border-radius: 16px;
   background: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
@@ -2370,7 +2391,8 @@ button:hover,
 .field input,
 .field select {
   width: 100%;
-  padding: 0.85rem 0.95rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
   border-radius: 16px;
   background: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
