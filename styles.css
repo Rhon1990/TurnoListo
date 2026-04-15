@@ -2873,6 +2873,7 @@ button:hover,
 
 .admin-card__action-delete {
   margin-left: auto;
+  margin-right: 0.85rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3648,6 +3649,7 @@ button:hover,
 
   .admin-card__action-delete {
     margin-left: 0;
+    margin-right: 0;
   }
 }
 
