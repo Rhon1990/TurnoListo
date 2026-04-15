@@ -1570,6 +1570,17 @@ function buildOrderIntelligence(order, activeOrders = [], history = [], model = 
     aiReason = stageDrift.reason;
   }
 
+  const isFreshOrder =
+    ["received", "preparing"].includes(status) &&
+    elapsedMinutes <= 3 &&
+    (promisedRemainingMinutes === null || promisedRemainingMinutes > 0) &&
+    stageDrift.severity !== "critical";
+
+  if (isFreshOrder && aiRiskLevel === "high") {
+    aiRiskLevel = "medium";
+    aiReason = "Pedido recien creado: la IA detecta carga alta, pero necesita mas recorrido real antes de marcarlo como critico.";
+  }
+
   if (stageFocus.recommendation && aiRiskLevel !== "low") {
     aiReason = `${aiReason.replace(/\.$/, "")}. Cuello principal: ${stageFocus.label}.`;
     aiRecommendation = stageFocus.recommendation;
