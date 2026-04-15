@@ -2873,17 +2873,36 @@ button:hover,
 
 .admin-card__action-delete {
   margin-left: auto;
-  padding: 0.55rem 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 38px;
+  padding: 0.35rem 0.75rem 0.35rem 0.45rem;
   border-radius: 999px;
-  background: rgba(180, 35, 24, 0.1);
-  border: 1px solid rgba(180, 35, 24, 0.18);
-  color: #b42318;
+  background: linear-gradient(135deg, rgba(180, 35, 24, 0.14), rgba(127, 29, 29, 0.08));
+  border: 1px solid rgba(180, 35, 24, 0.22);
+  color: #a61b14;
   font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+.admin-card__action-delete span:first-child {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(180, 35, 24, 0.16);
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .admin-card__action-delete:hover,
 .admin-card__action-delete:focus-visible {
-  background: rgba(180, 35, 24, 0.16);
+  background: linear-gradient(135deg, rgba(180, 35, 24, 0.2), rgba(127, 29, 29, 0.12));
   color: #8f1d18;
 }
 
