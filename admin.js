@@ -1426,7 +1426,14 @@ function renderRestaurantDirectory(restaurants) {
     const accessWrap = document.createElement("div");
     const accessLabel = document.createElement("span");
     const accessValue = document.createElement("strong");
+    const priorityAction = document.createElement("section");
+    const priorityActionCopy = document.createElement("div");
+    const priorityActionLabel = document.createElement("span");
+    const priorityActionTitle = document.createElement("strong");
+    const priorityActionText = document.createElement("p");
     const actions = document.createElement("div");
+    const primaryActions = document.createElement("div");
+    const secondaryActions = document.createElement("div");
     const link = document.createElement("a");
     const logoInput = document.createElement("input");
     const resend = document.createElement("button");
@@ -1447,7 +1454,14 @@ function renderRestaurantDirectory(restaurants) {
     accessWrap.className = "admin-card__password";
     accessLabel.className = "admin-card__password-label";
     accessValue.className = "admin-card__password-value";
+    priorityAction.className = "admin-card__priority-action";
+    priorityActionCopy.className = "admin-card__priority-copy";
+    priorityActionLabel.className = "admin-card__priority-label";
+    priorityActionTitle.className = "admin-card__priority-title";
+    priorityActionText.className = "admin-card__priority-text";
     actions.className = "admin-card__actions";
+    primaryActions.className = "admin-card__actions-group admin-card__actions-group--primary";
+    secondaryActions.className = "admin-card__actions-group admin-card__actions-group--secondary";
     status.className = "status-pill";
     health.className = "status-pill admin-card__health-pill";
     demoBadge.className = "status-pill admin-card__demo-pill";
@@ -1505,6 +1519,13 @@ function renderRestaurantDirectory(restaurants) {
     logoHint.textContent = "Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.";
     accessLabel.textContent = "Acceso:";
     accessValue.textContent = "Gestionado con enlace seguro";
+    priorityAction.hidden = !isDemoRestaurant(restaurant);
+    priorityActionLabel.textContent = "Acción prioritaria";
+    priorityActionTitle.textContent = "Activar plan comercial";
+    priorityActionText.textContent =
+      demoUsage.usedOrders >= demoUsage.maxOrders
+        ? "La cuenta ya alcanzó su límite actual. Conviene convertirla ahora para no frenar la operación."
+        : "Esta cuenta ya está en fase de conversión. Lleva la activación al frente para que no se pierda entre acciones secundarias.";
     link.className = "qr-link";
     link.href = "#";
     link.textContent = "Abrir acceso restaurante";
@@ -1567,7 +1588,7 @@ function renderRestaurantDirectory(restaurants) {
       openDemoUpgradeEmail(restaurant);
     });
     activatePlan.type = "button";
-    activatePlan.className = "comment-button";
+    activatePlan.className = "launcher admin-card__priority-button";
     activatePlan.textContent = "Activar plan";
     activatePlan.hidden = !isDemoRestaurant(restaurant);
     activatePlan.addEventListener("click", () => {
@@ -1621,8 +1642,12 @@ function renderRestaurantDirectory(restaurants) {
     meta.append(status, health, demoBadge);
     logoField.append(logoFieldLabel, logoInput, logoHint);
     accessWrap.append(accessLabel, accessValue);
-    actions.append(link, resend, onboardingEmail, renewalEmail, demoUpgradeEmail, activatePlan, renew30, renew90, remove);
-    accountStack.append(logoField, logoPreview, login, accessWrap);
+    primaryActions.append(link, resend, onboardingEmail, renewalEmail);
+    secondaryActions.append(demoUpgradeEmail, renew30, renew90, remove);
+    actions.append(primaryActions, secondaryActions);
+    priorityAction.append(priorityActionCopy, activatePlan);
+    priorityActionCopy.append(priorityActionLabel, priorityActionTitle, priorityActionText);
+    accountStack.append(logoField, logoPreview, login, accessWrap, priorityAction);
     playbook.append(playbookLabel, playbookText);
     grid.append(owner, contact, address, activation, orders, usage, onboarding, playbook, notes, accountStack);
     card.append(top, grid, actions);
