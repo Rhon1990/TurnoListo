@@ -588,6 +588,41 @@
       </div>
     </div>
 
+    <div class="qr-modal" id="adminRenewPlanModal" hidden>
+      <div class="qr-modal__backdrop" id="adminRenewPlanBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="adminRenewPlanClose" type="button">
+          Cerrar
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Renovar plan</p>
+          <h3>Renovar o mejorar plan</h3>
+          <p class="comment-modal__meta" id="adminRenewPlanMeta"></p>
+          <div class="quick-form" id="adminRenewPlanForm">
+            <label class="field field--wide">
+              <span>Plan</span>
+              <select id="adminRenewPlanSelect" name="planName">
+                <option value="Quincenal">Quincenal</option>
+                <option value="Mensual" selected>Mensual</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+              </select>
+            </label>
+            <p class="hero__hint field--wide">Selecciona el plan con el que quieres renovar la cuenta o mejorarla desde admin.</p>
+            <label class="field field--wide">
+              <span>Días a sumar</span>
+              <input id="adminRenewPlanDays" name="activationDays" type="number" value="30" readonly />
+            </label>
+          </div>
+          <div class="cancel-modal__actions">
+            <button class="button-tertiary" id="adminRenewPlanBack" type="button">Volver</button>
+            <button class="launcher" id="adminRenewPlanConfirm" type="button">Actualizar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="qr-modal" id="adminEmailTemplatesModal" hidden>
       <div class="qr-modal__backdrop" id="adminEmailTemplatesBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal comment-modal--wide">

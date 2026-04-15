@@ -81,6 +81,14 @@ const adminActivatePlanConfirm = document.querySelector("#adminActivatePlanConfi
 const adminActivatePlanMeta = document.querySelector("#adminActivatePlanMeta");
 const adminActivatePlanSelect = document.querySelector("#adminActivatePlanSelect");
 const adminActivatePlanDays = document.querySelector("#adminActivatePlanDays");
+const adminRenewPlanModal = document.querySelector("#adminRenewPlanModal");
+const adminRenewPlanBackdrop = document.querySelector("#adminRenewPlanBackdrop");
+const adminRenewPlanClose = document.querySelector("#adminRenewPlanClose");
+const adminRenewPlanBack = document.querySelector("#adminRenewPlanBack");
+const adminRenewPlanConfirm = document.querySelector("#adminRenewPlanConfirm");
+const adminRenewPlanMeta = document.querySelector("#adminRenewPlanMeta");
+const adminRenewPlanSelect = document.querySelector("#adminRenewPlanSelect");
+const adminRenewPlanDays = document.querySelector("#adminRenewPlanDays");
 const adminEmailTemplatesModal = document.querySelector("#adminEmailTemplatesModal");
 const adminEmailTemplatesBackdrop = document.querySelector("#adminEmailTemplatesBackdrop");
 const adminEmailTemplatesClose = document.querySelector("#adminEmailTemplatesClose");
@@ -128,6 +136,8 @@ let pendingDeleteRestaurantId = null;
 let pendingDeleteRestaurantName = "";
 let pendingActivatePlanRestaurantId = null;
 let pendingActivatePlanRestaurantName = "";
+let pendingRenewPlanRestaurantId = null;
+let pendingRenewPlanRestaurantName = "";
 let pendingEmailTemplateRestaurantId = null;
 let activeEmailTemplateKey = "credentials";
 let activeEmailTemplateDraft = null;
@@ -172,6 +182,11 @@ adminActivatePlanClose?.addEventListener("click", closeActivatePlanModal);
 adminActivatePlanBack?.addEventListener("click", closeActivatePlanModal);
 adminActivatePlanConfirm?.addEventListener("click", confirmActivateRestaurantPlan);
 adminActivatePlanSelect?.addEventListener("change", syncActivatePlanDays);
+adminRenewPlanBackdrop?.addEventListener("click", closeRenewPlanModal);
+adminRenewPlanClose?.addEventListener("click", closeRenewPlanModal);
+adminRenewPlanBack?.addEventListener("click", closeRenewPlanModal);
+adminRenewPlanConfirm?.addEventListener("click", confirmRenewRestaurantPlan);
+adminRenewPlanSelect?.addEventListener("change", syncRenewPlanDays);
 adminEmailTemplatesBackdrop?.addEventListener("click", closeEmailTemplatesModal);
 adminEmailTemplatesClose?.addEventListener("click", closeEmailTemplatesModal);
 adminEmailCopySubject?.addEventListener("click", () => copyEmailTemplatePart("subject"));
@@ -567,6 +582,31 @@ function syncActivatePlanDays() {
   if (!adminActivatePlanSelect || !adminActivatePlanDays) return;
   const plan = adminActivatePlanSelect.value || "Mensual";
   adminActivatePlanDays.value = String(PLAN_DURATIONS[plan] || 30);
+}
+
+function renewRestaurantPlan(restaurantId, planName = "Mensual") {
+  const restaurant = getRestaurantById(restaurantId);
+  if (!restaurant) return null;
+
+  const normalizedPlanName = PLAN_DURATIONS[planName] ? planName : "Mensual";
+  const activationDays = PLAN_DURATIONS[normalizedPlanName] || 30;
+  const now = Date.now();
+  const currentUntil = restaurant.activatedUntil ? new Date(restaurant.activatedUntil).getTime() : now;
+  const baseTime = Math.max(now, currentUntil);
+  const activatedUntil = new Date(baseTime + activationDays * 24 * 60 * 60 * 1000).toISOString();
+
+  return updateRestaurantAccount(restaurantId, {
+    demoMode: false,
+    demoConfig: null,
+    planName: normalizedPlanName,
+    activatedUntil,
+  });
+}
+
+function syncRenewPlanDays() {
+  if (!adminRenewPlanSelect || !adminRenewPlanDays) return;
+  const plan = adminRenewPlanSelect.value || "Mensual";
+  adminRenewPlanDays.value = String(PLAN_DURATIONS[plan] || 30);
 }
 
 async function initializeAdminInbox() {
@@ -1461,8 +1501,7 @@ function renderRestaurantDirectory(restaurants) {
     const logoInput = document.createElement("input");
     const templatesButton = document.createElement("button");
     const activatePlan = document.createElement("button");
-    const renew30 = document.createElement("button");
-    const renew90 = document.createElement("button");
+    const renewPlan = document.createElement("button");
     const remove = document.createElement("button");
 
     card.className = "admin-card";
@@ -1599,29 +1638,11 @@ function renderRestaurantDirectory(restaurants) {
     activatePlan.addEventListener("click", () => {
       openActivatePlanModal(restaurant);
     });
-    renew30.type = "button";
-    renew30.className = "comment-button";
-    renew30.textContent = "+30 días";
-    renew30.addEventListener("click", () => {
-      const updatedRestaurant = extendRestaurantActivation(restaurant.id, 30);
-      if (!updatedRestaurant) return;
-      adminCreateFeedback.textContent = `Acceso renovado 30 días para ${restaurant.name}.`;
-      adminCreateFeedback.className = "form-feedback form-feedback--success";
-      adminCreateFeedback.hidden = false;
-      showTurnoAlert(`Acceso renovado 30 días para ${restaurant.name}.`, "success");
-      renderAdminWorkspace();
-    });
-    renew90.type = "button";
-    renew90.className = "comment-button";
-    renew90.textContent = "+90 días";
-    renew90.addEventListener("click", () => {
-      const updatedRestaurant = extendRestaurantActivation(restaurant.id, 90);
-      if (!updatedRestaurant) return;
-      adminCreateFeedback.textContent = `Acceso renovado 90 días para ${restaurant.name}.`;
-      adminCreateFeedback.className = "form-feedback form-feedback--success";
-      adminCreateFeedback.hidden = false;
-      showTurnoAlert(`Acceso renovado 90 días para ${restaurant.name}.`, "success");
-      renderAdminWorkspace();
+    renewPlan.type = "button";
+    renewPlan.className = "comment-button";
+    renewPlan.textContent = "Renovar plan";
+    renewPlan.addEventListener("click", () => {
+      openRenewPlanModal(restaurant);
     });
     remove.type = "button";
     remove.className = "comment-button admin-card__action-delete";
@@ -1648,8 +1669,8 @@ function renderRestaurantDirectory(restaurants) {
     meta.append(status, health, demoBadge);
     logoField.append(logoFieldLabel, logoInput, logoHint);
     accessWrap.append(accessLabel, accessValue);
-    primaryActions.append(link, templatesButton);
-    secondaryActions.append(renew30, renew90, remove);
+    primaryActions.append(link, templatesButton, renewPlan);
+    secondaryActions.append(remove);
     actions.append(primaryActions, secondaryActions);
     priorityAction.append(priorityActionCopy, activatePlan);
     priorityActionCopy.append(priorityActionLabel, priorityActionTitle, priorityActionText);
@@ -2101,6 +2122,30 @@ function closeActivatePlanModal() {
   pendingActivatePlanRestaurantName = "";
 }
 
+function openRenewPlanModal(restaurant) {
+  pendingRenewPlanRestaurantId = restaurant.id;
+  pendingRenewPlanRestaurantName = restaurant.name;
+  if (adminRenewPlanMeta) {
+    adminRenewPlanMeta.textContent = `${restaurant.name} · ${restaurant.email || "Sin correo"}`;
+  }
+  if (adminRenewPlanSelect) {
+    const currentPlan = PLAN_DURATIONS[restaurant.planName] ? restaurant.planName : "Mensual";
+    adminRenewPlanSelect.value = currentPlan;
+  }
+  syncRenewPlanDays();
+  if (adminRenewPlanModal) {
+    adminRenewPlanModal.hidden = false;
+  }
+}
+
+function closeRenewPlanModal() {
+  if (adminRenewPlanModal) {
+    adminRenewPlanModal.hidden = true;
+  }
+  pendingRenewPlanRestaurantId = null;
+  pendingRenewPlanRestaurantName = "";
+}
+
 function confirmDeleteRestaurant() {
   if (!pendingDeleteRestaurantId) return;
 
@@ -2123,5 +2168,19 @@ function confirmActivateRestaurantPlan() {
   adminCreateFeedback.hidden = false;
   showTurnoAlert(`${pendingActivatePlanRestaurantName} activado en plan ${selectedPlan}.`, "success");
   closeActivatePlanModal();
+  renderAdminWorkspace();
+}
+
+function confirmRenewRestaurantPlan() {
+  if (!pendingRenewPlanRestaurantId) return;
+  const selectedPlan = adminRenewPlanSelect?.value || "Mensual";
+  const updatedRestaurant = renewRestaurantPlan(pendingRenewPlanRestaurantId, selectedPlan);
+  if (!updatedRestaurant) return;
+
+  adminCreateFeedback.textContent = `${pendingRenewPlanRestaurantName} quedó renovado en plan ${selectedPlan}.`;
+  adminCreateFeedback.className = "form-feedback form-feedback--success";
+  adminCreateFeedback.hidden = false;
+  showTurnoAlert(`${pendingRenewPlanRestaurantName} renovado en plan ${selectedPlan}.`, "success");
+  closeRenewPlanModal();
   renderAdminWorkspace();
 }
