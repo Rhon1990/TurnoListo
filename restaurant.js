@@ -617,9 +617,9 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
     item.className = `dashboard-insight playbook-step${step.done ? " playbook-step--done" : ""}`;
 
     const icon = document.createElement("span");
-    icon.className = "playbook-step__icon";
+    icon.className = "playbook-step__icon material-symbols-rounded";
     icon.setAttribute("aria-hidden", "true");
-    icon.textContent = step.done ? "✓" : "";
+    icon.textContent = step.done ? "check" : "radio_button_unchecked";
 
     const content = document.createElement("div");
     content.className = "playbook-step__content";
@@ -937,6 +937,10 @@ function togglePasswordVisibility(input, button) {
   input.type = shouldShow ? "text" : "password";
   button.setAttribute("aria-label", shouldShow ? "Ocultar contraseña" : "Mostrar contraseña");
   button.classList.toggle("is-active", shouldShow);
+  const icon = button.querySelector(".material-symbols-rounded");
+  if (icon) {
+    icon.textContent = shouldShow ? "visibility_off" : "visibility";
+  }
 }
 
 function toggleRestaurantAccountMenu(event) {

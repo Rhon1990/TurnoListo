@@ -555,6 +555,7 @@ body.celebration-active::after {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 0.6rem;
   min-height: 46px;
   padding: 0.78rem 0.95rem;
   border-radius: 16px;
@@ -565,6 +566,11 @@ body.celebration-active::after {
   font-family: var(--font-sans);
   text-decoration: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.account-menu__item .material-symbols-rounded {
+  font-size: 1.12rem;
+  color: currentColor;
 }
 
 .account-menu__item:hover,
@@ -1513,7 +1519,8 @@ button:hover,
 }
 
 .phone-country-trigger__chevron {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
+  line-height: 1;
   color: var(--muted);
 }
 
@@ -1548,7 +1555,8 @@ button:hover,
 
 .phone-country-search__icon {
   color: var(--muted);
-  font-size: 1rem;
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 .phone-country-search input {
@@ -2126,6 +2134,9 @@ button:hover,
 }
 
 .turno-alert__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   justify-self: start;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
@@ -2554,6 +2565,10 @@ button:hover,
 }
 
 .qr-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   width: 100%;
   margin-bottom: 0.85rem;
   padding: 0.85rem 1rem;
@@ -3256,6 +3271,11 @@ button:hover,
   font-weight: 600;
 }
 
+.password-toggle .material-symbols-rounded {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 .password-toggle.is-active {
   background: rgba(236, 124, 13, 0.14);
 }
@@ -3923,19 +3943,17 @@ button:hover,
   place-items: center;
   margin-top: 0.05rem;
   border-radius: 999px;
-  border: 1.5px solid rgba(29, 26, 22, 0.18);
-  background: rgba(255, 255, 255, 0.78);
-  color: transparent;
-  font-size: 0.95rem;
-  font-weight: 800;
+  border: 0;
+  background: transparent;
+  color: rgba(29, 26, 22, 0.32);
+  font-size: 1.15rem;
+  font-weight: 500;
   flex-shrink: 0;
   pointer-events: none;
   user-select: none;
 }
 
 .playbook-step--done .playbook-step__icon {
-  border-color: rgba(31, 122, 77, 0.24);
-  background: linear-gradient(180deg, rgba(228, 247, 236, 0.98), rgba(210, 239, 224, 0.98));
   color: #1f7a4d;
 }
 

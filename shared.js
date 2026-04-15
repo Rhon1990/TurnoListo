@@ -2773,6 +2773,8 @@ function showTurnoAlert(message, type = "error", options = {}) {
   const title = document.createElement("strong");
   const body = document.createElement("p");
   const close = document.createElement("button");
+  const closeIcon = document.createElement("span");
+  const closeLabel = document.createElement("span");
   const timeoutMs = options.timeoutMs ?? 6000;
 
   alert.className = `turno-alert turno-alert--${type}`;
@@ -2781,7 +2783,10 @@ function showTurnoAlert(message, type = "error", options = {}) {
   close.className = "turno-alert__close";
   close.type = "button";
   close.setAttribute("aria-label", "Cerrar alerta");
-  close.textContent = "Cerrar";
+  closeIcon.className = "material-symbols-rounded";
+  closeIcon.setAttribute("aria-hidden", "true");
+  closeIcon.textContent = "close";
+  closeLabel.textContent = "Cerrar";
   title.textContent =
     type === "success" ? "Todo correcto" : type === "warning" ? "Revisa esto" : "Algo ha fallado";
   body.textContent = String(message || "Ha ocurrido un error inesperado.");
@@ -2790,6 +2795,7 @@ function showTurnoAlert(message, type = "error", options = {}) {
     alert.remove();
   });
 
+  close.append(closeIcon, closeLabel);
   alert.append(title, body, close);
   root.append(alert);
 

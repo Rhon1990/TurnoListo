@@ -2486,6 +2486,10 @@ function togglePasswordVisibility(input, button) {
   input.type = shouldShow ? "text" : "password";
   button.setAttribute("aria-label", shouldShow ? "Ocultar contraseña" : "Mostrar contraseña");
   button.classList.toggle("is-active", shouldShow);
+  const icon = button.querySelector(".material-symbols-rounded");
+  if (icon) {
+    icon.textContent = shouldShow ? "visibility_off" : "visibility";
+  }
 }
 
 function openDeleteModal(restaurant) {

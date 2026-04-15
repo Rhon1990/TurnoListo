@@ -81,7 +81,7 @@
                   <div class="password-field">
                     <input id="adminLoginPassword" name="password" type="password" placeholder="Contraseña" required />
                     <button class="password-toggle password-toggle--field" id="adminLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
-                      👁
+                      <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
                     </button>
                   </div>
                 </label>
@@ -131,8 +131,14 @@
                   <p id="adminAccountMeta">Panel privado</p>
                 </div>
                 <div class="account-menu__actions">
-                  <a class="account-menu__item" id="adminMenuProfile" href="./admin-profile.html">Perfil</a>
-                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">Cerrar sesión</button>
+                  <a class="account-menu__item" id="adminMenuProfile" href="./admin-profile.html">
+                    <span class="material-symbols-rounded" aria-hidden="true">person</span>
+                    <span>Perfil</span>
+                  </a>
+                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">
+                    <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+                    <span>Cerrar sesión</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -409,11 +415,11 @@
                         <span class="phone-country-trigger__dial" id="adminPhoneCountryDial">+34</span>
                         <span class="phone-country-trigger__name" id="adminPhoneCountryName">España</span>
                       </span>
-                      <span class="phone-country-trigger__chevron" aria-hidden="true">⌄</span>
+                      <span class="phone-country-trigger__chevron material-symbols-rounded" aria-hidden="true">expand_more</span>
                     </button>
                     <div class="phone-country-panel glass-card" id="adminPhoneCountryPanel" hidden>
                       <label class="phone-country-search">
-                        <span class="phone-country-search__icon" aria-hidden="true">⌕</span>
+                        <span class="phone-country-search__icon material-symbols-rounded" aria-hidden="true">search</span>
                         <input
                           id="adminPhoneCountrySearch"
                           type="search"
@@ -591,7 +597,8 @@
       <div class="qr-modal__backdrop" id="adminDeleteBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal">
         <button class="qr-modal__close" id="adminDeleteClose" type="button">
-          Cerrar
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">
           <p class="ticket__label">Confirmación</p>
@@ -609,7 +616,8 @@
       <div class="qr-modal__backdrop" id="adminActivatePlanBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal">
         <button class="qr-modal__close" id="adminActivatePlanClose" type="button">
-          Cerrar
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">
           <p class="ticket__label">Activar plan</p>
@@ -644,7 +652,8 @@
       <div class="qr-modal__backdrop" id="adminRenewPlanBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal">
         <button class="qr-modal__close" id="adminRenewPlanClose" type="button">
-          Cerrar
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">
           <p class="ticket__label">Renovar plan</p>
@@ -688,7 +697,8 @@
       <div class="qr-modal__backdrop" id="adminEmailTemplatesBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal comment-modal--wide">
         <button class="qr-modal__close" id="adminEmailTemplatesClose" type="button">
-          Cerrar
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">
           <p class="ticket__label">Plantillas</p>

@@ -52,8 +52,14 @@
                   <p id="adminAccountMeta">Acceso verificado</p>
                 </div>
                 <div class="account-menu__actions">
-                  <a class="account-menu__item" href="./admin-profile.html">Perfil</a>
-                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">Cerrar sesión</button>
+                  <a class="account-menu__item" href="./admin-profile.html">
+                    <span class="material-symbols-rounded" aria-hidden="true">person</span>
+                    <span>Perfil</span>
+                  </a>
+                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">
+                    <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+                    <span>Cerrar sesión</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -208,11 +214,11 @@
                         <span class="phone-country-trigger__dial" id="adminCreateAdminPhoneCountryDial">+34</span>
                         <span class="phone-country-trigger__name" id="adminCreateAdminPhoneCountryName">España</span>
                       </span>
-                      <span class="phone-country-trigger__chevron" aria-hidden="true">⌄</span>
+                      <span class="phone-country-trigger__chevron material-symbols-rounded" aria-hidden="true">expand_more</span>
                     </button>
                     <div class="phone-country-panel glass-card" id="adminCreateAdminPhoneCountryPanel" hidden>
                       <label class="phone-country-search">
-                        <span class="phone-country-search__icon" aria-hidden="true">⌕</span>
+                        <span class="phone-country-search__icon material-symbols-rounded" aria-hidden="true">search</span>
                         <input
                           id="adminCreateAdminPhoneCountrySearch"
                           type="search"
