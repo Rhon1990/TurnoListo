@@ -30,6 +30,8 @@ const adminRestaurantCount = document.querySelector("#adminRestaurantCount");
 const adminTabs = document.querySelectorAll("[data-admin-section]");
 const adminPanels = document.querySelectorAll("[data-admin-panel]");
 const adminDashboardLinks = document.querySelectorAll('.workspace-brand--link[href="./admin.html"], .workspace-home-button[href="./admin.html"]');
+const adminHomeButton = document.querySelector('.workspace-home-button[href="./admin.html"]');
+const adminHeaderMessagesButton = document.querySelector('.workspace-mail-button[data-admin-section="messages"]');
 const adminSearchInput = document.querySelector("#adminSearchInput");
 const adminStatusFilter = document.querySelector("#adminStatusFilter");
 const adminActivityFilter = document.querySelector("#adminActivityFilter");
@@ -368,6 +370,18 @@ function syncAdminSections() {
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
+
+  if (adminHomeButton) {
+    const isHomeSection = activeAdminSection !== "messages";
+    adminHomeButton.classList.toggle("is-active", isHomeSection);
+    adminHomeButton.setAttribute("aria-current", isHomeSection ? "page" : "false");
+  }
+
+  if (adminHeaderMessagesButton) {
+    const isMessagesSection = activeAdminSection === "messages";
+    adminHeaderMessagesButton.classList.toggle("is-active", isMessagesSection);
+    adminHeaderMessagesButton.setAttribute("aria-pressed", String(isMessagesSection));
+  }
 
   adminPanels.forEach((panel) => {
     const isActive = panel.dataset.adminPanel === activeAdminSection;

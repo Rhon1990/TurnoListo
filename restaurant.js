@@ -55,6 +55,7 @@ const archivedRatingFilter = document.querySelector("#archivedRatingFilter");
 const archivedPeriodFilter = document.querySelector("#archivedPeriodFilter");
 const sectionTabs = document.querySelectorAll("[data-section]");
 const sectionPanels = document.querySelectorAll("[data-section-panel]");
+const restaurantHomeButton = document.querySelector('.workspace-home-button[href="./restaurant.html"]');
 const restaurantProfileForm = document.querySelector("#restaurantProfileForm");
 const restaurantProfileLogoInput = document.querySelector("#restaurantProfileLogoInput");
 const restaurantProfileLogoPreview = document.querySelector("#restaurantProfileLogoPreview");
@@ -1023,6 +1024,11 @@ function syncSectionView() {
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
+
+  if (restaurantHomeButton) {
+    restaurantHomeButton.classList.add("is-active");
+    restaurantHomeButton.setAttribute("aria-current", "page");
+  }
 
   sectionPanels.forEach((panel) => {
     const isActive = panel.dataset.sectionPanel === activeSection;
