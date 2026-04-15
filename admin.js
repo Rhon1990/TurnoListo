@@ -1910,7 +1910,10 @@ function formatAdminDayLabel(value) {
 }
 
 function buildRemainingAccessLabel(restaurant) {
-  const days = restaurant.remainingDays;
+  const days =
+    typeof restaurant?.remainingDays === "number" && Number.isFinite(restaurant.remainingDays)
+      ? restaurant.remainingDays
+      : getRestaurantRemainingDays(restaurant);
   if (days === null) return "Sin vencimiento";
   if (days < 0) return "Acceso bloqueado";
   if (days === 0) return "Vence hoy";
