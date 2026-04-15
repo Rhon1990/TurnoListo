@@ -379,7 +379,7 @@ function buildAdminProfileViewModel(profile, user) {
   return {
     ...profile,
     email: String(profile?.email || authEmail).trim(),
-    displayName: String(profile?.displayName || authDisplayName || authEmail || "Administrador").trim(),
+    displayName: String(profile?.displayName || authDisplayName || authEmail || "").trim(),
     avatarUrl: String(profile?.avatarUrl || authAvatarUrl).trim(),
     phone: String(profile?.phone || "").trim(),
     title: String(profile?.title || "").trim(),
@@ -399,12 +399,12 @@ function normalizeProfileDateValue(value) {
 }
 
 function renderAdminAccount(profile) {
-  const displayName = String(profile?.displayName || profile?.email || "Administrador").trim();
+  const displayName = String(profile?.displayName || profile?.email || "").trim();
   const title = String(profile?.title || "").trim();
   const avatarUrl = String(profile?.avatarUrl || "").trim();
-  adminAccountName.textContent = displayName;
-  adminAccountMeta.textContent = title ? `${title} · Acceso verificado` : "Acceso verificado";
-  adminAccountAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "A";
+  adminAccountName.textContent = displayName || "Sin datos cargados";
+  adminAccountMeta.textContent = displayName ? (title ? `${title} · Acceso verificado` : "Acceso verificado") : "Cuenta no cargada";
+  adminAccountAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "?";
 
   if (avatarUrl) {
     adminAccountAvatarImage.src = avatarUrl;
@@ -418,12 +418,12 @@ function renderAdminAccount(profile) {
 }
 
 function renderAdminProfileSummary(profile) {
-  const displayName = String(profile?.displayName || profile?.email || "Administrador").trim();
-  const title = String(profile?.title || "Acceso verificado").trim();
+  const displayName = String(profile?.displayName || profile?.email || "").trim();
+  const title = String(profile?.title || "").trim();
   const avatarUrl = String(selectedAdminAvatarUrl || profile?.avatarUrl || "").trim();
-  adminProfileSummaryName.textContent = displayName;
-  adminProfileSummaryTitle.textContent = title || "Acceso verificado";
-  adminProfileSummaryAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "A";
+  adminProfileSummaryName.textContent = displayName || "Sin datos cargados";
+  adminProfileSummaryTitle.textContent = displayName ? title || "Acceso verificado" : "Cuenta no cargada";
+  adminProfileSummaryAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "?";
 
   if (avatarUrl) {
     adminProfileSummaryAvatarImage.src = avatarUrl;
@@ -655,9 +655,9 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
     top.className = "admin-user-card__top";
     identity.className = "admin-user-card__identity";
     avatar.className = "admin-user-card__avatar";
-    avatarFallback.textContent = String(user.displayName || user.email || "A").trim().charAt(0).toUpperCase() || "A";
-    name.textContent = user.displayName || user.email || "Administrador";
-    meta.textContent = [user.title || "Administrador", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
+    avatarFallback.textContent = String(user.displayName || user.email || "?").trim().charAt(0).toUpperCase() || "?";
+    name.textContent = user.displayName || user.email || "Sin datos cargados";
+    meta.textContent = [user.title || "No disponible", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
 
     const avatarUrl = String(user.avatarUrl || "").trim();
     if (avatarUrl) {
@@ -680,7 +680,7 @@ function buildAdminAccessUrl() {
 }
 
 function formatProfileDateTime(value) {
-  if (!value) return "Sin fecha";
+  if (!value) return "No disponible";
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",

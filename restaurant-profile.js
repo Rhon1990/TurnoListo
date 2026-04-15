@@ -36,6 +36,9 @@ const restaurantAccountAvatarFallback = document.querySelector("#restaurantAccou
 const restaurantAccountName = document.querySelector("#restaurantAccountName");
 const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
 const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
+const EMPTY_DATA_LABEL = "Sin datos cargados";
+const EMPTY_STATUS_LABEL = "No disponible";
+const EMPTY_AVATAR_LABEL = "?";
 
 let selectedRestaurantProfileLogoUrl = "";
 const PHONE_COUNTRIES = [
@@ -127,7 +130,10 @@ function redirectToRestaurant() {
 }
 
 function renderRestaurantProfile(restaurant) {
-  if (!restaurant) return;
+  if (!restaurant) {
+    clearRestaurantProfileView();
+    return;
+  }
   const demoUsage = getRestaurantDemoUsage(restaurant);
   renderRestaurantAccount(restaurant);
   restaurantProfileName.value = restaurant.name || "";
@@ -137,8 +143,8 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfileCity.value = restaurant.city || "";
   restaurantProfileAddress.value = restaurant.address || "";
   restaurantProfileNotes.value = restaurant.notes || "";
-  const planName = restaurant.planName || "Sin plan";
-  const activatedUntil = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : "Sin fecha";
+  const planName = restaurant.planName || EMPTY_STATUS_LABEL;
+  const activatedUntil = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : EMPTY_STATUS_LABEL;
   restaurantProfilePlanName.value = planName;
   restaurantProfileActivatedUntil.value = activatedUntil;
   if (restaurantProfilePlanNameCard) restaurantProfilePlanNameCard.textContent = planName;
@@ -153,14 +159,17 @@ function renderRestaurantProfile(restaurant) {
 }
 
 function renderRestaurantAccount(restaurant) {
-  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
-  const demoUsage = getRestaurantDemoUsage(restaurant);
-  restaurantAccountName.textContent = restaurantName;
-  restaurantAccountMeta.textContent = isDemoRestaurant(restaurant)
-    ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
-    : "Acceso verificado";
-  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+  const hasRestaurantData = Boolean(restaurantName);
+  const demoUsage = hasRestaurantData ? getRestaurantDemoUsage(restaurant) : null;
+  restaurantAccountName.textContent = restaurantName || EMPTY_DATA_LABEL;
+  restaurantAccountMeta.textContent = hasRestaurantData
+    ? isDemoRestaurant(restaurant)
+      ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
+      : "Acceso verificado"
+    : "Cuenta no cargada";
+  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || EMPTY_AVATAR_LABEL;
 
   if (logoUrl) {
     restaurantAccountAvatarImage.src = logoUrl;
@@ -175,15 +184,18 @@ function renderRestaurantAccount(restaurant) {
 
 function renderRestaurantProfileSummary(restaurant) {
   if (!restaurantProfileSummaryName) return;
-  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const restaurantName = String(restaurant?.name || "").trim();
   const ownerName = String(restaurant?.ownerName || "").trim();
   const logoUrl = String(selectedRestaurantProfileLogoUrl || restaurant?.logoUrl || "").trim();
-  const demoUsage = getRestaurantDemoUsage(restaurant);
-  restaurantProfileSummaryName.textContent = restaurantName;
-  restaurantProfileSummaryTitle.textContent = isDemoRestaurant(restaurant)
-    ? `Demo activa · ${demoUsage.remainingOrders} pedidos disponibles`
-    : ownerName || "Acceso verificado";
-  restaurantProfileSummaryAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+  const hasRestaurantData = Boolean(restaurantName);
+  const demoUsage = hasRestaurantData ? getRestaurantDemoUsage(restaurant) : null;
+  restaurantProfileSummaryName.textContent = restaurantName || EMPTY_DATA_LABEL;
+  restaurantProfileSummaryTitle.textContent = hasRestaurantData
+    ? isDemoRestaurant(restaurant)
+      ? `Demo activa · ${demoUsage.remainingOrders} pedidos disponibles`
+      : ownerName || EMPTY_STATUS_LABEL
+    : "Cuenta no cargada";
+  restaurantProfileSummaryAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || EMPTY_AVATAR_LABEL;
 
   if (logoUrl) {
     restaurantProfileSummaryAvatarImage.src = logoUrl;
@@ -197,12 +209,30 @@ function renderRestaurantProfileSummary(restaurant) {
 }
 
 function formatProfileDate(value) {
-  if (!value) return "Sin fecha";
+  if (!value) return EMPTY_STATUS_LABEL;
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function clearRestaurantProfileView() {
+  restaurantProfileName.value = "";
+  restaurantProfileOwnerName.value = "";
+  restaurantProfileEmail.value = "";
+  restaurantProfileCity.value = "";
+  restaurantProfileAddress.value = "";
+  restaurantProfileNotes.value = "";
+  restaurantProfilePlanName.value = EMPTY_STATUS_LABEL;
+  restaurantProfileActivatedUntil.value = EMPTY_STATUS_LABEL;
+  if (restaurantProfileStatus) restaurantProfileStatus.value = EMPTY_STATUS_LABEL;
+  if (restaurantProfilePlanNameCard) restaurantProfilePlanNameCard.textContent = EMPTY_STATUS_LABEL;
+  if (restaurantProfileActivatedUntilCard) restaurantProfileActivatedUntilCard.textContent = EMPTY_STATUS_LABEL;
+  applyRestaurantProfilePhoneValue("");
+  syncRestaurantProfilePreview("");
+  renderRestaurantAccount(null);
+  renderRestaurantProfileSummary(null);
 }
 
 function syncRestaurantProfilePreview(logoUrl) {

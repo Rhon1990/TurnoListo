@@ -1084,20 +1084,20 @@ function renderAdminWorkspace() {
 
 function renderAdminAccount() {
   const profile = getCurrentUserProfile() || {};
-  const displayName = String(profile.displayName || profile.email || "Administrador").trim();
+  const displayName = String(profile.displayName || profile.email || "").trim();
   const title = String(profile.title || "").trim();
   const avatarUrl = String(profile.avatarUrl || "").trim();
 
   if (adminAccountName) {
-    adminAccountName.textContent = displayName;
+    adminAccountName.textContent = displayName || "Sin datos cargados";
   }
 
   if (adminAccountMeta) {
-    adminAccountMeta.textContent = title ? `${title} · Acceso verificado` : "Acceso verificado";
+    adminAccountMeta.textContent = displayName ? (title ? `${title} · Acceso verificado` : "Acceso verificado") : "Cuenta no cargada";
   }
 
   if (adminAccountAvatarFallback) {
-    adminAccountAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "A";
+    adminAccountAvatarFallback.textContent = displayName.charAt(0).toUpperCase() || "?";
   }
 
   if (adminAccountAvatarImage) {
@@ -1291,9 +1291,9 @@ function renderAdminUsersList() {
     top.className = "admin-user-card__top";
     identity.className = "admin-user-card__identity";
     avatar.className = "admin-user-card__avatar";
-    avatarFallback.textContent = String(user.displayName || user.email || "A").trim().charAt(0).toUpperCase() || "A";
-    name.textContent = user.displayName || user.email || "Administrador";
-    meta.textContent = [user.title || "Administrador", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
+    avatarFallback.textContent = String(user.displayName || user.email || "?").trim().charAt(0).toUpperCase() || "?";
+    name.textContent = user.displayName || user.email || "Sin datos cargados";
+    meta.textContent = [user.title || "No disponible", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
 
     const avatarUrl = String(user.avatarUrl || "").trim();
     if (avatarUrl) {
@@ -2219,7 +2219,7 @@ function getAdminActionQueues(options = {}) {
 }
 
 function formatAdminDate(value) {
-  if (!value) return "Sin fecha";
+  if (!value) return "No disponible";
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -2228,7 +2228,7 @@ function formatAdminDate(value) {
 }
 
 function formatAdminDateTime(value) {
-  if (!value) return "Sin fecha";
+  if (!value) return "No disponible";
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -2239,7 +2239,7 @@ function formatAdminDateTime(value) {
 }
 
 function formatAdminDayLabel(value) {
-  if (!value) return "Sin fecha";
+  if (!value) return "No disponible";
   return new Intl.DateTimeFormat("es-ES", {
     weekday: "long",
     day: "2-digit",
@@ -2560,8 +2560,8 @@ function openRenewPlanModal(restaurant) {
     adminRenewPlanMeta.textContent = `${restaurant.name} · ${restaurant.email || "Sin correo"}`;
   }
   if (adminRenewPlanCurrentStatus) {
-    const currentPlanLabel = String(restaurant.planName || "Sin plan").trim() || "Sin plan";
-    const currentEndLabel = restaurant.activatedUntil ? formatAdminDate(restaurant.activatedUntil) : "Sin fecha";
+    const currentPlanLabel = String(restaurant.planName || "No disponible").trim() || "No disponible";
+    const currentEndLabel = restaurant.activatedUntil ? formatAdminDate(restaurant.activatedUntil) : "No disponible";
     adminRenewPlanCurrentStatus.textContent = `Estado actual: ${currentPlanLabel} · Vigente hasta ${currentEndLabel}.`;
   }
   if (adminRenewPlanSelect) {

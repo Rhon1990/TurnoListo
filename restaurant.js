@@ -162,6 +162,9 @@ let restaurantTermTooltipTimer = 0;
 let selectedRestaurantProfileLogoUrl = "";
 let lastAiTriggerButton = null;
 let selectedRestaurantProfilePhoneCountryIso = "ES";
+const EMPTY_DATA_LABEL = "Sin datos cargados";
+const EMPTY_STATUS_LABEL = "No disponible";
+const EMPTY_AVATAR_LABEL = "?";
 const PHONE_COUNTRIES = [
   { iso: "ES", flag: "🇪🇸", name: "España", dialCode: "+34", placeholder: "600 000 000", minDigits: 9, maxDigits: 9 },
   { iso: "PT", flag: "🇵🇹", name: "Portugal", dialCode: "+351", placeholder: "912 345 678", minDigits: 9, maxDigits: 9 },
@@ -388,6 +391,7 @@ function syncRestaurantAccess() {
     return;
   }
 
+  if (restaurantSessionLabel) restaurantSessionLabel.textContent = EMPTY_DATA_LABEL;
   restaurantHeroEyebrow.textContent = "Panel restaurante";
 }
 
@@ -771,14 +775,17 @@ function hideRestaurantModeTooltip() {
 
 function renderRestaurantAccount(restaurant) {
   if (!restaurantAccountName) return;
-  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
-  const demoUsage = getRestaurantDemoUsage(restaurant);
-  restaurantAccountName.textContent = restaurantName;
-  restaurantAccountMeta.textContent = isDemoRestaurant(restaurant)
-    ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
-    : "Acceso verificado";
-  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+  const hasRestaurantData = Boolean(restaurantName);
+  const demoUsage = hasRestaurantData ? getRestaurantDemoUsage(restaurant) : null;
+  restaurantAccountName.textContent = restaurantName || EMPTY_DATA_LABEL;
+  restaurantAccountMeta.textContent = hasRestaurantData
+    ? isDemoRestaurant(restaurant)
+      ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
+      : "Acceso verificado"
+    : "Cuenta no cargada";
+  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || EMPTY_AVATAR_LABEL;
 
   if (logoUrl) {
     restaurantAccountAvatarImage.src = logoUrl;
@@ -792,7 +799,20 @@ function renderRestaurantAccount(restaurant) {
 }
 
 function renderRestaurantProfile(restaurant) {
-  if (!restaurantProfileForm || !restaurant) return;
+  if (!restaurantProfileForm) return;
+  if (!restaurant) {
+    restaurantProfileName.value = "";
+    restaurantProfileOwnerName.value = "";
+    restaurantProfileEmail.value = "";
+    restaurantProfileCity.value = "";
+    restaurantProfileAddress.value = "";
+    restaurantProfileNotes.value = "";
+    restaurantProfilePlanName.value = EMPTY_STATUS_LABEL;
+    restaurantProfileActivatedUntil.value = EMPTY_STATUS_LABEL;
+    applyRestaurantProfilePhoneValue("");
+    syncRestaurantProfilePreview("");
+    return;
+  }
   const demoUsage = getRestaurantDemoUsage(restaurant);
   restaurantProfileName.value = restaurant.name || "";
   restaurantProfileOwnerName.value = restaurant.ownerName || "";
@@ -800,8 +820,8 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfileCity.value = restaurant.city || "";
   restaurantProfileAddress.value = restaurant.address || "";
   restaurantProfileNotes.value = restaurant.notes || "";
-  restaurantProfilePlanName.value = restaurant.planName || "Sin plan";
-  restaurantProfileActivatedUntil.value = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : "Sin fecha";
+  restaurantProfilePlanName.value = restaurant.planName || EMPTY_STATUS_LABEL;
+  restaurantProfileActivatedUntil.value = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : EMPTY_STATUS_LABEL;
   applyRestaurantProfilePhoneValue(restaurant.phone || "");
   if (isDemoRestaurant(restaurant) && restaurantProfileNotes && !restaurantProfileNotes.value.trim()) {
     restaurantProfileNotes.value = `Demo comercial activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados.`;
@@ -877,7 +897,7 @@ async function handleRestaurantLogout() {
 }
 
 function formatProfileDate(value) {
-  if (!value) return "Sin fecha";
+  if (!value) return EMPTY_STATUS_LABEL;
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",

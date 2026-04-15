@@ -502,11 +502,11 @@ function setContactPhoneValueIfEmpty(value) {
 
 function renderRestaurantAccount(restaurant) {
   if (!restaurantAccountName) return;
-  const restaurantName = String(restaurant?.name || "Restaurante").trim();
+  const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
-  restaurantAccountName.textContent = restaurantName;
-  restaurantAccountMeta.textContent = "Acceso verificado";
-  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "R";
+  restaurantAccountName.textContent = restaurantName || "Sin datos cargados";
+  restaurantAccountMeta.textContent = restaurantName ? "Acceso verificado" : "Cuenta no cargada";
+  restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "?";
 
   if (logoUrl) {
     restaurantAccountAvatarImage.src = logoUrl;

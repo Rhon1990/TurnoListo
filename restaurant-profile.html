@@ -33,14 +33,14 @@
               <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
                 <span class="account-menu__avatar" id="restaurantAccountAvatar">
                   <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
-                  <span id="restaurantAccountAvatarFallback">R</span>
+                  <span id="restaurantAccountAvatarFallback">?</span>
                 </span>
                 <span class="account-menu__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
               </button>
               <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
                 <div class="account-menu__identity">
-                  <strong id="restaurantAccountName">Restaurante</strong>
-                  <p id="restaurantAccountMeta">Acceso verificado</p>
+                  <strong id="restaurantAccountName">Sin datos cargados</strong>
+                  <p id="restaurantAccountMeta">Cuenta no cargada</p>
                 </div>
                 <div class="account-menu__actions">
                   <a class="account-menu__item" href="./restaurant-profile.html">
@@ -92,11 +92,11 @@
               <div class="admin-user-card__top">
                 <span class="admin-user-card__avatar" id="restaurantProfileSummaryAvatar">
                   <img id="restaurantProfileSummaryAvatarImage" alt="Logo del restaurante" hidden />
-                  <span id="restaurantProfileSummaryAvatarFallback">R</span>
+                  <span id="restaurantProfileSummaryAvatarFallback">?</span>
                 </span>
                 <div class="admin-user-card__identity">
-                  <h4 id="restaurantProfileSummaryName">Restaurante</h4>
-                  <p id="restaurantProfileSummaryTitle">Acceso verificado</p>
+                  <h4 id="restaurantProfileSummaryName">Sin datos cargados</h4>
+                  <p id="restaurantProfileSummaryTitle">Cuenta no cargada</p>
                 </div>
               </div>
             </article>
@@ -225,7 +225,7 @@
                 </label>
                 <label class="field">
                   <span>Estado</span>
-                  <input id="restaurantProfileStatus" type="text" readonly value="Acceso verificado" />
+                  <input id="restaurantProfileStatus" type="text" readonly value="No disponible" />
                 </label>
               </div>
             </div>
@@ -247,12 +247,12 @@
             <div class="contact-card__stack">
               <article class="contact-item">
                 <p class="contact-item__label">Plan actual</p>
-                <p class="contact-item__value" id="restaurantProfilePlanNameCard">Sin plan</p>
+                <p class="contact-item__value" id="restaurantProfilePlanNameCard">No disponible</p>
                 <p class="contact-item__text">Plan comercial activo para la cuenta del restaurante.</p>
               </article>
               <article class="contact-item">
                 <p class="contact-item__label">Acceso hasta</p>
-                <p class="contact-item__value" id="restaurantProfileActivatedUntilCard">Sin fecha</p>
+                <p class="contact-item__value" id="restaurantProfileActivatedUntilCard">No disponible</p>
                 <p class="contact-item__text">Fecha hasta la que el acceso del local permanece operativo.</p>
               </article>
               <article class="contact-item">
