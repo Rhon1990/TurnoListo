@@ -10,10 +10,6 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
-      rel="stylesheet"
-    />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260415f" />
   </head>
@@ -30,11 +26,11 @@
           </a>
           <div class="workspace-actions" aria-label="Acciones de cabecera">
             <a class="workspace-mail-button workspace-home-button" href="./admin.html" aria-label="Ir al panel principal">
-              <span class="workspace-mail-button__icon material-symbols-rounded" aria-hidden="true">home</span>
+              <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="home" aria-hidden="true"></span>
               <span class="workspace-mail-button__label">Inicio</span>
             </a>
             <button class="workspace-mail-button" type="button" id="adminMessagesShortcut" aria-label="Abrir bandeja de mensajes">
-              <span class="workspace-mail-button__icon material-symbols-rounded" aria-hidden="true">mail</span>
+              <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="mail" aria-hidden="true"></span>
               <span class="workspace-mail-button__label">Mensajes</span>
               <span class="workspace-mail-button__badge" id="adminUnreadMessagesBadge" hidden>0</span>
             </button>
@@ -44,7 +40,7 @@
                   <img id="adminAccountAvatarImage" alt="Foto del administrador" hidden />
                   <span id="adminAccountAvatarFallback">A</span>
                 </span>
-                <span class="account-menu__chevron material-symbols-rounded" aria-hidden="true">expand_more</span>
+                <span class="account-menu__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
               </button>
               <div class="account-menu__panel glass-card" id="adminAccountPanel" hidden>
                 <div class="account-menu__identity">
@@ -53,11 +49,11 @@
                 </div>
                 <div class="account-menu__actions">
                   <a class="account-menu__item" href="./admin-profile.html">
-                    <span class="material-symbols-rounded" aria-hidden="true">person</span>
+                    <span class="material-symbols-rounded" data-icon="person" aria-hidden="true"></span>
                     <span>Perfil</span>
                   </a>
                   <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">
-                    <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+                    <span class="material-symbols-rounded" data-icon="logout" aria-hidden="true"></span>
                     <span>Cerrar sesión</span>
                   </button>
                 </div>
@@ -214,11 +210,11 @@
                         <span class="phone-country-trigger__dial" id="adminCreateAdminPhoneCountryDial">+34</span>
                         <span class="phone-country-trigger__name" id="adminCreateAdminPhoneCountryName">España</span>
                       </span>
-                      <span class="phone-country-trigger__chevron material-symbols-rounded" aria-hidden="true">expand_more</span>
+                      <span class="phone-country-trigger__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
                     </button>
                     <div class="phone-country-panel glass-card" id="adminCreateAdminPhoneCountryPanel" hidden>
                       <label class="phone-country-search">
-                        <span class="phone-country-search__icon material-symbols-rounded" aria-hidden="true">search</span>
+                        <span class="phone-country-search__icon material-symbols-rounded" data-icon="search" aria-hidden="true"></span>
                         <input
                           id="adminCreateAdminPhoneCountrySearch"
                           type="search"

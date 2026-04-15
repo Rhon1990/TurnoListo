@@ -10,10 +10,6 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
-      rel="stylesheet"
-    />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260409u" />
   </head>
@@ -82,7 +78,7 @@
                   <div class="password-field">
                     <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" required />
                     <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña">
-                      <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                      <span class="material-symbols-rounded" data-icon="visibility" aria-hidden="true"></span>
                     </button>
                   </div>
                 </label>
@@ -115,7 +111,7 @@
                   <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
                   <span id="restaurantAccountAvatarFallback">R</span>
                 </span>
-                <span class="account-menu__chevron material-symbols-rounded" aria-hidden="true">expand_more</span>
+                <span class="account-menu__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
               </button>
               <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
                 <div class="account-menu__identity">
@@ -124,15 +120,15 @@
                 </div>
                 <div class="account-menu__actions">
                   <a class="account-menu__item" id="restaurantMenuProfile" href="./restaurant-profile.html">
-                    <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+                    <span class="material-symbols-rounded" data-icon="storefront" aria-hidden="true"></span>
                     <span>Perfil</span>
                   </a>
                   <a class="account-menu__item" href="./contact.html">
-                    <span class="material-symbols-rounded" aria-hidden="true">support_agent</span>
+                    <span class="material-symbols-rounded" data-icon="support_agent" aria-hidden="true"></span>
                     <span>Contáctenos</span>
                   </a>
                   <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">
-                    <span class="material-symbols-rounded" aria-hidden="true">logout</span>
+                    <span class="material-symbols-rounded" data-icon="logout" aria-hidden="true"></span>
                     <span>Cerrar sesión</span>
                   </button>
                 </div>
@@ -577,7 +573,7 @@
       <div class="qr-modal__backdrop" id="restaurantCommentBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal">
         <button class="qr-modal__close" id="restaurantCommentClose" type="button">
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
           <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">
@@ -595,7 +591,7 @@
       <div class="qr-modal__backdrop" id="restaurantCancelBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal">
         <button class="qr-modal__close" id="restaurantCancelClose" type="button">
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
           <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">
@@ -615,7 +611,7 @@
       <div class="qr-modal__backdrop" id="restaurantAiBackdrop"></div>
       <div class="qr-modal__card glass-card comment-modal">
         <button class="qr-modal__close" id="restaurantAiClose" type="button">
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
           <span>Cerrar</span>
         </button>
         <div class="comment-modal__content">

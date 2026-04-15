@@ -2785,7 +2785,7 @@ function showTurnoAlert(message, type = "error", options = {}) {
   close.setAttribute("aria-label", "Cerrar alerta");
   closeIcon.className = "material-symbols-rounded";
   closeIcon.setAttribute("aria-hidden", "true");
-  closeIcon.textContent = "close";
+  closeIcon.dataset.icon = "close";
   closeLabel.textContent = "Cerrar";
   title.textContent =
     type === "success" ? "Todo correcto" : type === "warning" ? "Revisa esto" : "Algo ha fallado";

@@ -283,20 +283,77 @@ body.celebration-active::after {
 }
 
 .material-symbols-rounded {
-  font-family: "Material Icons Round";
-  font-weight: normal;
-  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  color: currentColor;
+  font-size: 0;
   line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  -webkit-font-feature-settings: "liga";
-  font-feature-settings: "liga";
+  overflow: hidden;
+  user-select: none;
+}
+
+.material-symbols-rounded::before {
+  font-size: var(--app-icon-size, 1em);
+  line-height: 1;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: currentColor;
+}
+
+.material-symbols-rounded[data-icon="visibility"]::before {
+  content: "◉";
+}
+
+.material-symbols-rounded[data-icon="visibility_off"]::before {
+  content: "◌";
+}
+
+.material-symbols-rounded[data-icon="home"]::before {
+  content: "⌂";
+}
+
+.material-symbols-rounded[data-icon="mail"]::before {
+  content: "✉";
+}
+
+.material-symbols-rounded[data-icon="expand_more"]::before {
+  content: "⌄";
+}
+
+.material-symbols-rounded[data-icon="search"]::before {
+  content: "⌕";
+}
+
+.material-symbols-rounded[data-icon="close"]::before {
+  content: "✕";
+}
+
+.material-symbols-rounded[data-icon="person"]::before {
+  content: "◎";
+}
+
+.material-symbols-rounded[data-icon="logout"]::before {
+  content: "↪";
+}
+
+.material-symbols-rounded[data-icon="storefront"]::before {
+  content: "▣";
+}
+
+.material-symbols-rounded[data-icon="support_agent"]::before {
+  content: "☏";
+}
+
+.material-symbols-rounded[data-icon="check"]::before {
+  content: "✓";
+}
+
+.material-symbols-rounded[data-icon="radio_button_unchecked"]::before {
+  content: "○";
 }
 
 .workspace-brand {
@@ -408,7 +465,7 @@ body.celebration-active::after {
 }
 
 .workspace-action-icon {
-  font-size: 1.2rem;
+  --app-icon-size: 1.2rem;
 }
 
 .workspace-mail-button,
@@ -450,7 +507,7 @@ body.celebration-active::after {
 }
 
 .workspace-mail-button__icon {
-  font-size: 1.45rem;
+  --app-icon-size: 1.35rem;
   line-height: 1;
 }
 
@@ -567,7 +624,7 @@ body.celebration-active::after {
 }
 
 .account-menu__item .material-symbols-rounded {
-  font-size: 1.12rem;
+  --app-icon-size: 1rem;
   color: currentColor;
 }
 
@@ -1038,7 +1095,12 @@ input::file-selector-button {
 
 button {
   cursor: pointer;
-  transition: transform 180ms ease;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 button:hover,
@@ -1051,13 +1113,16 @@ button:hover,
 #clientLoadButton,
 .button-secondary,
 .button-tertiary {
+  min-height: 44px;
   border-radius: 999px;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 1.05rem;
+  border: 1px solid transparent;
 }
 
 .ghost-button {
-  background: rgba(29, 26, 22, 0.06);
+  background: rgba(29, 26, 22, 0.05);
   color: var(--ink);
+  border-color: rgba(29, 26, 22, 0.08);
 }
 
 .ghost-button--full {
@@ -1070,22 +1135,31 @@ button:hover,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--brand);
+  background: linear-gradient(180deg, rgba(236, 124, 13, 0.98), rgba(216, 101, 0, 0.98));
   color: #fff7f1;
   font-weight: 700;
   text-decoration: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 10px 24px rgba(216, 101, 0, 0.24);
 }
 
 .button-secondary,
 .button-tertiary {
-  background: rgba(29, 26, 22, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 252, 248, 0.96);
   color: var(--ink);
+  border-color: rgba(29, 26, 22, 0.09);
+  box-shadow: 0 6px 18px rgba(105, 66, 28, 0.06);
 }
 
 .button-secondary--primary {
   background: linear-gradient(135deg, #ec7c0d, #d86500);
   color: #fff7f1;
   font-weight: 800;
+  border-color: transparent;
   box-shadow: 0 12px 24px rgba(216, 101, 0, 0.2);
 }
 
@@ -1093,6 +1167,41 @@ button:hover,
 .button-secondary--primary:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 16px 28px rgba(216, 101, 0, 0.26);
+}
+
+.launcher:hover,
+#clientLoadButton:hover,
+.button-secondary:hover,
+.button-tertiary:hover,
+.ghost-button:hover {
+  transform: translateY(-1px);
+}
+
+.button-secondary:hover,
+.button-secondary:focus-visible,
+.button-tertiary:hover,
+.button-tertiary:focus-visible,
+.ghost-button:hover,
+.ghost-button:focus-visible {
+  background: rgba(255, 248, 241, 0.98);
+  border-color: rgba(236, 124, 13, 0.18);
+  color: var(--brand-dark);
+  box-shadow: 0 10px 22px rgba(216, 101, 0, 0.08);
+}
+
+.launcher:focus-visible,
+#clientLoadButton:focus-visible,
+.button-secondary:focus-visible,
+.button-tertiary:focus-visible,
+.ghost-button:focus-visible,
+.section-switcher__button:focus-visible,
+.workspace-mail-button:focus-visible,
+.workspace-contact-button:focus-visible,
+.contact-back:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(236, 124, 13, 0.12),
+    0 10px 24px rgba(216, 101, 0, 0.14);
 }
 
 .quick-form,
@@ -1182,16 +1291,19 @@ button:hover,
 .section-switcher__button {
   min-height: 52px;
   padding: 0.8rem 0.9rem;
-  border-radius: 18px;
-  background: rgba(29, 26, 22, 0.05);
+  border-radius: 20px;
+  border: 1px solid rgba(29, 26, 22, 0.06);
+  background: rgba(255, 252, 248, 0.96);
   color: var(--ink);
   font-weight: 700;
+  box-shadow: 0 6px 16px rgba(105, 66, 28, 0.05);
 }
 
 .section-switcher__button.is-active {
-  background: var(--brand);
+  background: linear-gradient(180deg, rgba(236, 124, 13, 0.98), rgba(216, 101, 0, 0.98));
+  border-color: transparent;
   color: #fff7f1;
-  box-shadow: 0 10px 24px rgba(236, 124, 13, 0.22);
+  box-shadow: 0 12px 24px rgba(236, 124, 13, 0.22);
 }
 
 .restaurant-section {
@@ -1517,7 +1629,7 @@ button:hover,
 }
 
 .phone-country-trigger__chevron {
-  font-size: 1.1rem;
+  --app-icon-size: 1rem;
   line-height: 1;
   color: var(--muted);
 }
@@ -1553,7 +1665,7 @@ button:hover,
 
 .phone-country-search__icon {
   color: var(--muted);
-  font-size: 1.05rem;
+  --app-icon-size: 0.98rem;
   line-height: 1;
 }
 
@@ -1931,7 +2043,7 @@ button:hover,
 }
 
 .account-menu__chevron {
-  font-size: 1.1rem;
+  --app-icon-size: 1rem;
   color: rgba(78, 57, 40, 0.7);
   margin-right: 0.08rem;
 }
@@ -3270,7 +3382,7 @@ button:hover,
 }
 
 .password-toggle .material-symbols-rounded {
-  font-size: 1.15rem;
+  --app-icon-size: 1.05rem;
   line-height: 1;
 }
 
@@ -3944,7 +4056,7 @@ button:hover,
   border: 0;
   background: transparent;
   color: rgba(29, 26, 22, 0.32);
-  font-size: 1.15rem;
+  --app-icon-size: 1rem;
   font-weight: 500;
   flex-shrink: 0;
   pointer-events: none;

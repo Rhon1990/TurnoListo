@@ -2488,7 +2488,7 @@ function togglePasswordVisibility(input, button) {
   button.classList.toggle("is-active", shouldShow);
   const icon = button.querySelector(".material-symbols-rounded");
   if (icon) {
-    icon.textContent = shouldShow ? "visibility_off" : "visibility";
+    icon.dataset.icon = shouldShow ? "visibility_off" : "visibility";
   }
 }
 

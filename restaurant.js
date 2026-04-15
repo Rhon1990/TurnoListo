@@ -619,7 +619,7 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
     const icon = document.createElement("span");
     icon.className = "playbook-step__icon material-symbols-rounded";
     icon.setAttribute("aria-hidden", "true");
-    icon.textContent = step.done ? "check" : "radio_button_unchecked";
+    icon.dataset.icon = step.done ? "check" : "radio_button_unchecked";
 
     const content = document.createElement("div");
     content.className = "playbook-step__content";
@@ -939,7 +939,7 @@ function togglePasswordVisibility(input, button) {
   button.classList.toggle("is-active", shouldShow);
   const icon = button.querySelector(".material-symbols-rounded");
   if (icon) {
-    icon.textContent = shouldShow ? "visibility_off" : "visibility";
+    icon.dataset.icon = shouldShow ? "visibility_off" : "visibility";
   }
 }
 
