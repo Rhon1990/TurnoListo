@@ -1449,6 +1449,7 @@ function getPeakDemandLoad(dateLike = new Date()) {
 function enrichOrdersWithIntelligence(orders, options = {}) {
   const safeOrders = Array.isArray(orders) ? [...orders] : [];
   const allOrders = Array.isArray(options.allOrders) ? options.allOrders : loadOrders();
+  const dayScopedOrders = filterOrdersByDashboardPeriod(allOrders, "day");
   const groupedByRestaurant = safeOrders.reduce((accumulator, order) => {
     const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
     if (!accumulator.has(restaurantId)) accumulator.set(restaurantId, []);
@@ -1456,7 +1457,7 @@ function enrichOrdersWithIntelligence(orders, options = {}) {
     return accumulator;
   }, new Map());
   const restaurantModels = new Map(
-    [...groupedByRestaurant.keys()].map((restaurantId) => [restaurantId, buildAdaptiveRestaurantModel(restaurantId, allOrders)]),
+    [...groupedByRestaurant.keys()].map((restaurantId) => [restaurantId, buildAdaptiveRestaurantModel(restaurantId, dayScopedOrders)]),
   );
 
   return safeOrders.map((order) => {
@@ -1496,25 +1497,29 @@ function buildOrderIntelligence(order, activeOrders = [], history = [], model = 
     const remaining = getRemainingEstimatedMinutes(item);
     return remaining !== null ? remaining <= 0 : getOrderDurationMinutes(item) >= 16;
   }).length;
-  const deliveredHistory = history.filter((item) => item?.status === "delivered");
-  const historicalDelayMinutes = deliveredHistory.length
+  const deliveredTodayHistory = filterOrdersByDashboardPeriod(
+    history.filter((item) => item?.status === "delivered"),
+    "day",
+    { dateField: "archivedAt" },
+  );
+  const sameDayDelayMinutes = deliveredTodayHistory.length
     ? Math.round(
-        deliveredHistory.reduce((total, item) => {
+        deliveredTodayHistory.reduce((total, item) => {
           const estimatedMinutes = Number.parseInt(String(item?.estimatedReadyMinutes || ""), 10);
           if (!Number.isFinite(estimatedMinutes) || estimatedMinutes <= 0) return total;
           return total + Math.max(0, getOrderDurationMinutes(item) - estimatedMinutes);
-        }, 0) / deliveredHistory.length,
+        }, 0) / deliveredTodayHistory.length,
       )
     : 0;
   const peakDemandLoad = getPeakDemandLoad(new Date());
   const loadPressure = currentActiveOrders.length >= 8 ? 4 : currentActiveOrders.length >= 6 ? 3 : currentActiveOrders.length >= 4 ? 2 : currentActiveOrders.length >= 2 ? 1 : 0;
   const prepPressure = preparingOrders >= 4 ? 2 : preparingOrders >= 2 ? 1 : 0;
   const overduePressure = overdueOrders >= 3 ? 3 : overdueOrders >= 1 ? 1 : 0;
-  const historyPressure = clampNumber(Math.round(historicalDelayMinutes * 0.6), 0, 6);
+  const sameDayDelayPressure = clampNumber(Math.round(sameDayDelayMinutes * 0.6), 0, 6);
   const liveSnapshot = buildAiTrainingSnapshot(order, currentActiveOrders, new Date().toISOString());
   const stageDrift = getStageDriftAssessment(order, model);
   const stageFocus = getStageFocusAssessment(order, model);
-  const queuePressure = loadPressure + prepPressure + overduePressure + peakDemandLoad + historyPressure + stageDrift.extraPressure;
+  const queuePressure = loadPressure + prepPressure + overduePressure + peakDemandLoad + sameDayDelayPressure + stageDrift.extraPressure;
   const fallbackRemaining = safeEstimatedReadyMinutes ? Math.max(1, safeEstimatedReadyMinutes - elapsedMinutes) : 6;
   const baseRemainingMinutes =
     promisedRemainingMinutes === null ? fallbackRemaining : Math.max(0, promisedRemainingMinutes);
@@ -1548,7 +1553,7 @@ function buildOrderIntelligence(order, activeOrders = [], history = [], model = 
   } else if (
     aiEtaMinutes >= 12 ||
     (promisedRemainingMinutes !== null && promisedRemainingMinutes <= 5) ||
-    historyPressure >= 3 ||
+    sameDayDelayPressure >= 3 ||
     loadPressure >= 2
   ) {
     aiRiskLevel = "medium";
@@ -1557,7 +1562,7 @@ function buildOrderIntelligence(order, activeOrders = [], history = [], model = 
         ? "La carga del local esta subiendo y conviene vigilar este pedido de cerca."
         : promisedRemainingMinutes !== null && promisedRemainingMinutes <= 5
         ? "Esta cerca de la hora comprometida y puede desviarse si entra mas carga."
-          : "El local viene cerrando pedidos por encima de lo prometido.";
+          : "Hoy el local viene cerrando pedidos por encima de lo prometido.";
   } else if (peakDemandLoad >= 2) {
     aiReason = "Esta dentro de una franja de alta demanda, aunque por ahora va en ventana.";
   }
