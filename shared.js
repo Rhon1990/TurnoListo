@@ -511,6 +511,8 @@ function normalizeRestaurants(restaurants) {
       ownerName: "",
       email: "",
       phone: "",
+      country: "",
+      phoneCountry: null,
       city: "",
       address: "",
       logoUrl: "",

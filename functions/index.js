@@ -10,6 +10,28 @@ const auth = admin.auth();
 const messaging = admin.messaging();
 const CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION = "clientPushSubscriptions";
 const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
+const PHONE_COUNTRY_RULES = {
+  ES: { name: "España", dialCode: "+34", minDigits: 9, maxDigits: 9 },
+  PT: { name: "Portugal", dialCode: "+351", minDigits: 9, maxDigits: 9 },
+  FR: { name: "Francia", dialCode: "+33", minDigits: 9, maxDigits: 9 },
+  IT: { name: "Italia", dialCode: "+39", minDigits: 9, maxDigits: 10 },
+  DE: { name: "Alemania", dialCode: "+49", minDigits: 10, maxDigits: 11 },
+  GB: { name: "Reino Unido", dialCode: "+44", minDigits: 10, maxDigits: 10 },
+  IE: { name: "Irlanda", dialCode: "+353", minDigits: 9, maxDigits: 9 },
+  NL: { name: "Países Bajos", dialCode: "+31", minDigits: 9, maxDigits: 9 },
+  BE: { name: "Bélgica", dialCode: "+32", minDigits: 9, maxDigits: 9 },
+  CH: { name: "Suiza", dialCode: "+41", minDigits: 9, maxDigits: 9 },
+  AT: { name: "Austria", dialCode: "+43", minDigits: 10, maxDigits: 11 },
+  US: { name: "Estados Unidos", dialCode: "+1", minDigits: 10, maxDigits: 10 },
+  MX: { name: "México", dialCode: "+52", minDigits: 10, maxDigits: 10 },
+  AR: { name: "Argentina", dialCode: "+54", minDigits: 10, maxDigits: 10 },
+  CL: { name: "Chile", dialCode: "+56", minDigits: 9, maxDigits: 9 },
+  CO: { name: "Colombia", dialCode: "+57", minDigits: 10, maxDigits: 10 },
+  PE: { name: "Perú", dialCode: "+51", minDigits: 9, maxDigits: 9 },
+  EC: { name: "Ecuador", dialCode: "+593", minDigits: 9, maxDigits: 9 },
+  UY: { name: "Uruguay", dialCode: "+598", minDigits: 8, maxDigits: 9 },
+  BR: { name: "Brasil", dialCode: "+55", minDigits: 11, maxDigits: 11 },
+};
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -17,6 +39,62 @@ function normalizeEmail(value) {
 
 function trimValue(value) {
   return String(value || "").trim();
+}
+
+function normalizePhoneCountry(value) {
+  const iso = String(value?.iso || "").trim().toUpperCase();
+  if (!iso) return null;
+  const knownCountry = PHONE_COUNTRY_RULES[iso];
+  if (!knownCountry) {
+    throw new HttpsError("invalid-argument", "El país del móvil no es válido.");
+  }
+
+  return {
+    iso,
+    name: knownCountry.name,
+    dialCode: knownCountry.dialCode,
+  };
+}
+
+function normalizeRestaurantPhone(phoneValue, phoneCountry) {
+  const phone = trimValue(phoneValue);
+  if (!phone) {
+    return { phone: "", country: "", phoneCountry: null };
+  }
+
+  if (!phoneCountry) {
+    throw new HttpsError("invalid-argument", "Falta el país del móvil.");
+  }
+
+  const countryRule = PHONE_COUNTRY_RULES[phoneCountry.iso];
+  const phoneDigits = phone.replace(/\D/g, "");
+  const dialDigits = countryRule.dialCode.replace(/\D/g, "");
+
+  if (!phoneDigits.startsWith(dialDigits)) {
+    throw new HttpsError("invalid-argument", "El móvil no coincide con el indicativo del país seleccionado.");
+  }
+
+  const localDigits = phoneDigits.slice(dialDigits.length);
+  if (localDigits.length < countryRule.minDigits || localDigits.length > countryRule.maxDigits) {
+    const digitsMessage =
+      countryRule.minDigits === countryRule.maxDigits
+        ? `${countryRule.minDigits} dígitos`
+        : `entre ${countryRule.minDigits} y ${countryRule.maxDigits} dígitos`;
+    throw new HttpsError(
+      "invalid-argument",
+      `El móvil de ${countryRule.name} debe tener ${digitsMessage} sin contar el prefijo.`,
+    );
+  }
+
+  return {
+    phone: `${countryRule.dialCode} ${localDigits}`.trim(),
+    country: countryRule.name,
+    phoneCountry: {
+      iso: phoneCountry.iso,
+      name: countryRule.name,
+      dialCode: countryRule.dialCode,
+    },
+  };
 }
 
 function formatPickupPointForPush(value) {
@@ -227,7 +305,10 @@ exports.createRestaurantAccount = onCall(async (request) => {
 
   const name = trimValue(data.name) || "Nuevo restaurante";
   const ownerName = trimValue(data.ownerName);
-  const phone = trimValue(data.phone);
+  const phoneCountry = normalizePhoneCountry(data.phoneCountry);
+  const normalizedPhone = normalizeRestaurantPhone(data.phone, phoneCountry);
+  const phone = normalizedPhone.phone;
+  const country = normalizedPhone.country;
   const city = trimValue(data.city);
   const address = trimValue(data.address);
   const logoUrl = normalizeLogoUrl(data.logoUrl);
@@ -274,6 +355,8 @@ exports.createRestaurantAccount = onCall(async (request) => {
     ownerName,
     email,
     phone,
+    country,
+    phoneCountry: normalizedPhone.phoneCountry,
     city,
     address,
     logoUrl,

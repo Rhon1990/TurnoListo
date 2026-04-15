@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260415c" />
+    <link rel="stylesheet" href="./styles.css?v=20260415d" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -386,7 +386,7 @@
                 <span>Correo electrónico</span>
                 <input name="email" type="email" placeholder="correo@restaurante.com" required />
               </label>
-              <div class="field field--phone">
+              <div class="field field--phone field--wide">
                 <span>Número móvil</span>
                 <div class="phone-field" id="adminPhoneField">
                   <input id="adminRestaurantPhoneFull" name="phone" type="hidden" value="" />
@@ -431,6 +431,7 @@
                   </label>
                 </div>
                 <span class="field__hint">Selecciona el país del móvil y escribe el número local sin preocuparte por el prefijo.</span>
+                <p class="field__error" id="adminPhoneError" hidden></p>
               </div>
               <label class="field">
                 <span>Ciudad</span>
@@ -721,6 +722,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
-    <script src="./admin.js?v=20260415c"></script>
+    <script src="./admin.js?v=20260415d"></script>
   </body>
 </html>
