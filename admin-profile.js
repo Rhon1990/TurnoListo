@@ -25,9 +25,6 @@ const adminAccountAvatarImage = document.querySelector("#adminAccountAvatarImage
 const adminAccountAvatarFallback = document.querySelector("#adminAccountAvatarFallback");
 const adminAccountName = document.querySelector("#adminAccountName");
 const adminAccountMeta = document.querySelector("#adminAccountMeta");
-const adminMenuDashboard = document.querySelector("#adminMenuDashboard");
-const adminMenuRestaurants = document.querySelector("#adminMenuRestaurants");
-const adminMenuMessages = document.querySelector("#adminMenuMessages");
 const adminMenuLogout = document.querySelector("#adminMenuLogout");
 
 let selectedAdminAvatarUrl = "";
@@ -46,9 +43,6 @@ function initializeAdminProfilePage() {
     window.location.href = "./admin.html#messages";
   });
   adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
-  adminMenuDashboard?.addEventListener("click", () => navigateToAdminSection("dashboard"));
-  adminMenuRestaurants?.addEventListener("click", () => navigateToAdminSection("restaurants"));
-  adminMenuMessages?.addEventListener("click", () => navigateToAdminSection("messages"));
   adminMenuLogout?.addEventListener("click", async () => {
     closeAdminAccountMenu();
     await handleAdminLogout();
