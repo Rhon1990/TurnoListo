@@ -1647,9 +1647,9 @@ function renderRestaurantDirectory(restaurants) {
     actions.append(primaryActions, secondaryActions);
     priorityAction.append(priorityActionCopy, activatePlan);
     priorityActionCopy.append(priorityActionLabel, priorityActionTitle, priorityActionText);
-    accountStack.append(logoField, logoPreview, login, accessWrap, priorityAction);
+    accountStack.append(logoField, logoPreview, login, accessWrap);
     playbook.append(playbookLabel, playbookText);
-    grid.append(owner, contact, address, activation, orders, usage, onboarding, playbook, notes, accountStack);
+    grid.append(owner, contact, address, activation, orders, usage, priorityAction, playbook, onboarding, notes, accountStack);
     card.append(top, grid, actions);
     top.append(brand);
     adminRestaurantList.append(card);
