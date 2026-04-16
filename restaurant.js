@@ -2335,7 +2335,7 @@ function closeCommentModal() {
 function openAiModal(order, triggerButton = null) {
   activeAiOrderId = order.id;
   lastAiTriggerButton = triggerButton;
-  aiTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
+  aiTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
   aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `${translateRuntimeText("Cuello:")} ${translateRuntimeText(order.aiBottleneckLabel)}` : ""]
     .filter(Boolean)
     .join(" · ");
