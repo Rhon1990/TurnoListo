@@ -38,6 +38,9 @@ const DEFAULT_PHONE_COUNTRY_ISO = "ES";
 
 const ORDER_STATUSES = ["received", "preparing", "ready", "delivered", "cancelled"];
 const QUEUE_ACTIVE_STATUSES = ["received", "preparing"];
+const ORDER_CRITICAL_OVERDUE_MINUTES = 10;
+const ADAPTIVE_MODEL_LOOKBACK_DAYS = 120;
+const ADAPTIVE_MODEL_MAX_EXAMPLES = 220;
 
 const defaultOrders = createDefaultOrders();
 const defaultRestaurants = createDefaultRestaurants();
@@ -1446,6 +1449,41 @@ function getRemainingEstimatedMinutes(order) {
   return Math.ceil((new Date(promisedReadyAt).getTime() - Date.now()) / 60000);
 }
 
+function resolveOrderPromiseReferenceAt(order) {
+  return (
+    order?.lifecycleMilestones?.readyAt ||
+    order?.lifecycleMilestones?.deliveredAt ||
+    order?.archivedAt ||
+    ""
+  );
+}
+
+function getOrderPromiseDelayMinutes(order) {
+  const promisedReadyAt = String(order?.promisedReadyAt || "").trim();
+  if (!promisedReadyAt) return null;
+
+  const promisedTimestamp = new Date(promisedReadyAt).getTime();
+  if (!Number.isFinite(promisedTimestamp)) return null;
+
+  const referenceAt = resolveOrderPromiseReferenceAt(order);
+  const referenceTimestamp = referenceAt ? new Date(referenceAt).getTime() : Date.now();
+  if (!Number.isFinite(referenceTimestamp)) return null;
+
+  return Math.max(0, Math.ceil((referenceTimestamp - promisedTimestamp) / 60000));
+}
+
+function isOrderResolvedWithinPromise(order) {
+  const referenceAt = resolveOrderPromiseReferenceAt(order);
+  const promisedReadyAt = String(order?.promisedReadyAt || "").trim();
+  if (!referenceAt || !promisedReadyAt) return false;
+
+  const referenceTimestamp = new Date(referenceAt).getTime();
+  const promisedTimestamp = new Date(promisedReadyAt).getTime();
+  if (!Number.isFinite(referenceTimestamp) || !Number.isFinite(promisedTimestamp)) return false;
+
+  return referenceTimestamp <= promisedTimestamp;
+}
+
 function buildAiTrainingSnapshot(order, allOrders = loadOrders(), eventTime = new Date().toISOString()) {
   const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
   const eventDate = new Date(eventTime || new Date().toISOString());
@@ -1542,6 +1580,27 @@ function calculateMedian(values) {
   const middle = Math.floor(safeValues.length / 2);
   if (safeValues.length % 2) return safeValues[middle];
   return Math.round((safeValues[middle - 1] + safeValues[middle]) / 2);
+}
+
+function resolveAdaptiveTrainingReferenceAt(order) {
+  return (
+    order?.lifecycleMilestones?.readyAt ||
+    order?.lifecycleMilestones?.deliveredAt ||
+    order?.archivedAt ||
+    order?.createdAt ||
+    ""
+  );
+}
+
+function getAdaptiveModelTrainingOrders(orders, restaurantId) {
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeRestaurantId = String(restaurantId || DEFAULT_RESTAURANT_ID);
+
+  return safeOrders
+    .filter((order) => String(order?.restaurantId || DEFAULT_RESTAURANT_ID) === safeRestaurantId)
+    .filter((order) => isWithinLastDays(resolveAdaptiveTrainingReferenceAt(order), ADAPTIVE_MODEL_LOOKBACK_DAYS))
+    .sort((left, right) => new Date(resolveAdaptiveTrainingReferenceAt(right)) - new Date(resolveAdaptiveTrainingReferenceAt(left)))
+    .slice(0, ADAPTIVE_MODEL_MAX_EXAMPLES);
 }
 
 function buildAdaptiveModelFeatureVector(snapshot = {}) {
@@ -1645,7 +1704,7 @@ function evaluateAdaptiveEtaModel(model, snapshot) {
 
 function buildAdaptiveRestaurantModel(restaurantId, allOrders = loadOrders()) {
   const safeRestaurantId = String(restaurantId || DEFAULT_RESTAURANT_ID);
-  const restaurantOrders = allOrders.filter((order) => String(order?.restaurantId || DEFAULT_RESTAURANT_ID) === safeRestaurantId);
+  const restaurantOrders = getAdaptiveModelTrainingOrders(allOrders, safeRestaurantId);
   const examples = extractAdaptiveModelExamples(restaurantOrders, safeRestaurantId);
   const etaModel = trainAdaptiveEtaModel(examples);
   const readyExamples = restaurantOrders.filter((order) => Number.isFinite(order?.predictionTrainingRecord?.minutesToReady));
@@ -1918,7 +1977,6 @@ function getPeakDemandLoad(dateLike = new Date()) {
 function enrichOrdersWithIntelligence(orders, options = {}) {
   const safeOrders = Array.isArray(orders) ? [...orders] : [];
   const allOrders = Array.isArray(options.allOrders) ? options.allOrders : loadOrders();
-  const dayScopedOrders = filterOrdersByDashboardPeriod(allOrders, "day");
   const groupedByRestaurant = safeOrders.reduce((accumulator, order) => {
     const restaurantId = String(order?.restaurantId || DEFAULT_RESTAURANT_ID);
     if (!accumulator.has(restaurantId)) accumulator.set(restaurantId, []);
@@ -1926,7 +1984,7 @@ function enrichOrdersWithIntelligence(orders, options = {}) {
     return accumulator;
   }, new Map());
   const restaurantModels = new Map(
-    [...groupedByRestaurant.keys()].map((restaurantId) => [restaurantId, buildAdaptiveRestaurantModel(restaurantId, dayScopedOrders)]),
+    [...groupedByRestaurant.keys()].map((restaurantId) => [restaurantId, buildAdaptiveRestaurantModel(restaurantId, allOrders)]),
   );
 
   return safeOrders.map((order) => {
@@ -2383,6 +2441,14 @@ function getElapsedOrderTime(value) {
 
 function getElapsedOrderTone(value) {
   const order = typeof value === "string" ? { createdAt: value, archivedAt: null } : value;
+  const promiseDelayMinutes = getOrderPromiseDelayMinutes(order);
+
+  if (promiseDelayMinutes !== null) {
+    if (promiseDelayMinutes >= ORDER_CRITICAL_OVERDUE_MINUTES) return "danger";
+    if (promiseDelayMinutes > 0) return "warning";
+    return "safe";
+  }
+
   const endTime = order.archivedAt ? new Date(order.archivedAt).getTime() : Date.now();
   const elapsedMinutes = Math.floor(Math.max(0, endTime - new Date(order.createdAt).getTime()) / 60000);
 
@@ -2517,6 +2583,7 @@ function getDashboardStats(options = {}) {
     return order.restaurantId === currentRestaurantId;
   });
   const periodOrders = filterOrdersByDashboardPeriod(restaurantOrders, period);
+  const activeOrders = restaurantOrders.filter((order) => !order.archivedAt);
   const readyMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "lifecycleMilestones.readyAt",
   });
@@ -2532,15 +2599,21 @@ function getDashboardStats(options = {}) {
   const deliveredOrders = deliveredMilestoneOrders.filter((order) => order.status === "delivered");
   const cancelledOrders = cancelledMilestoneOrders.filter((order) => order.status === "cancelled");
   const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
-  const activeOrders = periodOrders.filter((order) => !order.archivedAt);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
   const ratedOrders = filterOrdersByDashboardPeriod(
     restaurantOrders.filter((order) => order.rating && order.rating.score),
     period,
     { dateField: "rating.createdAt" },
   );
-  const delayedActiveOrders = activeOrders.filter((order) => getOrderDurationMinutes(order) >= 16);
-  const onTimeDeliveredOrders = deliveredOrders.filter((order) => getOrderDurationMinutes(order) <= 15);
+  const delayedActiveOrders = activeOrders.filter((order) => {
+    const promiseDelayMinutes = getOrderPromiseDelayMinutes(order);
+    return promiseDelayMinutes === null ? getOrderDurationMinutes(order) >= 16 : promiseDelayMinutes > 0;
+  });
+  const readyCompletedOrders = readyMilestoneOrders.filter((order) =>
+    Number.isFinite(order?.predictionTrainingRecord?.minutesToReady),
+  );
+  const promiseTrackedReadyOrders = readyCompletedOrders.filter((order) => String(order.promisedReadyAt || "").trim());
+  const onTimeReadyOrders = promiseTrackedReadyOrders.filter((order) => isOrderResolvedWithinPromise(order));
   const lowRatedOrders = ratedOrders.filter((order) => Number(order.rating.score || 0) <= 2);
   const commentedOrders = ratedOrders.filter((order) => String(order.rating.comment || "").trim());
   const longestActiveMinutes = activeOrders.length
@@ -2557,10 +2630,23 @@ function getDashboardStats(options = {}) {
 
   const peakHourEntry = Object.entries(ordersByHour).sort((left, right) => right[1] - left[1])[0] || null;
 
-  const averageDeliveredMinutes = deliveredOrders.length
+  const averageReadyMinutes = readyCompletedOrders.length
     ? Math.round(
-        deliveredOrders.reduce((total, order) => total + getOrderDurationMinutes(order), 0) /
-          deliveredOrders.length,
+        readyCompletedOrders.reduce((total, order) => total + Number(order.predictionTrainingRecord?.minutesToReady || 0), 0) /
+          readyCompletedOrders.length,
+      )
+    : 0;
+  const readyOrdersWithPromise = readyCompletedOrders.filter((order) => {
+    const promisedMinutes = Number(order.estimatedReadyMinutes || 0);
+    return Number.isFinite(promisedMinutes) && promisedMinutes > 0;
+  });
+  const averageReadyDelayMinutes = readyOrdersWithPromise.length
+    ? Math.round(
+        readyOrdersWithPromise.reduce((total, order) => {
+          const promisedMinutes = Number(order.estimatedReadyMinutes || 0);
+          const actualMinutes = Number(order.predictionTrainingRecord?.minutesToReady || 0);
+          return total + Math.max(0, actualMinutes - promisedMinutes);
+        }, 0) / readyOrdersWithPromise.length,
       )
     : 0;
 
@@ -2581,7 +2667,9 @@ function getDashboardStats(options = {}) {
     ? Math.round((cancelledOrders.length / resolvedOutcomeCount) * 100)
     : 0;
 
-  const onTimeRate = deliveredOrders.length ? Math.round((onTimeDeliveredOrders.length / deliveredOrders.length) * 100) : 0;
+  const onTimeRate = promiseTrackedReadyOrders.length
+    ? Math.round((onTimeReadyOrders.length / promiseTrackedReadyOrders.length) * 100)
+    : 0;
 
   const peakHour = peakHourEntry
     ? `${String(Number(peakHourEntry[0])).padStart(2, "0")}:00`
@@ -2702,11 +2790,13 @@ function getDashboardStats(options = {}) {
     deliveredToday: deliveredOrders.length,
     cancelledToday: cancelledOrders.length,
     delayedActive: delayedActiveOrders.length,
-    avgDeliveredMinutes: averageDeliveredMinutes,
+    avgReadyMinutes: averageReadyMinutes,
+    avgReadyDelayMinutes: averageReadyDelayMinutes,
     avgResolutionMinutes: averageResolutionMinutes,
     averageRating,
     cancellationRate,
     onTimeRate,
+    onTimeTrackedCount: promiseTrackedReadyOrders.length,
     longestActiveMinutes,
     slowestOrder,
     lowRatingCount: lowRatedOrders.length,

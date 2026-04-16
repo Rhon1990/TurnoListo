@@ -491,10 +491,10 @@ function renderRestaurantHeroSignals(stats, restaurant = null, allOrders = loadO
     restaurantHeroMetricLabel.textContent = translateRuntimeText("Pedidos en riesgo");
     restaurantHeroMetricValue.textContent = String(stats.aiHighRiskCount);
     restaurantHeroMetricHint.textContent = translateRuntimeText("Requieren intervención antes de impactar espera, recogida o experiencia.");
-  } else if (stats.deliveredCount > 0) {
-    restaurantHeroMetricLabel.textContent = translateRuntimeText("Rendimiento a tiempo");
+  } else if (stats.onTimeTrackedCount > 0) {
+    restaurantHeroMetricLabel.textContent = translateRuntimeText("Cumplimiento de promesa");
     restaurantHeroMetricValue.textContent = `${stats.onTimeRate}%`;
-    restaurantHeroMetricHint.textContent = translateRuntimeText("Lectura diaria del porcentaje de pedidos resueltos en una ventana competitiva.");
+    restaurantHeroMetricHint.textContent = translateRuntimeText("Porcentaje de pedidos que estuvieron listos dentro del tiempo prometido al cliente.");
   } else {
     restaurantHeroMetricLabel.textContent = translateRuntimeText("Pedidos activos");
     restaurantHeroMetricValue.textContent = String(stats.activeNow);
@@ -1295,10 +1295,10 @@ function renderDashboard(stats) {
   dashboardAiFocusOrder.textContent = stats.aiFocusOrder
     ? translateRuntimeText(`${stats.aiFocusOrder.orderNumber} · ${formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel)}`)
     : translateRuntimeText("Sin datos");
-  dashboardHeroLeadMetric.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
-  dashboardHeroLeadHint.textContent = stats.deliveredCount
+  dashboardHeroLeadMetric.textContent = stats.readyInPeriod ? formatDurationMinutes(stats.avgReadyMinutes) : "--:--";
+  dashboardHeroLeadHint.textContent = stats.readyInPeriod
     ? translateRuntimeText(
-      `${stats.onTimeRate}% de pedidos resueltos en 15 min o menos ${stats.periodScopeLabel} · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`,
+      `${stats.onTimeRate}% de pedidos listos dentro de la promesa ${stats.periodScopeLabel}${stats.avgReadyDelayMinutes > 0 ? ` · desvío medio +${stats.avgReadyDelayMinutes} min` : ""} · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`,
     )
     : translateRuntimeText(`En cuanto cierres pedidos ${stats.periodScopeLabel}, aquí verás la velocidad real y el aprendizaje del local`);
   dashboardHeroActiveNow.textContent = stats.activeNow;
@@ -1486,18 +1486,18 @@ function buildImprovementInsights(stats) {
     insights.push(translateText("La prediccion adaptativa ya añade varios minutos sobre la promesa actual. Hay señales de saturacion en cocina o recogida."));
   }
 
-  if (stats.avgDeliveredMinutes >= 20) {
-    insights.push(translateText("El tiempo medio de entrega esta alto. Conviene revisar preparacion y retirada para bajar la espera."));
-  } else if (stats.deliveredCount > 0) {
-    insights.push(translateText("El promedio de entrega va bien. Mantener este ritmo ayuda a reducir colas, reforzar experiencia y sostener valor percibido."));
+  if (stats.avgReadyDelayMinutes >= 4) {
+    insights.push(translateText("El tiempo real hasta dejar el pedido listo está por encima de la promesa media. Conviene reajustar promesas o descargar el cuello operativo."));
+  } else if (stats.readyInPeriod > 0) {
+    insights.push(translateText("El tiempo real hasta dejar el pedido listo está alineado con la promesa media. Eso refuerza confianza y percepción de control."));
   }
 
   if (stats.delayedActive >= 2) {
-    insights.push(translateText("Hay varios pedidos activos con más de 15 minutos. Priorizar estos pedidos puede evitar reclamaciones."));
+    insights.push(translateText("Hay varios pedidos activos fuera de promesa. Priorizar estos pedidos puede evitar reclamaciones y proteger la experiencia."));
   }
 
   if (stats.onTimeRate > 0 && stats.onTimeRate < 70) {
-    insights.push(translateText("Menos del 70% de los pedidos se entregan en 15 minutos. Aquí hay margen directo para mejorar la operación."));
+    insights.push(translateText("Menos del 70% de los pedidos cumplen la promesa al cliente. Aquí hay margen directo para mejorar operación y credibilidad."));
   }
 
   if (stats.cancellationRate >= 10) {

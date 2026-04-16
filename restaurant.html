@@ -282,8 +282,8 @@
                 <span>Prioridad</span>
                 <select id="activePriorityFilter">
                   <option value="all">Todas</option>
-                  <option value="delayed">Retrasados +15 min</option>
-                  <option value="critical">Críticos +30 min</option>
+                  <option value="delayed">Fuera de promesa</option>
+                  <option value="critical">Desvío grave</option>
                   <option value="due-soon">A menos de 5 min</option>
                   <option value="ready-waiting">Listos esperando</option>
                   <option value="normal">En tiempo</option>
@@ -357,7 +357,7 @@
               <section class="dashboard-hero">
                 <article class="dashboard-hero__primary">
                   <p class="panel__kicker">Pulso operativo</p>
-                  <h3 class="dashboard-hero__title">Tiempo medio a entrega</h3>
+                  <h3 class="dashboard-hero__title">Tiempo medio hasta listo</h3>
                   <strong class="dashboard-hero__value" id="dashboardHeroLeadMetric">--:--</strong>
                   <p class="dashboard-hero__hint" id="dashboardHeroLeadHint">Sin datos de entrega todavía</p>
                 </article>
@@ -393,12 +393,12 @@
                 <article class="dashboard-card">
                   <p class="stat__label">Entregas a tiempo</p>
                   <strong class="dashboard-card__value" id="dashboardOnTimeRate">0%</strong>
-                  <p class="dashboard-card__hint">Entregados en 15 min o menos</p>
+                  <p class="dashboard-card__hint">Pedidos listos dentro del tiempo prometido</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label"><span class="term-hint" data-term-hint="Pedidos que ya llevan demasiado tiempo abiertos y pueden acabar en queja, retraso o cancelacion.">Riesgo operativo</span></p>
                   <strong class="dashboard-card__value" id="dashboardDelayedActive">0</strong>
-                  <p class="dashboard-card__hint">Pedidos activos con más de 15 min</p>
+                  <p class="dashboard-card__hint">Pedidos activos que ya van fuera de promesa</p>
                 </article>
                 <article class="dashboard-card">
                   <p class="stat__label">Comentarios recibidos</p>
@@ -643,7 +643,7 @@
     <script src="./i18n.js?v=20260416b"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260416l"></script>
-    <script src="./shared.js?v=20260416m"></script>
-    <script src="./restaurant.js?v=20260416f"></script>
+    <script src="./shared.js?v=20260416n"></script>
+    <script src="./restaurant.js?v=20260416g"></script>
   </body>
 </html>
