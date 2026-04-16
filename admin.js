@@ -350,7 +350,9 @@ function syncActivationDaysWithPlan() {
   adminActivationDays.readOnly = true;
   if (adminCreateRestaurantOwner) adminCreateRestaurantOwner.required = !isDemo;
   if (adminRestaurantPhoneLocal) adminRestaurantPhoneLocal.required = !isDemo;
-  if (adminCreateRestaurantName) adminCreateRestaurantName.placeholder = isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro";
+  if (adminCreateRestaurantName) {
+    adminCreateRestaurantName.placeholder = translateRuntimeText(isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro");
+  }
   validateAdminPhoneNumber({ report: false });
 }
 
@@ -416,7 +418,7 @@ async function handleAdminLogin(event) {
 
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled || typeof backend.signIn !== "function") {
-    adminLoginFeedback.textContent = "Firebase Authentication no está disponible en esta configuración.";
+    adminLoginFeedback.textContent = translateRuntimeText("Firebase Authentication no está disponible en esta configuración.");
     adminLoginFeedback.className = "form-feedback form-feedback--error";
     adminLoginFeedback.hidden = false;
     return;
@@ -429,10 +431,10 @@ async function handleAdminLogin(event) {
     adminLoginFeedback.textContent = "";
   } catch (error) {
     console.error("No se pudo iniciar sesion como administrador.", error);
-    adminLoginFeedback.textContent = "Credenciales incorrectas o la cuenta no tiene un perfil admin en users/{uid}.";
+    adminLoginFeedback.textContent = translateRuntimeText("Credenciales incorrectas o la cuenta no tiene un perfil admin en users/{uid}.");
     adminLoginFeedback.className = "form-feedback form-feedback--error";
     adminLoginFeedback.hidden = false;
-    showTurnoAlert("No se pudo iniciar sesion como administrador. Verifica credenciales, dominio autorizado y el perfil users/{uid}.", "error");
+    showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion como administrador. Verifica credenciales, dominio autorizado y el perfil users/{uid}."), "error");
   }
 }
 
@@ -459,10 +461,10 @@ async function handleCreateRestaurant(event) {
   const backend = await waitForFirebaseBackend();
 
   if (!backend?.enabled || typeof backend.createRestaurantAccount !== "function") {
-    adminCreateFeedback.textContent = "La automatizacion del alta no esta disponible. Revisa Firebase Functions.";
+    adminCreateFeedback.textContent = translateRuntimeText("La automatizacion del alta no esta disponible. Revisa Firebase Functions.");
     adminCreateFeedback.className = "form-feedback form-feedback--error";
     adminCreateFeedback.hidden = false;
-    showTurnoAlert("La automatizacion del alta no esta disponible. Revisa Firebase Functions.", "error");
+    showTurnoAlert(translateRuntimeText("La automatizacion del alta no esta disponible. Revisa Firebase Functions."), "error");
     return;
   }
 
@@ -501,14 +503,14 @@ async function handleCreateRestaurant(event) {
     await reconnectDataStoreToFirebase();
     adminCreateFeedback.textContent =
       restaurant.demoMode
-        ? `DEMO creada para ${restaurant.name}. Queda lista para probar pedidos, QR e IA adaptativa con límites comerciales.`
-        : `Acceso creado para ${restaurant.name}. Se preparó un enlace seguro para definir la contraseña.`;
+        ? translateRuntimeText(`DEMO creada para ${restaurant.name}. Queda lista para probar pedidos, QR e IA adaptativa con límites comerciales.`)
+        : translateRuntimeText(`Acceso creado para ${restaurant.name}. Se preparó un enlace seguro para definir la contraseña.`);
     adminCreateFeedback.className = "form-feedback form-feedback--success";
     adminCreateFeedback.hidden = false;
     showTurnoAlert(
       restaurant.demoMode
-        ? `Demo comercial de ${restaurant.name} creada correctamente.`
-        : `Restaurante ${restaurant.name} creado correctamente.`,
+        ? translateRuntimeText(`Demo comercial de ${restaurant.name} creada correctamente.`)
+        : translateRuntimeText(`Restaurante ${restaurant.name} creado correctamente.`),
       "success",
     );
     await openCredentialsEmail(restaurant);
@@ -518,8 +520,8 @@ async function handleCreateRestaurant(event) {
     console.error("No se pudo crear el restaurante automaticamente.", error);
     const message =
       error?.code === "functions/already-exists"
-        ? "Ese correo ya existe para otro restaurante o en Firebase Authentication."
-        : "No se pudo crear el restaurante. Revisa Firebase Functions, permisos y configuracion.";
+        ? translateRuntimeText("Ese correo ya existe para otro restaurante o en Firebase Authentication.")
+        : translateRuntimeText("No se pudo crear el restaurante. Revisa Firebase Functions, permisos y configuracion.");
     adminCreateFeedback.textContent = message;
     adminCreateFeedback.className = "form-feedback form-feedback--error";
     adminCreateFeedback.hidden = false;
@@ -785,7 +787,7 @@ function initializeAdminPhoneField() {
 function resetAdminRestaurantLogoFilename() {
   if (!adminRestaurantLogoFilename) return;
   adminRestaurantLogoFilename.setAttribute("data-i18n-key", "profile.file.empty");
-  adminRestaurantLogoFilename.textContent = "Ningún archivo seleccionado";
+  adminRestaurantLogoFilename.textContent = translateRuntimeText("Ningún archivo seleccionado");
   if (window.TurnoListoI18n?.translateDocument) {
     window.TurnoListoI18n.translateDocument(window.TurnoListoI18n.getLanguage?.());
   }
@@ -820,7 +822,7 @@ async function handleRestaurantLogoSelection(event) {
     console.error("No se pudo preparar el logo del restaurante.", error);
     resetRestaurantLogoPreview();
     adminCreateFeedback.textContent =
-      error instanceof Error ? error.message : "No se pudo procesar el logo. Usa una imagen JPG, PNG o WebP mas ligera.";
+      error instanceof Error ? error.message : translateRuntimeText("No se pudo procesar el logo. Usa una imagen JPG, PNG o WebP mas ligera.");
     adminCreateFeedback.className = "form-feedback form-feedback--error";
     adminCreateFeedback.hidden = false;
     showTurnoAlert(adminCreateFeedback.textContent, "error");
@@ -900,10 +902,10 @@ function initializeAdminFirebaseAuth() {
 
       if (profile?.role !== "admin") {
         clearCurrentUserProfile();
-        adminLoginFeedback.textContent = "La cuenta autenticada no tiene role=admin en users/{uid}.";
+        adminLoginFeedback.textContent = translateRuntimeText("La cuenta autenticada no tiene role=admin en users/{uid}.");
         adminLoginFeedback.className = "form-feedback form-feedback--error";
         adminLoginFeedback.hidden = false;
-        showTurnoAlert("La cuenta autenticada no tiene permisos de administrador.", "error");
+        showTurnoAlert(translateRuntimeText("La cuenta autenticada no tiene permisos de administrador."), "error");
         await backend.signOut();
         return;
       }
@@ -1057,7 +1059,7 @@ async function initializeAdminInbox() {
     });
   } catch (error) {
     console.error("No se pudo cargar la bandeja de contacto.", error);
-    showTurnoAlert("No se pudo cargar la bandeja de mensajes.", "error");
+    showTurnoAlert(translateRuntimeText("No se pudo cargar la bandeja de mensajes."), "error");
   }
 }
 
@@ -1151,11 +1153,13 @@ function renderAdminAccount() {
   const avatarUrl = String(profile.avatarUrl || "").trim();
 
   if (adminAccountName) {
-    adminAccountName.textContent = displayName || "Sin datos cargados";
+    adminAccountName.textContent = displayName || translateRuntimeText("Sin datos cargados");
   }
 
   if (adminAccountMeta) {
-    adminAccountMeta.textContent = displayName ? (title ? `${title} · Acceso verificado` : "Acceso verificado") : "Cuenta no cargada";
+  adminAccountMeta.textContent = displayName
+    ? (title ? translateRuntimeText(`${title} · Acceso verificado`) : translateRuntimeText("Acceso verificado"))
+    : translateRuntimeText("Cuenta no cargada");
   }
 
   if (adminAccountAvatarFallback) {
@@ -1214,7 +1218,7 @@ async function handleAdminAvatarSelection(event) {
       adminProfileFeedback.textContent = "";
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "No se pudo preparar la foto del administrador.";
+    const message = error instanceof Error ? error.message : translateRuntimeText("No se pudo preparar la foto del administrador.");
     if (adminProfileFeedback) {
       adminProfileFeedback.textContent = message;
       adminProfileFeedback.className = "form-feedback form-feedback--error";
@@ -1228,7 +1232,7 @@ async function handleAdminProfileSubmit(event) {
   event.preventDefault();
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled || typeof backend.updateCurrentAdminProfile !== "function") {
-    adminProfileFeedback.textContent = "No se pudo guardar el perfil admin en esta configuración.";
+    adminProfileFeedback.textContent = translateRuntimeText("No se pudo guardar el perfil admin en esta configuración.");
     adminProfileFeedback.className = "form-feedback form-feedback--error";
     adminProfileFeedback.hidden = false;
     return;
@@ -1244,17 +1248,17 @@ async function handleAdminProfileSubmit(event) {
 
     await loadCurrentUserProfileFromBackend();
     selectedAdminAvatarUrl = "";
-    adminProfileFeedback.textContent = "Perfil administrador actualizado correctamente.";
+    adminProfileFeedback.textContent = translateRuntimeText("Perfil administrador actualizado correctamente.");
     adminProfileFeedback.className = "form-feedback form-feedback--success";
     adminProfileFeedback.hidden = false;
     refreshAdminUsers();
     renderAdminWorkspace();
   } catch (error) {
     console.error("No se pudo actualizar el perfil admin.", error);
-    adminProfileFeedback.textContent = "No se pudo guardar el perfil administrador.";
+    adminProfileFeedback.textContent = translateRuntimeText("No se pudo guardar el perfil administrador.");
     adminProfileFeedback.className = "form-feedback form-feedback--error";
     adminProfileFeedback.hidden = false;
-    showTurnoAlert("No se pudo guardar el perfil administrador.", "error");
+    showTurnoAlert(translateRuntimeText("No se pudo guardar el perfil administrador."), "error");
   }
 }
 
@@ -1262,7 +1266,7 @@ async function handleCreateAdminAccount(event) {
   event.preventDefault();
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled || typeof backend.createAdminAccount !== "function") {
-    adminCreateAdminFeedback.textContent = "No se pudo crear el usuario administrador en esta configuración.";
+    adminCreateAdminFeedback.textContent = translateRuntimeText("No se pudo crear el usuario administrador en esta configuración.");
     adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
     adminCreateAdminFeedback.hidden = false;
     return;
@@ -1279,19 +1283,19 @@ async function handleCreateAdminAccount(event) {
     });
     adminCreateAdminForm.reset();
     adminCreateAdminFeedback.textContent = result?.accessLink
-      ? "Administrador creado. Se generó un enlace seguro para definir contraseña."
-      : "Administrador creado correctamente.";
+      ? translateRuntimeText("Administrador creado. Se generó un enlace seguro para definir contraseña.")
+      : translateRuntimeText("Administrador creado correctamente.");
     adminCreateAdminFeedback.className = "form-feedback form-feedback--success";
     adminCreateAdminFeedback.hidden = false;
     await refreshAdminUsers();
     renderAdminWorkspace();
-    showTurnoAlert("Nuevo administrador creado correctamente.", "success");
+    showTurnoAlert(translateRuntimeText("Nuevo administrador creado correctamente."), "success");
   } catch (error) {
     console.error("No se pudo crear el usuario admin.", error);
     const message =
       error?.code === "functions/already-exists"
-        ? "Ese correo ya existe en Firebase Authentication."
-        : "No se pudo crear el nuevo administrador.";
+        ? translateRuntimeText("Ese correo ya existe en Firebase Authentication.")
+        : translateRuntimeText("No se pudo crear el nuevo administrador.");
     adminCreateAdminFeedback.textContent = message;
     adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
     adminCreateAdminFeedback.hidden = false;
@@ -1321,7 +1325,7 @@ async function refreshAdminUsers() {
       adminUsersList.innerHTML = "";
       const card = document.createElement("article");
       card.className = "dashboard-insight";
-      card.textContent = "No se pudo cargar el equipo administrador por ahora.";
+      card.textContent = translateRuntimeText("No se pudo cargar el equipo administrador por ahora.");
       adminUsersList.append(card);
     }
   }
@@ -1334,7 +1338,7 @@ function renderAdminUsersList() {
   if (!adminUsers.length) {
     const empty = document.createElement("article");
     empty.className = "dashboard-insight";
-    empty.textContent = "Aquí verás el equipo administrador con acceso activo.";
+    empty.textContent = translateRuntimeText("Aquí verás el equipo administrador con acceso activo.");
     adminUsersList.append(empty);
     return;
   }
@@ -1354,13 +1358,13 @@ function renderAdminUsersList() {
     identity.className = "admin-user-card__identity";
     avatar.className = "admin-user-card__avatar";
     avatarFallback.textContent = String(user.displayName || user.email || "?").trim().charAt(0).toUpperCase() || "?";
-    name.textContent = user.displayName || user.email || "Sin datos cargados";
-    meta.textContent = [user.title || "No disponible", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
+    name.textContent = user.displayName || user.email || translateRuntimeText("Sin datos cargados");
+    meta.textContent = [user.title || translateRuntimeText("No disponible"), user.email || translateRuntimeText("Sin correo"), user.phone || translateRuntimeText("Sin teléfono")].join(" · ");
 
     const avatarUrl = String(user.avatarUrl || "").trim();
     if (avatarUrl) {
       avatarImage.src = avatarUrl;
-      avatarImage.alt = `Avatar de ${name.textContent}`;
+      avatarImage.alt = translateRuntimeText(`Avatar de ${name.textContent}`);
       avatar.append(avatarImage);
     } else {
       avatar.append(avatarFallback);
@@ -1397,9 +1401,9 @@ function renderAdminMessagesPanel() {
       return factor * (new Date(left.submittedAt) - new Date(right.submittedAt));
     });
 
-  adminMessagesTotalChip.textContent = `${adminContactInquiries.length} mensajes`;
-  adminMessagesUnreadChip.textContent = `${adminContactInquiries.filter((item) => !item.isRead).length} sin leer`;
-  adminMessagesReadChip.textContent = `${adminContactInquiries.filter((item) => item.isRead).length} leídos`;
+  adminMessagesTotalChip.textContent = translateRuntimeText(`${adminContactInquiries.length} mensajes`);
+  adminMessagesUnreadChip.textContent = translateRuntimeText(`${adminContactInquiries.filter((item) => !item.isRead).length} sin leer`);
+  adminMessagesReadChip.textContent = translateRuntimeText(`${adminContactInquiries.filter((item) => item.isRead).length} leídos`);
   adminMessageQuickFilters.forEach((button) => {
     button.classList.toggle("is-active", (button.dataset.messageQuickFilter || "all") === statusFilter);
   });
@@ -1408,7 +1412,7 @@ function renderAdminMessagesPanel() {
   if (!filtered.length) {
     const empty = document.createElement("article");
     empty.className = "empty-state";
-    empty.textContent = "No hay mensajes que coincidan con esos filtros.";
+    empty.textContent = translateRuntimeText("No hay mensajes que coincidan con esos filtros.");
     adminMessageList.append(empty);
     return;
   }
@@ -1424,7 +1428,7 @@ function renderAdminMessagesPanel() {
     section.className = "admin-inbox-group";
     heading.className = "admin-inbox-group__heading";
     title.textContent = group.label;
-    hint.textContent = `${group.items.length} mensajes`;
+    hint.textContent = translateRuntimeText(`${group.items.length} mensajes`);
     stack.className = "admin-inbox-group__stack";
     heading.append(title, hint);
 
@@ -1478,15 +1482,15 @@ function buildAdminInquiryCard(item) {
   actions.className = "admin-inbox-card__actions";
 
   title.textContent = item.name;
-  meta.textContent = [item.company || "Sin empresa", item.email || "Sin correo", item.phone || "Sin teléfono"].join(" · ");
+  meta.textContent = [item.company || translateRuntimeText("Sin empresa"), item.email || translateRuntimeText("Sin correo"), item.phone || translateRuntimeText("Sin teléfono")].join(" · ");
   interest.textContent = item.interest;
-  state.textContent = item.isRead ? "Leído" : "Sin leer";
-  renderTextWithClickableLinks(body, item.message || "Sin mensaje");
-  submitted.textContent = `Recibido ${formatAdminDateTime(item.submittedAt)}`;
+  state.textContent = item.isRead ? translateRuntimeText("Leído") : translateRuntimeText("Sin leer");
+  renderTextWithClickableLinks(body, item.message || translateRuntimeText("Sin mensaje"));
+  submitted.textContent = translateRuntimeText(`Recibido ${formatAdminDateTime(item.submittedAt)}`);
 
   toggle.type = "button";
   toggle.className = "comment-button";
-  toggle.textContent = item.isRead ? "Marcar sin leer" : "Marcar leído";
+  toggle.textContent = item.isRead ? translateRuntimeText("Marcar sin leer") : translateRuntimeText("Marcar leído");
   toggle.addEventListener("click", async () => {
     await toggleAdminInquiryRead(item);
   });
@@ -1504,7 +1508,7 @@ async function toggleAdminInquiryRead(item) {
   if (!item?.id) return;
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled || typeof backend.setDocument !== "function") {
-    showTurnoAlert("No se pudo actualizar el estado del mensaje.", "error");
+    showTurnoAlert(translateRuntimeText("No se pudo actualizar el estado del mensaje."), "error");
     return;
   }
 
@@ -1518,7 +1522,7 @@ async function toggleAdminInquiryRead(item) {
     });
   } catch (error) {
     console.error("No se pudo actualizar el mensaje.", error);
-    showTurnoAlert("No se pudo actualizar el estado del mensaje.", "error");
+    showTurnoAlert(translateRuntimeText("No se pudo actualizar el estado del mensaje."), "error");
   }
 }
 
@@ -1697,7 +1701,7 @@ function handleExportPredictionDataset() {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
-  showTurnoAlert("Dataset IA exportado en formato JSON.", "success");
+  showTurnoAlert(translateRuntimeText("Dataset IA exportado en formato JSON."), "success");
 }
 
 function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {
@@ -1920,7 +1924,7 @@ function renderRestaurantDirectory(restaurants) {
   if (!restaurants.length) {
     const empty = document.createElement("article");
     empty.className = "empty-state";
-    empty.textContent = "No hay restaurantes que coincidan con esos filtros.";
+    empty.textContent = translateRuntimeText("No hay restaurantes que coincidan con esos filtros.");
     adminRestaurantList.append(empty);
     return;
   }
@@ -2081,9 +2085,9 @@ function renderRestaurantDirectory(restaurants) {
     logoInput.className = "file-picker__input";
     logoInput.accept = "image/*";
     logoPickerButton.setAttribute("data-i18n-key", "profile.file.choose");
-    logoPickerButton.textContent = "Seleccionar imagen";
+    logoPickerButton.textContent = translateRuntimeText("Seleccionar imagen");
     logoPickerName.setAttribute("data-i18n-key", "profile.file.empty");
-    logoPickerName.textContent = "Ningún archivo seleccionado";
+    logoPickerName.textContent = translateRuntimeText("Ningún archivo seleccionado");
     logoPicker.append(logoPickerButton, logoPickerName);
     logoInput.addEventListener("change", async () => {
       const file = logoInput.files?.[0] || null;
@@ -2104,7 +2108,7 @@ function renderRestaurantDirectory(restaurants) {
       } catch (error) {
         console.error("No se pudo actualizar el logo del restaurante.", error);
         const message =
-          error instanceof Error ? error.message : "No se pudo actualizar el logo del restaurante.";
+          error instanceof Error ? error.message : translateRuntimeText("No se pudo actualizar el logo del restaurante.");
         adminCreateFeedback.textContent = message;
         adminCreateFeedback.className = "form-feedback form-feedback--error";
         adminCreateFeedback.hidden = false;
@@ -2113,7 +2117,7 @@ function renderRestaurantDirectory(restaurants) {
         logoInput.value = "";
         logoInput.disabled = false;
         logoPickerName.setAttribute("data-i18n-key", "profile.file.empty");
-        logoPickerName.textContent = "Ningún archivo seleccionado";
+        logoPickerName.textContent = translateRuntimeText("Ningún archivo seleccionado");
         if (window.TurnoListoI18n?.translateDocument) {
           window.TurnoListoI18n.translateDocument(window.TurnoListoI18n.getLanguage?.());
         }
@@ -2142,17 +2146,17 @@ function renderRestaurantDirectory(restaurants) {
     remove.type = "button";
     remove.className = "comment-button admin-card__action-delete";
     remove.textContent = translateRuntimeText("Eliminar");
-    remove.setAttribute("aria-label", `Eliminar restaurante ${restaurant.name}`);
+    remove.setAttribute("aria-label", translateRuntimeText(`Eliminar restaurante ${restaurant.name}`));
     remove.addEventListener("click", () => {
       openDeleteModal(restaurant);
     });
 
     if (restaurant.logoUrl) {
       brandLogo.src = restaurant.logoUrl;
-      brandLogo.alt = `Logo de ${restaurant.name}`;
+      brandLogo.alt = translateRuntimeText(`Logo de ${restaurant.name}`);
       brandLogoWrap.append(brandLogo);
       logoPreviewImage.src = restaurant.logoUrl;
-      logoPreviewImage.alt = `Vista previa del logo de ${restaurant.name}`;
+      logoPreviewImage.alt = translateRuntimeText(`Vista previa del logo de ${restaurant.name}`);
       logoPreview.append(logoPreviewImage);
     } else {
       brandFallback.textContent = String(restaurant.name || "?").trim().charAt(0).toUpperCase() || "R";
@@ -2262,7 +2266,7 @@ function syncRestaurantHealthPill(element, segment) {
     color: "var(--muted)",
   };
 
-  element.textContent = meta.label;
+  element.textContent = translateRuntimeText(meta.label);
   element.style.background = meta.background;
   element.style.color = meta.color;
 }
@@ -2270,29 +2274,29 @@ function syncRestaurantHealthPill(element, segment) {
 function buildRestaurantPlaybook(restaurant) {
   if (restaurant.healthSegment === "renewal") {
     if (restaurant.status !== "active") {
-      return "Renueva acceso y reenvía el enlace seguro antes de perder la cuenta.";
+      return translateRuntimeText("Renueva acceso y reenvía el enlace seguro antes de perder la cuenta.");
     }
-    return "Activa recordatorio de renovación y deja cerrado el siguiente periodo comercial.";
+    return translateRuntimeText("Activa recordatorio de renovación y deja cerrado el siguiente periodo comercial.");
   }
 
   if (restaurant.healthSegment === "onboarding") {
     if (restaurant.onboardingStage === "pendiente-logo") {
-      return "Completa logo y personalización para que el local sienta el producto como propio.";
+      return translateRuntimeText("Completa logo y personalización para que el local sienta el producto como propio.");
     }
     if (restaurant.onboardingStage === "pendiente-primer-pedido") {
-      return "Agenda activación con el equipo y acompaña el primer pedido real en hora pico.";
+      return translateRuntimeText("Agenda activación con el equipo y acompaña el primer pedido real en hora pico.");
     }
     if (restaurant.onboardingStage === "sin-ciclo-completo") {
-      return "Empuja un ciclo completo hasta estado listo o entregado para crear hábito operativo.";
+      return translateRuntimeText("Empuja un ciclo completo hasta estado listo o entregado para crear hábito operativo.");
     }
-    return "Pide feedback del cliente y úsalo como prueba de valor para la renovación.";
+    return translateRuntimeText("Pide feedback del cliente y úsalo como prueba de valor para la renovación.");
   }
 
   if (restaurant.healthSegment === "at-risk") {
     if (Number(restaurant.aiModelSummary?.sampleCount || 0) >= 8) {
-      return "Reactiva el local antes de que pierda el valor acumulado de su IA y ofrécele seguimiento operativo.";
+      return translateRuntimeText("Reactiva el local antes de que pierda el valor acumulado de su IA y ofrécele seguimiento operativo.");
     }
-    return "Revisa por qué cayó el uso y ofrece ayuda en mostrador o una reactivación con seguimiento.";
+    return translateRuntimeText("Revisa por qué cayó el uso y ofrece ayuda en mostrador o una reactivación con seguimiento.");
   }
 
   if (restaurant.healthSegment === "healthy" && Number(restaurant.aiModelSummary?.sampleCount || 0) >= 12) {
@@ -2302,10 +2306,10 @@ function buildRestaurantPlaybook(restaurant) {
       : restaurant.aiModelSummary?.stageBaselines?.ready >= restaurant.aiModelSummary?.stageBaselines?.received
         ? "recogida"
         : "entrada a cocina";
-    return `Usa este local como caso de exito: ya tiene una IA adaptada y suficiente histórico para demostrar valor. Cuello dominante aprendido: ${dominantStage}.`;
+    return translateRuntimeText(`Usa este local como caso de exito: ya tiene una IA adaptada y suficiente histórico para demostrar valor. Cuello dominante aprendido: ${dominantStage}.`);
   }
 
-  return "Mantén frecuencia, pide valoraciones y prepara upsell a más locales o más tiempo de plan.";
+  return translateRuntimeText("Mantén frecuencia, pide valoraciones y prepara upsell a más locales o más tiempo de plan.");
 }
 
 function getHealthSegmentPriority(segment) {
@@ -2314,6 +2318,13 @@ function getHealthSegmentPriority(segment) {
   if (segment === "at-risk") return 2;
   if (segment === "healthy") return 3;
   return 4;
+}
+
+function getCurrentUiLocale() {
+  const language = window.TurnoListoI18n?.getLanguage?.() || "es";
+  if (language === "en") return "en-US";
+  if (language === "fr") return "fr-FR";
+  return "es-ES";
 }
 
 function getAdminActionQueues(options = {}) {
@@ -2342,8 +2353,8 @@ function getAdminActionQueues(options = {}) {
 }
 
 function formatAdminDate(value) {
-  if (!value) return "No disponible";
-  return new Intl.DateTimeFormat("es-ES", {
+  if (!value) return translateRuntimeText("No disponible");
+  return new Intl.DateTimeFormat(getCurrentUiLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -2351,8 +2362,8 @@ function formatAdminDate(value) {
 }
 
 function formatAdminDateTime(value) {
-  if (!value) return "No disponible";
-  return new Intl.DateTimeFormat("es-ES", {
+  if (!value) return translateRuntimeText("No disponible");
+  return new Intl.DateTimeFormat(getCurrentUiLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -2362,8 +2373,8 @@ function formatAdminDateTime(value) {
 }
 
 function formatAdminDayLabel(value) {
-  if (!value) return "No disponible";
-  return new Intl.DateTimeFormat("es-ES", {
+  if (!value) return translateRuntimeText("No disponible");
+  return new Intl.DateTimeFormat(getCurrentUiLocale(), {
     weekday: "long",
     day: "2-digit",
     month: "long",
@@ -2428,11 +2439,11 @@ function buildRemainingAccessLabel(restaurant) {
     typeof restaurant?.remainingDays === "number" && Number.isFinite(restaurant.remainingDays)
       ? restaurant.remainingDays
       : getRestaurantRemainingDays(restaurant);
-  if (days === null) return "Sin vencimiento";
-  if (days < 0) return "Acceso bloqueado";
-  if (days === 0) return "Vence hoy";
-  if (days === 1) return "Vence en 1 día";
-  return `Vence en ${days} días`;
+  if (days === null) return translateRuntimeText("Sin vencimiento");
+  if (days < 0) return translateRuntimeText("Acceso bloqueado");
+  if (days === 0) return translateRuntimeText("Vence hoy");
+  if (days === 1) return translateRuntimeText("Vence en 1 día");
+  return translateRuntimeText(`Vence en ${days} días`);
 }
 
 function buildRestaurantAccessUrl() {
@@ -2477,7 +2488,7 @@ async function ensureRestaurantAccessLinkForEmail(restaurant, options = {}) {
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled || typeof backend.createRestaurantAccessLink !== "function") {
     if (options.requireLink) {
-      adminCreateFeedback.textContent = "No hay enlace seguro disponible para este restaurante.";
+      adminCreateFeedback.textContent = translateRuntimeText("No hay enlace seguro disponible para este restaurante.");
       adminCreateFeedback.className = "form-feedback form-feedback--error";
       adminCreateFeedback.hidden = false;
     }
@@ -2494,10 +2505,10 @@ async function ensureRestaurantAccessLinkForEmail(restaurant, options = {}) {
   } catch (error) {
     console.error("No se pudo preparar el enlace seguro del restaurante.", error);
     if (options.requireLink) {
-      adminCreateFeedback.textContent = "No se pudo generar el enlace seguro del restaurante.";
+      adminCreateFeedback.textContent = translateRuntimeText("No se pudo generar el enlace seguro del restaurante.");
       adminCreateFeedback.className = "form-feedback form-feedback--error";
       adminCreateFeedback.hidden = false;
-      showTurnoAlert("No se pudo generar el enlace seguro del restaurante.", "error");
+      showTurnoAlert(translateRuntimeText("No se pudo generar el enlace seguro del restaurante."), "error");
       return null;
     }
     return emailRestaurant;
@@ -2562,7 +2573,7 @@ async function renderEmailTemplateSelector(restaurant) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "email-template-switcher__button";
-    button.textContent = template.label;
+    button.textContent = translateRuntimeText(template.label);
     button.dataset.templateKey = template.key;
     button.addEventListener("click", async () => {
       await selectEmailTemplate(template.key);
@@ -2575,15 +2586,15 @@ async function selectEmailTemplate(templateKey) {
   const restaurant = pendingEmailTemplateRestaurantId ? getRestaurantById(pendingEmailTemplateRestaurantId) : null;
   if (!restaurant) return;
   activeEmailTemplateKey = templateKey;
-  renderTextWithClickableLinks(adminEmailTemplateBody, "Preparando plantilla...");
+  renderTextWithClickableLinks(adminEmailTemplateBody, translateRuntimeText("Preparando plantilla..."));
   adminEmailTemplateSubject.textContent = "-";
   adminEmailTemplateTo.textContent = restaurant.email || "-";
 
   const draft = await buildAdminEmailDraft(templateKey, restaurant);
   if (!draft) {
     activeEmailTemplateDraft = null;
-    adminEmailTemplateSubject.textContent = "No disponible";
-    renderTextWithClickableLinks(adminEmailTemplateBody, "No se pudo preparar esta plantilla.");
+    adminEmailTemplateSubject.textContent = translateRuntimeText("No disponible");
+    renderTextWithClickableLinks(adminEmailTemplateBody, translateRuntimeText("No se pudo preparar esta plantilla."));
   } else {
     activeEmailTemplateDraft = draft;
     adminEmailTemplateTo.textContent = draft.to || restaurant.email || "-";
@@ -2615,12 +2626,16 @@ async function copyEmailTemplatePart(part) {
   try {
     await navigator.clipboard.writeText(text);
     showTurnoAlert(
-      part === "subject" ? "Asunto copiado." : part === "body" ? "Texto copiado." : "Correo completo copiado.",
+      part === "subject"
+        ? translateRuntimeText("Asunto copiado.")
+        : part === "body"
+          ? translateRuntimeText("Texto copiado.")
+          : translateRuntimeText("Correo completo copiado."),
       "success",
     );
   } catch (error) {
     console.error("No se pudo copiar la plantilla.", error);
-    showTurnoAlert("No se pudo copiar el contenido.", "error");
+    showTurnoAlert(translateRuntimeText("No se pudo copiar el contenido."), "error");
   }
 }
 
@@ -2632,7 +2647,7 @@ function openSelectedEmailTemplateInMailApp() {
 function togglePasswordVisibility(input, button) {
   const shouldShow = input.type === "password";
   input.type = shouldShow ? "text" : "password";
-  button.setAttribute("aria-label", shouldShow ? "Ocultar contraseña" : "Mostrar contraseña");
+  button.setAttribute("aria-label", translateRuntimeText(shouldShow ? "Ocultar contraseña" : "Mostrar contraseña"));
   button.classList.toggle("is-active", shouldShow);
   const icon = button.querySelector(".material-symbols-rounded");
   if (icon) {
@@ -2643,7 +2658,7 @@ function togglePasswordVisibility(input, button) {
 function openDeleteModal(restaurant) {
   pendingDeleteRestaurantId = restaurant.id;
   pendingDeleteRestaurantName = restaurant.name;
-  adminDeleteMeta.textContent = `${restaurant.name} · ${restaurant.email || "Sin correo"}`;
+  adminDeleteMeta.textContent = `${restaurant.name} · ${restaurant.email || translateRuntimeText("Sin correo")}`;
   adminDeleteModal.hidden = false;
 }
 
@@ -2657,7 +2672,7 @@ function openActivatePlanModal(restaurant) {
   pendingActivatePlanRestaurantId = restaurant.id;
   pendingActivatePlanRestaurantName = restaurant.name;
   if (adminActivatePlanMeta) {
-    adminActivatePlanMeta.textContent = `${restaurant.name} · ${restaurant.email || "Sin correo"}`;
+    adminActivatePlanMeta.textContent = `${restaurant.name} · ${restaurant.email || translateRuntimeText("Sin correo")}`;
   }
   if (adminActivatePlanSelect) {
     adminActivatePlanSelect.value = "Mensual";
@@ -2680,12 +2695,12 @@ function openRenewPlanModal(restaurant) {
   pendingRenewPlanRestaurantId = restaurant.id;
   pendingRenewPlanRestaurantName = restaurant.name;
   if (adminRenewPlanMeta) {
-    adminRenewPlanMeta.textContent = `${restaurant.name} · ${restaurant.email || "Sin correo"}`;
+    adminRenewPlanMeta.textContent = `${restaurant.name} · ${restaurant.email || translateRuntimeText("Sin correo")}`;
   }
   if (adminRenewPlanCurrentStatus) {
-    const currentPlanLabel = String(restaurant.planName || "No disponible").trim() || "No disponible";
-    const currentEndLabel = restaurant.activatedUntil ? formatAdminDate(restaurant.activatedUntil) : "No disponible";
-    adminRenewPlanCurrentStatus.textContent = `Estado actual: ${currentPlanLabel} · Vigente hasta ${currentEndLabel}.`;
+    const currentPlanLabel = String(restaurant.planName || translateRuntimeText("No disponible")).trim() || translateRuntimeText("No disponible");
+    const currentEndLabel = restaurant.activatedUntil ? formatAdminDate(restaurant.activatedUntil) : translateRuntimeText("No disponible");
+    adminRenewPlanCurrentStatus.textContent = translateRuntimeText(`Estado actual: ${currentPlanLabel} · Vigente hasta ${currentEndLabel}.`);
   }
   if (adminRenewPlanSelect) {
     const currentPlan = resolveRenewablePlanName(restaurant);
@@ -2709,7 +2724,7 @@ function confirmDeleteRestaurant() {
   if (!pendingDeleteRestaurantId) return;
 
   deleteRestaurantAccount(pendingDeleteRestaurantId);
-  adminCreateFeedback.textContent = `Se eliminó ${pendingDeleteRestaurantName}.`;
+  adminCreateFeedback.textContent = translateRuntimeText(`Se eliminó ${pendingDeleteRestaurantName}.`);
   adminCreateFeedback.className = "form-feedback form-feedback--success";
   adminCreateFeedback.hidden = false;
   closeDeleteModal();
@@ -2722,10 +2737,10 @@ function confirmActivateRestaurantPlan() {
   const updatedRestaurant = activateRestaurantPlan(pendingActivatePlanRestaurantId, selectedPlan);
   if (!updatedRestaurant) return;
 
-  adminCreateFeedback.textContent = `${pendingActivatePlanRestaurantName} pasó de demo a plan ${selectedPlan}.`;
+  adminCreateFeedback.textContent = translateRuntimeText(`${pendingActivatePlanRestaurantName} pasó de demo a plan ${selectedPlan}.`);
   adminCreateFeedback.className = "form-feedback form-feedback--success";
   adminCreateFeedback.hidden = false;
-  showTurnoAlert(`${pendingActivatePlanRestaurantName} activado en plan ${selectedPlan}.`, "success");
+  showTurnoAlert(translateRuntimeText(`${pendingActivatePlanRestaurantName} activado en plan ${selectedPlan}.`), "success");
   closeActivatePlanModal();
   renderAdminWorkspace();
 }
@@ -2736,10 +2751,10 @@ function confirmRenewRestaurantPlan() {
   const updatedRestaurant = renewRestaurantPlan(pendingRenewPlanRestaurantId, selectedPlan);
   if (!updatedRestaurant) return;
 
-  adminCreateFeedback.textContent = `${pendingRenewPlanRestaurantName} quedó renovado en plan ${selectedPlan} hasta ${formatAdminDate(updatedRestaurant.activatedUntil)}.`;
+  adminCreateFeedback.textContent = translateRuntimeText(`${pendingRenewPlanRestaurantName} quedó renovado en plan ${selectedPlan} hasta ${formatAdminDate(updatedRestaurant.activatedUntil)}.`);
   adminCreateFeedback.className = "form-feedback form-feedback--success";
   adminCreateFeedback.hidden = false;
-  showTurnoAlert(`${pendingRenewPlanRestaurantName} renovado en plan ${selectedPlan} hasta ${formatAdminDate(updatedRestaurant.activatedUntil)}.`, "success");
+  showTurnoAlert(translateRuntimeText(`${pendingRenewPlanRestaurantName} renovado en plan ${selectedPlan} hasta ${formatAdminDate(updatedRestaurant.activatedUntil)}.`), "success");
   closeRenewPlanModal();
   renderAdminWorkspace();
 }

@@ -365,14 +365,14 @@ function initializeRestaurantFirebaseAuth() {
         clearCurrentRestaurantSession();
         restaurantLoginFeedback.textContent =
           profile?.role && profile.role !== "restaurant"
-            ? "Esta ventana ha heredado una sesion que no es de restaurante. Inicia sesion aqui con la cuenta del local."
-            : "Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.";
+            ? translateRuntimeText("Esta ventana ha heredado una sesion que no es de restaurante. Inicia sesion aqui con la cuenta del local.")
+            : translateRuntimeText("Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.");
         restaurantLoginFeedback.className = "form-feedback form-feedback--error";
         restaurantLoginFeedback.hidden = false;
         showTurnoAlert(
           profile?.role && profile.role !== "restaurant"
-            ? "Esta ventana necesita una sesion propia del restaurante y no cerrara la sesion del admin."
-            : "Tu cuenta no tiene acceso valido al restaurante asignado.",
+            ? translateRuntimeText("Esta ventana necesita una sesion propia del restaurante y no cerrara la sesion del admin.")
+            : translateRuntimeText("Tu cuenta no tiene acceso valido al restaurante asignado."),
           "error",
         );
         syncRestaurantAccess();
@@ -402,12 +402,12 @@ function syncRestaurantAccess() {
 
   if (restaurant) {
     restaurantSessionLabel.textContent = restaurant.name;
-    restaurantHeroEyebrow.textContent = isDemoRestaurant(restaurant) ? "Demo restaurante" : "Panel restaurante";
+    restaurantHeroEyebrow.textContent = translateRuntimeText(isDemoRestaurant(restaurant) ? "Demo restaurante" : "Panel restaurante");
     return;
   }
 
-  if (restaurantSessionLabel) restaurantSessionLabel.textContent = EMPTY_DATA_LABEL;
-  restaurantHeroEyebrow.textContent = "Panel restaurante";
+  if (restaurantSessionLabel) restaurantSessionLabel.textContent = translateRuntimeText(EMPTY_DATA_LABEL);
+  restaurantHeroEyebrow.textContent = translateRuntimeText("Panel restaurante");
 }
 
 function renderRestaurant() {
@@ -447,9 +447,9 @@ function renderRestaurant() {
   renderRestaurantHeroSignals(dashboard, restaurant, allOrders);
   renderRestaurantCreateHints(restaurant, allOrders);
   renderRestaurantPlaybook(restaurant, allOrders);
-  restaurantTotalTodayChip.textContent = `${quickStats.archivedToday} total hoy`;
-  restaurantDeliveredTodayChip.textContent = `${quickStats.deliveredToday} entregados hoy`;
-  restaurantCancelledTodayChip.textContent = `${quickStats.cancelledToday} cancelados hoy`;
+  restaurantTotalTodayChip.textContent = translateRuntimeText(`${quickStats.archivedToday} total hoy`);
+  restaurantDeliveredTodayChip.textContent = translateRuntimeText(`${quickStats.deliveredToday} entregados hoy`);
+  restaurantCancelledTodayChip.textContent = translateRuntimeText(`${quickStats.cancelledToday} cancelados hoy`);
   syncRestaurantHistoryQuickFilters();
   syncRestaurantDisplayMode();
   renderFocusStrip(orders);
@@ -490,24 +490,24 @@ function renderRestaurantHeroSignals(stats, restaurant = null, allOrders = loadO
 
   if (isDemoRestaurant(restaurant)) {
     const demoUsage = getRestaurantDemoUsage(restaurant, allOrders);
-    restaurantHeroMetricLabel.textContent = "Demo en uso";
+    restaurantHeroMetricLabel.textContent = translateRuntimeText("Demo en uso");
     restaurantHeroMetricValue.textContent = `${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
     restaurantHeroMetricHint.textContent =
       demoUsage.remainingOrders > 0
-        ? "Esta demo ya permite probar pedidos reales, lectura inteligente e IA adaptativa con un limite comercial."
-        : "La demo ha alcanzado su limite de pedidos. Es el momento perfecto para activar el plan completo.";
+        ? translateRuntimeText("Esta demo ya permite probar pedidos reales, lectura inteligente e IA adaptativa con un limite comercial.")
+        : translateRuntimeText("La demo ha alcanzado su limite de pedidos. Es el momento perfecto para activar el plan completo.");
   } else if (stats.aiHighRiskCount >= 1) {
-    restaurantHeroMetricLabel.textContent = "Pedidos en riesgo";
+    restaurantHeroMetricLabel.textContent = translateRuntimeText("Pedidos en riesgo");
     restaurantHeroMetricValue.textContent = String(stats.aiHighRiskCount);
-    restaurantHeroMetricHint.textContent = "Requieren intervención antes de impactar espera, recogida o experiencia.";
+    restaurantHeroMetricHint.textContent = translateRuntimeText("Requieren intervención antes de impactar espera, recogida o experiencia.");
   } else if (stats.deliveredCount > 0) {
-    restaurantHeroMetricLabel.textContent = "Rendimiento a tiempo";
+    restaurantHeroMetricLabel.textContent = translateRuntimeText("Rendimiento a tiempo");
     restaurantHeroMetricValue.textContent = `${stats.onTimeRate}%`;
-    restaurantHeroMetricHint.textContent = "Lectura diaria del porcentaje de pedidos resueltos en una ventana competitiva.";
+    restaurantHeroMetricHint.textContent = translateRuntimeText("Lectura diaria del porcentaje de pedidos resueltos en una ventana competitiva.");
   } else {
-    restaurantHeroMetricLabel.textContent = "Pedidos activos";
+    restaurantHeroMetricLabel.textContent = translateRuntimeText("Pedidos activos");
     restaurantHeroMetricValue.textContent = String(stats.activeNow);
-    restaurantHeroMetricHint.textContent = "Recibido, en preparación o listos para recoger con lectura adaptativa.";
+    restaurantHeroMetricHint.textContent = translateRuntimeText("Recibido, en preparación o listos para recoger con lectura adaptativa.");
   }
 
   renderRestaurantSpotlight(stats, restaurant, allOrders);
@@ -520,7 +520,7 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
   if (isDemoRestaurant(restaurant)) {
     const demoUsage = getRestaurantDemoUsage(restaurant, allOrders);
     const confidenceLabel =
-      stats.aiModelSampleSize >= 8 ? `IA ${stats.aiModelConfidenceLabel}` : "IA aprendiendo del local";
+      stats.aiModelSampleSize >= 8 ? translateRuntimeText(`IA ${stats.aiModelConfidenceLabel}`) : translateRuntimeText("IA aprendiendo del local");
 
     if (demoUsage.remainingOrders <= 0) {
       restaurantSpotlightTitle.textContent = translateText("La demo ya demostro el valor");
@@ -528,7 +528,7 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
         translateText(
           "Ya has probado el flujo de pedidos, la lectura inteligente de la cola y el aprendizaje adaptativo del restaurante. Activa el plan completo para seguir operando sin limite y convertir esta prueba en rutina.",
         );
-      restaurantSpotlightChipPrimary.textContent = `Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
+      restaurantSpotlightChipPrimary.textContent = translateRuntimeText(`Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`);
       restaurantSpotlightChipSecondary.textContent = translateText("Activa el plan completo");
       return;
     }
@@ -545,7 +545,7 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
         : translateText(
             `Puedes crear hasta ${demoUsage.maxOrders} pedidos de prueba con QR, priorizacion e inteligencia adaptativa. La demo esta pensada para que el restaurante vea valor desde el primer servicio y quiera escalar al plan real.`,
           );
-    restaurantSpotlightChipPrimary.textContent = `Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
+    restaurantSpotlightChipPrimary.textContent = translateRuntimeText(`Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`);
     restaurantSpotlightChipSecondary.textContent = confidenceLabel;
     return;
   }
@@ -822,12 +822,12 @@ function renderRestaurantAccount(restaurant) {
   const logoUrl = String(restaurant?.logoUrl || "").trim();
   const hasRestaurantData = Boolean(restaurantName);
   const demoUsage = hasRestaurantData ? getRestaurantDemoUsage(restaurant) : null;
-  restaurantAccountName.textContent = restaurantName || EMPTY_DATA_LABEL;
+  restaurantAccountName.textContent = restaurantName || translateRuntimeText(EMPTY_DATA_LABEL);
   restaurantAccountMeta.textContent = hasRestaurantData
     ? isDemoRestaurant(restaurant)
-      ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`
-      : "Acceso verificado"
-    : "Cuenta no cargada";
+      ? translateRuntimeText(`Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`)
+      : translateRuntimeText("Acceso verificado")
+    : translateRuntimeText("Cuenta no cargada");
   restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || EMPTY_AVATAR_LABEL;
 
   if (logoUrl) {
@@ -850,8 +850,8 @@ function renderRestaurantProfile(restaurant) {
     restaurantProfileCity.value = "";
     restaurantProfileAddress.value = "";
     restaurantProfileNotes.value = "";
-    restaurantProfilePlanName.value = EMPTY_STATUS_LABEL;
-    restaurantProfileActivatedUntil.value = EMPTY_STATUS_LABEL;
+    restaurantProfilePlanName.value = translateRuntimeText(EMPTY_STATUS_LABEL);
+    restaurantProfileActivatedUntil.value = translateRuntimeText(EMPTY_STATUS_LABEL);
     applyRestaurantProfilePhoneValue("");
     syncRestaurantProfilePreview("");
     return;
@@ -863,11 +863,11 @@ function renderRestaurantProfile(restaurant) {
   restaurantProfileCity.value = restaurant.city || "";
   restaurantProfileAddress.value = restaurant.address || "";
   restaurantProfileNotes.value = restaurant.notes || "";
-  restaurantProfilePlanName.value = restaurant.planName || EMPTY_STATUS_LABEL;
-  restaurantProfileActivatedUntil.value = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : EMPTY_STATUS_LABEL;
+  restaurantProfilePlanName.value = restaurant.planName || translateRuntimeText(EMPTY_STATUS_LABEL);
+  restaurantProfileActivatedUntil.value = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : translateRuntimeText(EMPTY_STATUS_LABEL);
   applyRestaurantProfilePhoneValue(restaurant.phone || "");
   if (isDemoRestaurant(restaurant) && restaurantProfileNotes && !restaurantProfileNotes.value.trim()) {
-    restaurantProfileNotes.value = `Demo comercial activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados.`;
+    restaurantProfileNotes.value = translateRuntimeText(`Demo comercial activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados.`);
   }
   syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl || restaurant.logoUrl || "");
 }
@@ -882,19 +882,19 @@ async function handleRestaurantLogin(event) {
   );
 
   if (knownRestaurant && !isRestaurantAccessActive(knownRestaurant)) {
-    restaurantLoginFeedback.textContent = "El acceso está vencido. Debe renovarse desde administración.";
+    restaurantLoginFeedback.textContent = translateRuntimeText("El acceso está vencido. Debe renovarse desde administración.");
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
-    showTurnoAlert("El acceso de este restaurante esta vencido.", "warning");
+    showTurnoAlert(translateRuntimeText("El acceso de este restaurante esta vencido."), "warning");
     return;
   }
 
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled || typeof backend.signIn !== "function") {
-    restaurantLoginFeedback.textContent = "Firebase Authentication no está disponible en esta configuración.";
+    restaurantLoginFeedback.textContent = translateRuntimeText("Firebase Authentication no está disponible en esta configuración.");
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
-    showTurnoAlert("Firebase Authentication no esta disponible en esta configuracion.", "error");
+    showTurnoAlert(translateRuntimeText("Firebase Authentication no esta disponible en esta configuracion."), "error");
     return;
   }
 
@@ -915,13 +915,13 @@ async function handleRestaurantLogin(event) {
 
     restaurantLoginFeedback.textContent =
       knownRestaurant
-        ? "No se pudo iniciar sesion. Verifica que la cuenta del restaurante exista en Firebase Authentication y que la clave coincida."
-        : "Usuario o contrasena incorrectos.";
+        ? translateRuntimeText("No se pudo iniciar sesion. Verifica que la cuenta del restaurante exista en Firebase Authentication y que la clave coincida.")
+        : translateRuntimeText("Usuario o contrasena incorrectos.");
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
     restaurantLoginFeedback.hidden = false;
 
     if (!isCredentialError) {
-      showTurnoAlert("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}.", "error");
+      showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}."), "error");
     }
   }
 }
@@ -940,7 +940,7 @@ async function handleRestaurantLogout() {
 }
 
 function formatProfileDate(value) {
-  if (!value) return EMPTY_STATUS_LABEL;
+  if (!value) return translateRuntimeText(EMPTY_STATUS_LABEL);
   return new Intl.DateTimeFormat("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -975,7 +975,7 @@ async function handleRestaurantProfileLogoSelection(event) {
     selectedRestaurantProfileLogoUrl = await optimizeAccountImage(file);
     syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl);
   } catch (error) {
-    showTurnoAlert(error instanceof Error ? error.message : "No se pudo preparar el logo del restaurante.", "error");
+    showTurnoAlert(error instanceof Error ? error.message : translateRuntimeText("No se pudo preparar el logo del restaurante."), "error");
   }
 }
 
@@ -1004,14 +1004,14 @@ function handleRestaurantProfileSubmit(event) {
   });
 
   if (!nextRestaurant) {
-    restaurantProfileFeedback.textContent = "No se pudo guardar el perfil del restaurante.";
+    restaurantProfileFeedback.textContent = translateRuntimeText("No se pudo guardar el perfil del restaurante.");
     restaurantProfileFeedback.className = "form-feedback form-feedback--error";
     restaurantProfileFeedback.hidden = false;
     return;
   }
 
   selectedRestaurantProfileLogoUrl = "";
-  restaurantProfileFeedback.textContent = "Perfil actualizado correctamente.";
+  restaurantProfileFeedback.textContent = translateRuntimeText("Perfil actualizado correctamente.");
   restaurantProfileFeedback.className = "form-feedback form-feedback--success";
   restaurantProfileFeedback.hidden = false;
   renderRestaurant();
@@ -1305,7 +1305,7 @@ function loadLocalImage(file) {
 function togglePasswordVisibility(input, button) {
   const shouldShow = input.type === "password";
   input.type = shouldShow ? "text" : "password";
-  button.setAttribute("aria-label", shouldShow ? "Ocultar contraseña" : "Mostrar contraseña");
+  button.setAttribute("aria-label", translateRuntimeText(shouldShow ? "Ocultar contraseña" : "Mostrar contraseña"));
   button.classList.toggle("is-active", shouldShow);
   const icon = button.querySelector(".material-symbols-rounded");
   if (icon) {
@@ -1802,7 +1802,7 @@ function buildEmptyState(message) {
   const text = document.createElement("p");
 
   card.className = "empty-state";
-  text.textContent = message;
+  text.textContent = translateRuntimeText(message);
   card.append(text);
   return card;
 }
@@ -1873,53 +1873,53 @@ function buildOrderCard(order, isArchived) {
   compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
   compactLine.append(document.createTextNode(order.items));
   if (order.sourceOrderId) {
-    compactLine.append(document.createTextNode(` · Ticket ${order.sourceOrderId}`));
+    compactLine.append(document.createTextNode(translateRuntimeText(` · Ticket ${order.sourceOrderId}`)));
   }
   compactLine.append(document.createTextNode(" · "), buildEtaHintElement(order));
-  intelligenceLabel.textContent = "IA TurnoListo";
+  intelligenceLabel.textContent = translateRuntimeText("IA TurnoListo");
   intelligenceBadge.textContent = formatAiRiskLabel(order.aiRiskLevel);
   intelligenceEta.textContent = formatAiEta(order);
   const shouldShowIntelligenceReason = Boolean(order.aiReason || order.aiRecommendation) && !(order.aiRiskLevel === "low" && order.status !== "ready");
   intelligenceInfo.type = "button";
   intelligenceInfo.textContent = "!";
-  intelligenceInfo.setAttribute("aria-label", "Ver detalle de TurnoListo Intelligence");
-  intelligenceInfo.setAttribute("title", "Ver detalle de TurnoListo Intelligence");
+  intelligenceInfo.setAttribute("aria-label", translateRuntimeText("Ver detalle de TurnoListo Intelligence"));
+  intelligenceInfo.setAttribute("title", translateRuntimeText("Ver detalle de TurnoListo Intelligence"));
   intelligenceInfo.hidden = !shouldShowIntelligenceReason;
   intelligenceInfo.addEventListener("click", (event) => {
     event.stopPropagation();
     openAiModal(order, intelligenceInfo);
   });
   intelligenceLabel.dataset.termHint =
-    "Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.";
+    translateRuntimeText("Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.");
   intelligenceBadge.dataset.termHint =
     order.aiRiskLevel === "high"
-      ? `${intelligenceBadge.textContent}: este pedido necesita atencion inmediata porque esta bloqueado, retrasado o claramente comprometido.`
+      ? translateRuntimeText(`${intelligenceBadge.textContent}: este pedido necesita atencion inmediata porque esta bloqueado, retrasado o claramente comprometido.`)
       : order.aiRiskLevel === "medium"
-        ? `${intelligenceBadge.textContent}: el pedido aun esta bajo control, pero ya muestra señales reales de tension o espera anomala.`
-        : `${intelligenceBadge.textContent}: el pedido sigue una secuencia temporal consistente con la operativa actual del local.`;
+        ? translateRuntimeText(`${intelligenceBadge.textContent}: el pedido aun esta bajo control, pero ya muestra señales reales de tension o espera anomala.`)
+        : translateRuntimeText(`${intelligenceBadge.textContent}: el pedido sigue una secuencia temporal consistente con la operativa actual del local.`);
   intelligenceEta.dataset.termHint =
     buildAiEtaHint(order, intelligenceEta.textContent) +
-    (order.aiBottleneckLabel ? ` Cuello principal detectado: ${order.aiBottleneckLabel}.` : "");
+    (order.aiBottleneckLabel ? translateRuntimeText(` Cuello principal detectado: ${order.aiBottleneckLabel}.`) : "");
   intelligenceLabel.setAttribute("title", intelligenceLabel.dataset.termHint);
   intelligenceLabel.setAttribute("aria-label", intelligenceLabel.dataset.termHint);
   intelligenceBadge.setAttribute("title", intelligenceBadge.dataset.termHint);
   intelligenceBadge.setAttribute("aria-label", intelligenceBadge.dataset.termHint);
   intelligenceEta.setAttribute("title", intelligenceEta.dataset.termHint);
   intelligenceEta.setAttribute("aria-label", intelligenceEta.dataset.termHint);
-  compactTime.textContent = `Creado ${formatOrderTime(order.createdAt)}`;
+  compactTime.textContent = translateRuntimeText(`Creado ${formatOrderTime(order.createdAt)}`);
   elapsedTime.className = `order-card__elapsed order-card__elapsed--${getElapsedOrderTone(order)}`;
   elapsedTime.textContent = getElapsedOrderTime(order);
   rating.className = "order-card__rating";
-  rating.textContent = order.rating ? formatRating(order.rating.score) : "Sin valorar";
+  rating.textContent = order.rating ? formatRating(order.rating.score) : translateRuntimeText("Sin valorar");
   commentButton.type = "button";
   commentButton.className = "comment-button";
-  commentButton.textContent = "Ver comentario";
+  commentButton.textContent = translateRuntimeText("Ver comentario");
   commentButton.hidden = !(order.rating && order.rating.comment);
   commentButton.addEventListener("click", (event) => {
     event.stopPropagation();
     openCommentModal(order);
   });
-  badge.textContent = statusMeta[order.status].label;
+  badge.textContent = translateRuntimeText(statusMeta[order.status].label);
   badge.style.background = statusMeta[order.status].bg;
   badge.style.color = statusMeta[order.status].color;
 
@@ -1943,26 +1943,26 @@ function buildOrderCard(order, isArchived) {
   });
 
   qr.src = buildQrUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
-  qr.alt = `QR del pedido ${order.orderNumber}`;
+  qr.alt = translateRuntimeText(`QR del pedido ${order.orderNumber}`);
   qr.className = "order-card__qr";
 
   const estimatedEtaField = getDisplayEstimatedReadyMinutes(order);
   grid.append(
-    buildFieldWithOptions("Código factura / ticket", "sourceOrderId", order.sourceOrderId, !isEditing, {
+    buildFieldWithOptions(translateRuntimeText("Código factura / ticket"), "sourceOrderId", order.sourceOrderId, !isEditing, {
       wide: true,
       className: "field--priority",
     }),
-    buildFieldWithOptions("Pedido", "items", order.items, !isEditing, {
+    buildFieldWithOptions(translateRuntimeText("Pedido"), "items", order.items, !isEditing, {
       wide: true,
       className: "field--priority",
     }),
-    buildField("Cliente", "customerName", order.customerName, !isEditing),
-    buildField("Origen", "sourceSystem", order.sourceSystem, !isEditing),
+    buildField(translateRuntimeText("Cliente"), "customerName", order.customerName, !isEditing),
+    buildField(translateRuntimeText("Origen"), "sourceSystem", order.sourceSystem, !isEditing),
     buildFieldWithOptions(estimatedEtaField.label, "estimatedReadyMinutes", estimatedEtaField.value, !isEditing, {
       type: "number",
       placeholder: estimatedEtaField.placeholder,
     }),
-    buildField("Diligencias opcionales", "notes", order.notes, !isEditing, true),
+    buildField(translateRuntimeText("Diligencias opcionales"), "notes", order.notes, !isEditing, true),
   );
 
   form.addEventListener("submit", (event) => {
@@ -1981,7 +1981,7 @@ function buildOrderCard(order, isArchived) {
       renderRestaurant();
     } catch (error) {
       if (error instanceof Error && error.message === "duplicate-source-order") {
-        showTurnoAlert("Ese pedido original ya existe.", "warning");
+        showTurnoAlert(translateRuntimeText("Ese pedido original ya existe."), "warning");
         return;
       }
 
@@ -1995,11 +1995,11 @@ function buildOrderCard(order, isArchived) {
   link.target = "_blank";
   link.rel = "noreferrer";
   link.className = "qr-link";
-  link.textContent = "Abrir vista cliente";
+  link.textContent = translateRuntimeText("Abrir vista cliente");
 
   editButton.type = "button";
   editButton.className = "button-secondary";
-  editButton.textContent = "Editar información";
+  editButton.textContent = translateRuntimeText("Editar información");
   editButton.hidden = isArchived || isEditing || isCounterMode;
   editButton.addEventListener("click", () => {
     editingOrderId = order.id;
@@ -2008,7 +2008,7 @@ function buildOrderCard(order, isArchived) {
 
   saveButton.type = "submit";
   saveButton.className = "button-secondary";
-  saveButton.textContent = "Guardar cambios";
+  saveButton.textContent = translateRuntimeText("Guardar cambios");
   saveButton.hidden = !isEditing;
   details.hidden = isCounterMode;
 
@@ -2031,7 +2031,7 @@ function buildQuickStatusButtons(order, container, disabled, isCounterMode = fal
     if (order.status === status) button.classList.add("is-active");
     label.className = "status-action__label";
     duration.className = "status-action__time";
-    label.textContent = statusMeta[status].label;
+    label.textContent = translateRuntimeText(statusMeta[status].label);
     duration.textContent = formatStatusDurationLabel(getStatusDurationMinutes(order, status));
     button.disabled = disabled;
     button.addEventListener("click", (event) => {
@@ -2073,84 +2073,90 @@ function buildFieldWithOptions(label, name, value, disabled, options = {}) {
 function getDisplayEstimatedReadyMinutes(order) {
   const manualEta = Number.parseInt(String(order?.estimatedReadyMinutes || ""), 10);
   if (Number.isFinite(manualEta) && manualEta > 0) {
-    return { label: "Tiempo estimado (min)", value: String(manualEta), placeholder: "" };
+    return { label: translateRuntimeText("Tiempo estimado (min)"), value: String(manualEta), placeholder: "" };
   }
 
   const aiEta = Number.parseInt(String(order?.aiEtaMinutes || ""), 10);
   if (Number.isFinite(aiEta) && aiEta > 0) {
-    return { label: "ETA IA (min)", value: "", placeholder: String(aiEta) };
+    return { label: translateRuntimeText("ETA IA (min)"), value: "", placeholder: String(aiEta) };
   }
 
-  return { label: "Tiempo estimado (min)", value: "", placeholder: "" };
+  return { label: translateRuntimeText("Tiempo estimado (min)"), value: "", placeholder: "" };
 }
 
 function formatOrderEtaSummary(order) {
-  if (order.status === "ready") return "Listo para recoger";
-  if (order.status === "delivered") return "Entregado";
-  if (order.status === "cancelled") return "Cancelado / desistio";
+  if (order.status === "ready") return translateRuntimeText("Listo para recoger");
+  if (order.status === "delivered") return translateRuntimeText("Entregado");
+  if (order.status === "cancelled") return translateRuntimeText("Cancelado / desistio");
 
   const remainingMinutes = getRemainingEstimatedMinutes(order);
   if (remainingMinutes === null) {
     const aiEta = Number(order.aiEtaMinutes || 0);
     if (Number.isFinite(aiEta) && aiEta > 0) {
-      return `ETA IA ${aiEta} min`;
+      return translateRuntimeText(`ETA IA ${aiEta} min`);
     }
-    return "Sin ETA";
+    return translateRuntimeText("Sin ETA");
   }
-  if (remainingMinutes <= 0) return "Retrasado";
-  if (remainingMinutes === 1) return "ETA 1 min";
-  return `ETA ${remainingMinutes} min`;
+  if (remainingMinutes <= 0) return translateRuntimeText("Retrasado");
+  if (remainingMinutes === 1) return translateRuntimeText("ETA 1 min");
+  return translateRuntimeText(`ETA ${remainingMinutes} min`);
 }
 
 function formatAiRiskLabel(level) {
-  if (level === "high") return "Critico";
-  if (level === "medium") return "Atencion";
-  return "Saludable";
+  if (level === "high") return translateRuntimeText("Critico");
+  if (level === "medium") return translateRuntimeText("Atencion");
+  return translateRuntimeText("Saludable");
 }
 
 function formatAiEta(order) {
-  if (order.status === "ready") return "ETA IA 0 min";
+  if (order.status === "ready") return translateRuntimeText("ETA IA 0 min");
   const eta = Number(order.aiEtaMinutes || 0);
-  if (!Number.isFinite(eta) || eta <= 0) return "ETA IA --";
-  return `ETA IA ${eta} min`;
+  if (!Number.isFinite(eta) || eta <= 0) return translateRuntimeText("ETA IA --");
+  return translateRuntimeText(`ETA IA ${eta} min`);
 }
 
 function buildAiEtaHint(order, visibleLabel) {
   if (order.status === "ready") {
-    return `${visibleLabel}: el pedido ya esta listo para recoger, asi que la prioridad pasa a ser evitar esperas innecesarias en recogida.`;
+    return translateRuntimeText(`${visibleLabel}: el pedido ya esta listo para recoger, asi que la prioridad pasa a ser evitar esperas innecesarias en recogida.`);
   }
 
   const eta = Number(order.aiEtaMinutes || 0);
   if (!Number.isFinite(eta) || eta <= 0) {
-    return `${visibleLabel}: TurnoListo todavia no tiene una estimacion fiable para este pedido.`;
+    return translateRuntimeText(`${visibleLabel}: TurnoListo todavia no tiene una estimacion fiable para este pedido.`);
   }
 
   const modelSuffix =
     Number(order.aiModelSampleSize || 0) >= 8
-      ? ` Ya incorpora ${order.aiModelSampleSize} cierres reales de este restaurante.`
+      ? translateRuntimeText(` Ya incorpora ${order.aiModelSampleSize} cierres reales de este restaurante.`)
       : "";
-  return `${visibleLabel}: TurnoListo estima este tiempo restante segun la carga actual, el historico del local y los atascos detectados por etapa.${modelSuffix}`;
+  return translateRuntimeText(
+    `${visibleLabel}: TurnoListo estima este tiempo restante segun la carga actual, el historico del local y los atascos detectados por etapa.${modelSuffix}`,
+  );
 }
 
 function buildEtaHintElement(order) {
   const summary = formatOrderEtaSummary(order);
   const element = document.createElement("span");
   element.textContent = summary;
+  const aiEta = Number(order.aiEtaMinutes || 0);
+  const hasAiEta = Number.isFinite(aiEta) && aiEta > 0;
+  const remainingMinutes = getRemainingEstimatedMinutes(order);
+  const hasManualEtaSummary = order.status !== "ready" && order.status !== "delivered" && order.status !== "cancelled" && (remainingMinutes === null || remainingMinutes >= 0);
 
-  if (summary === "Sin ETA" || summary.startsWith("ETA ")) {
+  if (!hasAiEta || hasManualEtaSummary) {
     element.className = "term-hint";
     const hint =
-      summary === "Sin ETA"
-        ? "ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada."
-        : "ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.";
+      !hasAiEta
+        ? translateRuntimeText("ETA significa tiempo estimado para que el pedido este listo. En este caso todavia no hay una estimacion cargada.")
+        : translateRuntimeText("ETA significa tiempo estimado para que el pedido este listo segun el ritmo actual del local.");
     element.dataset.termHint = hint;
     element.setAttribute("title", hint);
     element.setAttribute("aria-label", hint);
   }
 
-  if (summary.startsWith("ETA IA ")) {
+  if (hasAiEta) {
     element.className = "term-hint";
-    const hint = "ETA IA es la estimacion de TurnoListo cuando el pedido no tiene un tiempo manual cargado.";
+    const hint = translateRuntimeText("ETA IA es la estimacion de TurnoListo cuando el pedido no tiene un tiempo manual cargado.");
     element.dataset.termHint = hint;
     element.setAttribute("title", hint);
     element.setAttribute("aria-label", hint);
@@ -2187,7 +2193,9 @@ function buildActivationRequestUrl(restaurant, demoUsage) {
   params.set("interest", "Seguimiento de cuenta");
   params.set(
     "message",
-    `Hola, hemos alcanzado el limite de la demo (${demoUsage.usedOrders}/${demoUsage.maxOrders}) y queremos activar la cuenta de ${restaurantName}. Por favor, contactadnos para completar la activacion del plan.`,
+    translateRuntimeText(
+      `Hola, hemos alcanzado el limite de la demo (${demoUsage.usedOrders}/${demoUsage.maxOrders}) y queremos activar la cuenta de ${restaurantName}. Por favor, contactadnos para completar la activacion del plan.`,
+    ),
   );
   params.set("activationRequest", "1");
   return `./contact.html?${params.toString()}`;
@@ -2207,12 +2215,12 @@ function handleCreateOrder(event) {
     });
   } catch (error) {
     if (error instanceof Error && error.message === "missing-source-order") {
-      setQuickCreateFeedback("Necesitas pegar el codigo de factura o ticket.", "error");
+      setQuickCreateFeedback(translateRuntimeText("Necesitas pegar el codigo de factura o ticket."), "error");
       return;
     }
 
     if (error instanceof Error && error.message === "duplicate-source-order") {
-      setQuickCreateFeedback("Ese pedido ya existe.", "error");
+      setQuickCreateFeedback(translateRuntimeText("Ese pedido ya existe."), "error");
       return;
     }
 
@@ -2221,10 +2229,12 @@ function handleCreateOrder(event) {
       const restaurant = session ? getRestaurantById(session.restaurantId) : null;
       const demoUsage = getRestaurantDemoUsage(restaurant);
       setQuickCreateFeedback(
-        `Has alcanzado el limite de la demo (${demoUsage.maxOrders} pedidos). Activa el plan completo para seguir operando con pedidos reales, historico e IA sin tope.`,
+        translateRuntimeText(
+          `Has alcanzado el limite de la demo (${demoUsage.maxOrders} pedidos). Activa el plan completo para seguir operando con pedidos reales, historico e IA sin tope.`,
+        ),
         "error",
         {
-          label: "Solicitar activacion",
+          label: translateRuntimeText("Solicitar activacion"),
           href: buildActivationRequestUrl(restaurant, demoUsage),
         },
       );
@@ -2241,15 +2251,19 @@ function handleCreateOrder(event) {
     const demoUsage = getRestaurantDemoUsage(restaurant);
     if (demoUsage.remainingOrders > 0) {
       setQuickCreateFeedback(
-        `Pedido creado. La demo ya va por ${demoUsage.usedOrders}/${demoUsage.maxOrders}. Quedan ${demoUsage.remainingOrders} pedidos para seguir mostrando el valor del producto.`,
+        translateRuntimeText(
+          `Pedido creado. La demo ya va por ${demoUsage.usedOrders}/${demoUsage.maxOrders}. Quedan ${demoUsage.remainingOrders} pedidos para seguir mostrando el valor del producto.`,
+        ),
         "success",
       );
     } else {
       setQuickCreateFeedback(
-        `Pedido creado. Has completado ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos de demo. Es un gran momento para activar el plan completo.`,
+        translateRuntimeText(
+          `Pedido creado. Has completado ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos de demo. Es un gran momento para activar el plan completo.`,
+        ),
         "success",
         {
-          label: "Solicitar activacion",
+          label: translateRuntimeText("Solicitar activacion"),
           href: buildActivationRequestUrl(restaurant, demoUsage),
         },
       );
@@ -2265,8 +2279,8 @@ function handleCreateOrder(event) {
 
 function openCommentModal(order) {
   commentTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  commentMeta.textContent = `Valoración ${formatRating(order.rating?.score || 0)} · ${order.items}`;
-  commentBody.textContent = order.rating?.comment || "Sin comentario";
+  commentMeta.textContent = translateRuntimeText(`Valoración ${formatRating(order.rating?.score || 0)} · ${order.items}`);
+  commentBody.textContent = order.rating?.comment || translateRuntimeText("Sin comentario");
   commentModal.hidden = false;
 }
 
@@ -2277,7 +2291,7 @@ function closeCommentModal() {
 function openAiModal(order, triggerButton = null) {
   lastAiTriggerButton = triggerButton;
   aiTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `Cuello: ${order.aiBottleneckLabel}` : ""]
+  aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? translateRuntimeText(`Cuello: ${order.aiBottleneckLabel}`) : ""]
     .filter(Boolean)
     .join(" · ");
   aiBody.textContent = [order.aiReason, "", order.aiRecommendation].filter(Boolean).join("\n");
