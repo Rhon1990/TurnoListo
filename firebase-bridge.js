@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getApp, getApps, initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import {
   browserLocalPersistence,
   browserSessionPersistence,
@@ -29,6 +29,15 @@ const firebaseConfig = window.TURNO_LISTO_FIREBASE_CONFIG || {};
 
 function hasFirebaseConfig(config) {
   return Boolean(config?.enabled && config?.apiKey && config?.projectId && config?.appId);
+}
+
+function getFirebaseRoleScope() {
+  return String(window.TURNO_LISTO_PRIVATE_ROLE || document.body?.dataset?.privateRole || "").trim() || "public";
+}
+
+function getFirebaseAppInstance(config) {
+  const appName = `turnolisto-${getFirebaseRoleScope()}`;
+  return getApps().some((app) => app.name === appName) ? getApp(appName) : initializeApp(config, appName);
 }
 
 function getPreferredAuthPersistence() {
@@ -153,7 +162,7 @@ window.__turnoFirebaseReadyPromise = (async () => {
     return { enabled: false, reason: "missing-config" };
   }
 
-  const app = initializeApp(firebaseConfig);
+  const app = getFirebaseAppInstance(firebaseConfig);
   let auth;
   try {
     auth = initializeAuth(app, {
