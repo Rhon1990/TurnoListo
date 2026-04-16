@@ -43,9 +43,9 @@ const EMPTY_STATUS_LABEL = "No disponible";
 const EMPTY_AVATAR_LABEL = "?";
 
 let selectedRestaurantProfileLogoUrl = "";
-const PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
-const DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
-let selectedRestaurantProfilePhoneCountryIso = "ES";
+const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
+const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
+let selectedRestaurantProfilePhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
 const translateText = (value) =>
   window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
 const translateKey = (key, fallback = "") =>

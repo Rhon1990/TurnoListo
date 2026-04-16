@@ -44,9 +44,9 @@ let selectedAdminAvatarUrl = "";
 let adminUsers = [];
 let adminMessagesUnsubscribe = null;
 let adminProfileSnapshot = null;
-const PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
-const DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
-let selectedCreateAdminPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
+const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
+let selectedCreateAdminPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
 const translateText = (value) =>
   window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
 const translateKey = (key, fallback = "") =>

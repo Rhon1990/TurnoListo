@@ -27,8 +27,8 @@ const restaurantAccountMeta = document.querySelector("#restaurantAccountMeta");
 const restaurantMenuLogout = document.querySelector("#restaurantMenuLogout");
 const RESTAURANT_STORAGE_KEY = "turnolisto-restaurants-v1";
 const RESTAURANT_SESSION_KEY = "turnolisto-restaurant-session-v1";
-const PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
-const DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
+const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
+const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
 const translateText = (value) =>
   window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
 const translateKey = (key, fallback = "") =>
@@ -37,7 +37,7 @@ const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 
 let contactPrefillSnapshot = null;
-let selectedContactPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+let selectedContactPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
 let currentRestaurantAccount = null;
 const contactPhoneController = window.TurnoListoPhoneFields?.create({
   elements: {

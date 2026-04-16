@@ -197,11 +197,11 @@ const PLAN_DURATIONS = {
 };
 const RENEWABLE_PLAN_NAMES = ["Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"];
 const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
-const PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
-const DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
+const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
+const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
 
-let selectedPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
-let selectedAdminCreateAdminPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+let selectedPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
+let selectedAdminCreateAdminPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
 const adminRestaurantPhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: adminPhoneField,

@@ -176,8 +176,8 @@ let selectedRestaurantProfilePhoneCountryIso = "ES";
 const EMPTY_DATA_LABEL = "Sin datos cargados";
 const EMPTY_STATUS_LABEL = "No disponible";
 const EMPTY_AVATAR_LABEL = "?";
-const PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
-const DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
+const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
+const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
 const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: restaurantProfilePhoneField,
