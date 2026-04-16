@@ -426,6 +426,10 @@ function ensureClientManifestLink() {
   return manifestLink;
 }
 
+function buildClientAssetUrl(path) {
+  return new URL(path, window.location.href).toString();
+}
+
 function syncClientInstallManifest(orderId) {
   if (!clientManifestLink) return;
 
@@ -440,20 +444,20 @@ function syncClientInstallManifest(orderId) {
     short_name: "TurnoListo",
     description: "Seguimiento de pedidos para cliente y restaurante en tiempo real.",
     start_url: buildClientUrl(normalizedOrderId),
-    scope: "./",
+    scope: buildClientAssetUrl("./"),
     display: "standalone",
     background_color: "#f6efe6",
     theme_color: "#1f7a63",
     orientation: "portrait",
     icons: [
       {
-        src: "./turnolisto-brand.png",
+        src: buildClientAssetUrl("./turnolisto-brand.png"),
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "./turnolisto-brand.png",
+        src: buildClientAssetUrl("./turnolisto-brand.png"),
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
