@@ -239,7 +239,13 @@ function renderClient() {
   renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = translateBuiltInOrderText(order.customerName);
-  statusPill.textContent = translateText(meta.label);
+  const statusTranslationKey = CLIENT_STATUS_KEY_BY_STATUS[order.status] || "";
+  if (statusTranslationKey) {
+    statusPill.dataset.i18nKey = statusTranslationKey;
+  } else {
+    statusPill.removeAttribute("data-i18n-key");
+  }
+  statusPill.textContent = translateKey(statusTranslationKey, meta.label);
   statusPill.style.background = meta.bg;
   statusPill.style.color = meta.color;
   progressFill.style.width = `${getProgressWidth(order.status)}%`;
@@ -341,6 +347,7 @@ function renderMissingOrder() {
     "Este seguimiento ya no está activo o fue archivado.",
   );
   renderClientBrand(null);
+  statusPill.dataset.i18nKey = "client.dynamic.status.unavailable";
   statusPill.textContent = translateKey("client.dynamic.status.unavailable", "No disponible");
   statusPill.style.background = "rgba(29, 26, 22, 0.08)";
   statusPill.style.color = "#6e6258";
@@ -741,8 +748,20 @@ function renderAlertsBanner() {
   }
 
   if (pushNotificationBusy) {
+    alertsTitle.textContent = translateKey("client.alerts.title", "Activa los avisos del pedido.");
+    alertsStatus.textContent =
+      hasNotificationApi && Notification.permission === "default"
+        ? translateKey(
+          "client.dynamic.alerts.pending.permission",
+          "Confirma el permiso del navegador para terminar la activacion.",
+        )
+        : translateKey(
+          "client.dynamic.alerts.pending.setup",
+          "Estamos terminando de activar las notificaciones en este dispositivo.",
+        );
     enableAlertsButton.disabled = true;
     enableAlertsButton.textContent = translateKey("client.dynamic.alerts.activating", "Activando...");
+    enableAlertsButton.classList.remove("is-success");
     enableAlertsButton.classList.add("is-pending");
     return;
   }
