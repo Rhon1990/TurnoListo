@@ -8,6 +8,7 @@ const adminLoginTogglePassword = document.querySelector("#adminLoginTogglePasswo
 const adminCreateRestaurantForm = document.querySelector("#adminCreateRestaurantForm");
 const adminCreateFeedback = document.querySelector("#adminCreateFeedback");
 const adminRestaurantLogoInput = document.querySelector("#adminRestaurantLogoInput");
+const adminRestaurantLogoFilename = document.querySelector("#adminRestaurantLogoFilename");
 const adminRestaurantLogoPreview = document.querySelector("#adminRestaurantLogoPreview");
 const adminRestaurantLogoPreviewImage = document.querySelector("#adminRestaurantLogoPreviewImage");
 const adminPlanSelect = document.querySelector("#adminPlanSelect");
@@ -742,6 +743,26 @@ function initializeAdminPhoneField() {
   resetAdminPhoneField();
 }
 
+function resetAdminRestaurantLogoFilename() {
+  if (!adminRestaurantLogoFilename) return;
+  adminRestaurantLogoFilename.setAttribute("data-i18n-key", "profile.file.empty");
+  adminRestaurantLogoFilename.textContent = "Ningún archivo seleccionado";
+  if (window.TurnoListoI18n?.translateDocument) {
+    window.TurnoListoI18n.translateDocument(window.TurnoListoI18n.getLanguage?.());
+  }
+}
+
+function setAdminRestaurantLogoFilename(file) {
+  if (!adminRestaurantLogoFilename) return;
+  const safeName = String(file?.name || "").trim();
+  if (!safeName) {
+    resetAdminRestaurantLogoFilename();
+    return;
+  }
+  adminRestaurantLogoFilename.removeAttribute("data-i18n-key");
+  adminRestaurantLogoFilename.textContent = safeName;
+}
+
 async function handleRestaurantLogoSelection(event) {
   const file = event.target.files?.[0] || null;
   if (!file) {
@@ -750,6 +771,7 @@ async function handleRestaurantLogoSelection(event) {
   }
 
   try {
+    setAdminRestaurantLogoFilename(file);
     selectedRestaurantLogoUrl = await optimizeRestaurantLogo(file);
     adminRestaurantLogoPreviewImage.src = selectedRestaurantLogoUrl;
     adminRestaurantLogoPreview.hidden = false;
@@ -769,6 +791,7 @@ async function handleRestaurantLogoSelection(event) {
 function resetRestaurantLogoPreview() {
   selectedRestaurantLogoUrl = "";
   adminRestaurantLogoInput.value = "";
+  resetAdminRestaurantLogoFilename();
   adminRestaurantLogoPreviewImage.removeAttribute("src");
   adminRestaurantLogoPreview.hidden = true;
 }

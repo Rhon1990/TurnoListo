@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260415g" />
+    <link rel="stylesheet" href="./styles.css?v=20260416d" />
   </head>
   <body>
     <div class="app-shell" id="adminLoginView">
@@ -450,7 +450,13 @@
               </label>
               <label class="field field--wide">
                 <span>Logo del restaurante</span>
-                <input id="adminRestaurantLogoInput" name="logo" type="file" accept="image/*" />
+                <input id="adminRestaurantLogoInput" class="file-picker__input" name="logo" type="file" accept="image/*" />
+                <span class="file-picker">
+                  <span class="file-picker__button" data-i18n-key="profile.file.choose">Seleccionar imagen</span>
+                  <span class="file-picker__name" id="adminRestaurantLogoFilename" data-i18n-key="profile.file.empty">
+                    Ningún archivo seleccionado
+                  </span>
+                </span>
                 <span class="field__hint">Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.</span>
               </label>
               <div class="logo-upload-preview" id="adminRestaurantLogoPreview" hidden>
@@ -736,7 +742,7 @@
     <script>
       window.TURNO_LISTO_PRIVATE_ROLE = "admin";
     </script>
-    <script src="./i18n.js?v=20260416b"></script>
+    <script src="./i18n.js?v=20260416d"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260409e"></script>
