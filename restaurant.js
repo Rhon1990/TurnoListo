@@ -169,6 +169,8 @@ let restaurantModeTooltipTimer = 0;
 let restaurantTermTooltipTimer = 0;
 let selectedRestaurantProfileLogoUrl = "";
 let lastAiTriggerButton = null;
+let activeCommentOrderId = null;
+let activeAiOrderId = null;
 let selectedRestaurantProfilePhoneCountryIso = "ES";
 const EMPTY_DATA_LABEL = "Sin datos cargados";
 const EMPTY_STATUS_LABEL = "No disponible";
@@ -251,6 +253,7 @@ window.addEventListener("keydown", handleRestaurantProfilePhoneKeydown);
 window.addEventListener("turnolisto:language-change", () => {
   if (getCurrentRestaurantSession()) {
     renderRestaurant();
+    refreshOpenRestaurantModals();
   }
 });
 initializeRestaurantProfilePhoneField();
@@ -1830,6 +1833,29 @@ function buildAiRiskHint(label, level) {
   return `${translatedLabel}: ${explanation}`;
 }
 
+function getOrderByAnyId(orderId) {
+  const normalized = String(orderId || "").trim();
+  if (!normalized) return null;
+  return loadOrders().find((order) => String(order.id || "").trim() === normalized) || null;
+}
+
+function refreshOpenRestaurantModals() {
+  if (!commentModal.hidden && activeCommentOrderId) {
+    const order = getOrderByAnyId(activeCommentOrderId);
+    if (order) openCommentModal(order);
+  }
+
+  if (!aiModal.hidden && activeAiOrderId) {
+    const order = getOrderByAnyId(activeAiOrderId);
+    if (order) openAiModal(order, lastAiTriggerButton);
+  }
+
+  if (!cancelModal.hidden && pendingCancelOrderId) {
+    const order = getOrderByAnyId(pendingCancelOrderId);
+    if (order) openCancelModal(order);
+  }
+}
+
 function buildOrderCard(order, isArchived) {
   const card = document.createElement("article");
   const compactButton = document.createElement("button");
@@ -2294,6 +2320,7 @@ function handleCreateOrder(event) {
 }
 
 function openCommentModal(order) {
+  activeCommentOrderId = order.id;
   commentTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
   commentMeta.textContent = translateRuntimeText(`Valoración ${formatRating(order.rating?.score || 0)} · ${translateBuiltInOrderText(order.items)}`);
   commentBody.textContent = order.rating?.comment || translateRuntimeText("Sin comentario");
@@ -2302,9 +2329,11 @@ function openCommentModal(order) {
 
 function closeCommentModal() {
   commentModal.hidden = true;
+  activeCommentOrderId = null;
 }
 
 function openAiModal(order, triggerButton = null) {
+  activeAiOrderId = order.id;
   lastAiTriggerButton = triggerButton;
   aiTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
   aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `${translateRuntimeText("Cuello:")} ${translateRuntimeText(order.aiBottleneckLabel)}` : ""]
@@ -2322,11 +2351,12 @@ function closeAiModal() {
   aiModal.hidden = true;
   lastAiTriggerButton?.focus?.();
   lastAiTriggerButton = null;
+  activeAiOrderId = null;
 }
 
 function openCancelModal(order) {
   pendingCancelOrderId = order.id;
-  pendingCancelOrderLabel = `${order.orderNumber} · ${order.customerName}`;
+  pendingCancelOrderLabel = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
   cancelMeta.textContent = pendingCancelOrderLabel;
   cancelModal.hidden = false;
 }

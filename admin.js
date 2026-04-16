@@ -302,6 +302,7 @@ window.addEventListener("keydown", handleAdminPhoneCountryKeydown);
 window.addEventListener("turnolisto:language-change", () => {
   if (isAdminAuthenticated()) {
     renderAdminWorkspace();
+    void refreshOpenAdminModals();
   }
 });
 window.addEventListener("hashchange", () => {
@@ -2556,13 +2557,44 @@ function getAdminEmailTemplateDefinitions(restaurant) {
 }
 
 async function openEmailTemplatesModal(restaurant) {
+  return openEmailTemplatesModalWithOptions(restaurant, { preserveSelection: false });
+}
+
+async function openEmailTemplatesModalWithOptions(restaurant, options = {}) {
   if (!restaurant?.email || !adminEmailTemplatesModal) return;
+  const preserveSelection = Boolean(options.preserveSelection);
   pendingEmailTemplateRestaurantId = restaurant.id;
-  activeEmailTemplateKey = "credentials";
+  if (!preserveSelection || !activeEmailTemplateKey) {
+    activeEmailTemplateKey = "credentials";
+  }
   adminEmailTemplatesMeta.textContent = `${restaurant.name} · ${restaurant.email}`;
   adminEmailTemplatesModal.hidden = false;
   await renderEmailTemplateSelector(restaurant);
   await selectEmailTemplate(activeEmailTemplateKey);
+}
+
+async function refreshOpenAdminModals() {
+  if (!adminDeleteModal.hidden && pendingDeleteRestaurantId) {
+    const restaurant = getRestaurantById(pendingDeleteRestaurantId);
+    if (restaurant) openDeleteModal(restaurant);
+  }
+
+  if (!adminActivatePlanModal?.hidden && pendingActivatePlanRestaurantId) {
+    const restaurant = getRestaurantById(pendingActivatePlanRestaurantId);
+    if (restaurant) openActivatePlanModal(restaurant);
+  }
+
+  if (!adminRenewPlanModal?.hidden && pendingRenewPlanRestaurantId) {
+    const restaurant = getRestaurantById(pendingRenewPlanRestaurantId);
+    if (restaurant) openRenewPlanModal(restaurant);
+  }
+
+  if (!adminEmailTemplatesModal?.hidden && pendingEmailTemplateRestaurantId) {
+    const restaurant = getRestaurantById(pendingEmailTemplateRestaurantId);
+    if (restaurant) {
+      await openEmailTemplatesModalWithOptions(restaurant, { preserveSelection: true });
+    }
+  }
 }
 
 async function renderEmailTemplateSelector(restaurant) {
