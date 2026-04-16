@@ -108,7 +108,7 @@ Estado:
 ## Evidencia relevante de la auditoria
 
 - Se eliminaron 6 restaurantes temporales `QA Unicorn` creados durante la prueba en vivo.
-- La web publica ya sirve `client.html` con `shared.js?v=20260416g` y `client.js?v=20260416g`.
+- La web publica se versiona ahora con `shared.js?v=20260416h` para invalidar caches antiguas del cliente.
 - En almacenamiento compartido del navegador, el tracking del pedido auditado si llego a `preparing`.
 - La recarga publica del tracking falla porque `getPublicTrackingOrder` no esta desplegada en Firebase Functions.
 
