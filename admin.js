@@ -1484,6 +1484,8 @@ async function toggleAdminInquiryRead(item) {
 }
 
 function renderAdminDashboard(stats) {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   if (adminDashboardPeriod) {
     adminDashboardPeriod.value = stats.period;
   }
@@ -1573,7 +1575,7 @@ function renderAdminDashboard(stats) {
       color: "#ec7c0d",
       valueLabel: `${item.orderCount} pedidos`,
     })),
-    "Todavía no hay suficiente actividad para mostrar un ranking.",
+    translateText("Todavía no hay suficiente actividad para mostrar un ranking."),
   );
 
   buildAdminInsights(stats).forEach((message) => {
@@ -1643,6 +1645,8 @@ function handleExportPredictionDataset() {
 }
 
 function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   container.innerHTML = "";
   const safeItems = Array.isArray(items) ? items.filter(Boolean) : [];
   const maxValue = safeItems.reduce((max, item) => Math.max(max, Number(item.count || 0)), 0);
@@ -1650,7 +1654,7 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
   if (!safeItems.length || maxValue <= 0) {
     const empty = document.createElement("article");
     empty.className = "dashboard-insight";
-    empty.textContent = emptyMessage;
+    empty.textContent = translateText(emptyMessage);
     container.append(empty);
     return;
   }
@@ -1667,10 +1671,10 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
     track.className = "dashboard-bar__track";
     value.className = "dashboard-bar__value";
 
-    label.textContent = item.label;
+    label.textContent = translateText(item.label);
     fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
     fill.style.background = item.color || "#ec7c0d";
-    value.textContent = item.valueLabel || String(item.count || 0);
+    value.textContent = item.valueLabel ? translateText(item.valueLabel) : String(item.count || 0);
 
     track.append(fill);
     row.append(label, track, value);
@@ -1679,6 +1683,8 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
 }
 
 function renderDashboardDonut(container, items, centerLabel) {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   container.innerHTML = "";
   const safeItems = Array.isArray(items) ? items.filter((item) => Number(item?.count || 0) > 0) : [];
   const total = safeItems.reduce((sum, item) => sum + Number(item.count || 0), 0);
@@ -1686,7 +1692,7 @@ function renderDashboardDonut(container, items, centerLabel) {
   if (!total) {
     const empty = document.createElement("article");
     empty.className = "dashboard-insight";
-    empty.textContent = "Sin datos suficientes por ahora.";
+    empty.textContent = translateText("Sin datos suficientes por ahora.");
     container.append(empty);
     return;
   }
@@ -1705,14 +1711,14 @@ function renderDashboardDonut(container, items, centerLabel) {
   chart.className = "dashboard-donut__chart";
   chart.style.background = `conic-gradient(${segments.join(", ")})`;
   center.className = "dashboard-donut__center";
-  center.innerHTML = `<span>${centerLabel}</span><strong>${total}</strong>`;
+  center.innerHTML = `<span>${translateText(centerLabel)}</span><strong>${total}</strong>`;
   chart.append(center);
 
   legend.className = "dashboard-donut__legend";
   safeItems.forEach((item) => {
     const row = document.createElement("div");
     row.className = "dashboard-donut__legend-row";
-    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${translateText(item.label)}</span><strong>${item.count}</strong>`;
     legend.append(row);
   });
 
@@ -1720,56 +1726,70 @@ function renderDashboardDonut(container, items, centerLabel) {
 }
 
 function buildAdminInsights(stats) {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   const insights = [];
 
   if (stats.expiredRestaurants > 0) {
-    insights.push(`Hay ${stats.expiredRestaurants} restaurantes con acceso vencido. Conviene revisar cobro o renovación.`);
+    insights.push(translateText(`Hay ${stats.expiredRestaurants} restaurantes con acceso vencido. Conviene revisar cobro o renovación.`));
   }
 
   if (stats.soonToExpire > 0) {
-    insights.push(`${stats.soonToExpire} restaurantes vencen en menos de 7 días. Buen momento para activar recordatorios.`);
+    insights.push(translateText(`${stats.soonToExpire} restaurantes vencen en menos de 7 días. Buen momento para activar recordatorios.`));
   }
 
   if (stats.activeOrders > stats.deliveredOrders) {
-    insights.push(`Los pedidos abiertos creados ${stats.periodResultsLabel} superan a los entregados en ese mismo periodo. Conviene revisar si algunos locales necesitan apoyo.`);
+    insights.push(
+      translateText(`Los pedidos abiertos creados ${stats.periodResultsLabel} superan a los entregados en ese mismo periodo. Conviene revisar si algunos locales necesitan apoyo.`),
+    );
   }
 
   if (stats.aiPortfolioAction) {
-    insights.push(`Señal IA de cartera: ${stats.aiPortfolioAction}`);
+    insights.push(translateText(`Señal IA de cartera: ${stats.aiPortfolioAction}`));
   }
 
   if (stats.dominantPortfolioBottleneck) {
     insights.push(
-      `Patrón inferido en la cartera: ${stats.dominantPortfolioBottleneck.label}. Aparece como fricción principal en ${stats.dominantPortfolioBottleneck.count} restaurante${stats.dominantPortfolioBottleneck.count === 1 ? "" : "s"} con IA activa.`,
+      translateText(
+        `Patrón inferido en la cartera: ${stats.dominantPortfolioBottleneck.label}. Aparece como fricción principal en ${stats.dominantPortfolioBottleneck.count} restaurante${stats.dominantPortfolioBottleneck.count === 1 ? "" : "s"} con IA activa.`,
+      ),
     );
   }
 
   if (stats.restaurantsWithoutOrders > 0) {
-    insights.push(`${stats.restaurantsWithoutOrders} restaurantes aún no han hecho su primer pedido. Necesitan onboarding o seguimiento comercial.`);
+    insights.push(
+      translateText(`${stats.restaurantsWithoutOrders} restaurantes aún no han hecho su primer pedido. Necesitan onboarding o seguimiento comercial.`),
+    );
   }
 
   if (stats.demoRestaurantCount > 0) {
     insights.push(
-      `${stats.demoRestaurantCount} demo${stats.demoRestaurantCount === 1 ? "" : "s"} activas y ${stats.demoReadyToConvertCount} listas para empujar conversion a plan completo.`,
+      translateText(
+        `${stats.demoRestaurantCount} demo${stats.demoRestaurantCount === 1 ? "" : "s"} activas y ${stats.demoReadyToConvertCount} listas para empujar conversion a plan completo.`,
+      ),
     );
   }
 
   if (stats.dormantRestaurants > 0) {
-    insights.push(`${stats.dormantRestaurants} restaurantes no registran actividad ${stats.periodResultsLabel}. Esto es una señal de posible churn, no una baja confirmada.`);
+    insights.push(
+      translateText(`${stats.dormantRestaurants} restaurantes no registran actividad ${stats.periodResultsLabel}. Esto es una señal de posible churn, no una baja confirmada.`),
+    );
   }
 
   if (stats.trainedRestaurantCount > 0) {
     insights.push(
-      `${stats.trainedRestaurantCount} locales ya operan con modelo adaptado y ${stats.highConfidenceModelCount} lo hacen con confianza alta.`,
+      translateText(
+        `${stats.trainedRestaurantCount} locales ya operan con modelo adaptado y ${stats.highConfidenceModelCount} lo hacen con confianza alta.`,
+      ),
     );
   }
 
   if (stats.expiredRestaurants === 0 && stats.soonToExpire === 0 && stats.restaurantsWithoutOrders === 0) {
-    insights.push("La base está sana: ahora la oportunidad es empujar más frecuencia y más valoraciones de cliente.");
+    insights.push(translateText("La base está sana: ahora la oportunidad es empujar más frecuencia y más valoraciones de cliente."));
   }
 
   if (!insights.length) {
-    insights.push("La cartera va estable. Aquí aparecerán señales cuando detectemos vencimientos, caída de uso o cuellos de botella.");
+    insights.push(translateText("La cartera va estable. Aquí aparecerán señales cuando detectemos vencimientos, caída de uso o cuellos de botella."));
   }
 
   return insights.slice(0, 3);
