@@ -131,7 +131,7 @@ alertsDismissed =
   );
 });
 
-waitForDataReady().then(renderClient);
+initializeClientView();
 onOrdersChanged(() => {
   waitForDataReady().then(renderClient);
 });
@@ -142,29 +142,11 @@ window.setInterval(() => {
   if (document.visibilityState !== "visible") return;
   if (!String(window.__turnoDataBackendMode || "").startsWith("firebase")) return;
   if (!shouldAutoRefreshClient()) return;
-  refreshPublicTrackingFromBackend();
+  refreshPublicTrackingFromBackend(selectedOrderId);
 }, CLIENT_REFRESH_INTERVAL_MS);
 
 loadButton.addEventListener("click", () => {
-  const nextId = orderInput.value.trim().toUpperCase();
-  if (!getPublicOrderByPublicId(nextId)) {
-    orderInput.setCustomValidity(translateKey("client.dynamic.order.invalid", "Ese QR no existe en la demo."));
-    orderInput.reportValidity();
-    return;
-  }
-
-  orderInput.setCustomValidity("");
-  orderInputDirty = false;
-  orderInput.value = nextId;
-  if (nextId === selectedOrderId) {
-    lastRenderedStatus = null;
-    renderClient();
-    return;
-  }
-
-  const targetUrl = buildClientUrl(nextId);
-  window.open(targetUrl, "_blank", "noopener,noreferrer");
-  syncOrderInputValue(selectedOrderId);
+  void handleLoadOrder();
 });
 orderInput.addEventListener("focus", () => {
   orderInputDirty = true;
@@ -201,11 +183,32 @@ showQrButton.addEventListener("click", () => {
 
 qrBackdrop.addEventListener("click", closeQrModal);
 qrCloseButton.addEventListener("click", closeQrModal);
-ratingActions.addEventListener("click", handleRatingClick);
-commentSaveButton.addEventListener("click", handleCommentSave);
+ratingActions.addEventListener("click", (event) => {
+  void handleRatingClick(event);
+});
+commentSaveButton.addEventListener("click", () => {
+  void handleCommentSave();
+});
 enableAlertsButton.addEventListener("click", handleEnableAlerts);
 iosInstallButton.addEventListener("click", toggleIosInstallSteps);
 copyLinkButton.addEventListener("click", handleCopyCurrentOrderLink);
+
+async function initializeClientView() {
+  await waitForDataReady();
+
+  if (String(window.__turnoDataBackendMode || "").startsWith("firebase")) {
+    await refreshPublicTrackingFromBackend(selectedOrderId);
+  }
+
+  renderClient();
+}
+
+function setClientOrderLookupPending(isPending) {
+  loadButton.disabled = isPending;
+  loadButton.textContent = isPending
+    ? translateKey("client.dynamic.order.loading", "Buscando...")
+    : translateKey("client.tools.load", "Abrir");
+}
 
 function renderClient() {
   const order = getPublicOrderByPublicId(selectedOrderId);
@@ -295,6 +298,38 @@ function maybeSendNotification(order) {
   new Notification(translateKey("client.dynamic.notification.ready.title", "Tu pedido ya esta listo para recoger"), {
     body: buildNotificationBody(order),
   });
+}
+
+async function handleLoadOrder() {
+  const nextId = orderInput.value.trim().toUpperCase();
+  let order = getPublicOrderByPublicId(nextId);
+
+  if (!order && String(window.__turnoDataBackendMode || "").startsWith("firebase")) {
+    setClientOrderLookupPending(true);
+    try {
+      await refreshPublicTrackingFromBackend(nextId);
+      order = getPublicOrderByPublicId(nextId);
+    } finally {
+      setClientOrderLookupPending(false);
+    }
+  }
+
+  if (!order) {
+    orderInput.setCustomValidity(translateKey("client.dynamic.order.invalid", "Ese QR no existe o ya no está disponible."));
+    orderInput.reportValidity();
+    return;
+  }
+
+  orderInput.setCustomValidity("");
+  orderInputDirty = false;
+  orderInput.value = nextId;
+  if (nextId === selectedOrderId) {
+    lastRenderedStatus = null;
+    renderClient();
+    return;
+  }
+
+  window.location.assign(buildClientUrl(nextId));
 }
 
 function renderMissingOrder() {
@@ -681,7 +716,8 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
 
 function renderAlertsBanner() {
   const alertLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
-  const hasGrantedNotificationPermission = typeof Notification !== "undefined" && Notification.permission === "granted";
+  const hasNotificationApi = typeof Notification !== "undefined";
+  const hasGrantedNotificationPermission = hasNotificationApi && Notification.permission === "granted";
   const notificationsActive = pushNotificationsEnabled && hasGrantedNotificationPermission;
   const alertsActive = readyToneEnabled && notificationsActive;
   alertsDismissed = alertsActive;
@@ -721,7 +757,7 @@ function renderAlertsBanner() {
   alertsTitle.textContent = translateKey("client.alerts.title", "Activa los avisos del pedido.");
   if (alertsStatusOverride) {
     alertsStatus.textContent = alertsStatusOverride;
-  } else if (Notification.permission === "denied") {
+  } else if (hasNotificationApi && Notification.permission === "denied") {
     alertsStatus.textContent = translateKey(
       "client.dynamic.alerts.permission_denied",
       "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.",
@@ -942,7 +978,7 @@ function closeQrModal() {
   qrModal.hidden = true;
 }
 
-function handleRatingClick(event) {
+async function handleRatingClick(event) {
   const button = event.target.closest("[data-score]");
   if (!button || !currentOrder || currentOrder.status !== "delivered") {
     return;
@@ -961,7 +997,7 @@ function handleRatingClick(event) {
   }
 
   pendingLowRatingScore = null;
-  submitOrderRating(currentOrder.id, score);
+  await submitOrderRating(currentOrder.id, score);
   renderClient();
 }
 
@@ -1001,14 +1037,14 @@ function renderCommentPrompt(order) {
   commentSentMessage.hidden = !hasSubmittedComment;
 }
 
-function handleCommentSave() {
+async function handleCommentSave() {
   if (!currentOrder || !pendingLowRatingScore || pendingLowRatingScore > 2 || isSubmittingComment) {
     return;
   }
 
   isSubmittingComment = true;
   renderCommentPrompt(currentOrder);
-  submitOrderRatingFeedback(currentOrder.id, pendingLowRatingScore, commentInput.value);
+  await submitOrderRatingFeedback(currentOrder.id, pendingLowRatingScore, commentInput.value);
   isSubmittingComment = false;
   pendingLowRatingScore = null;
   renderClient();

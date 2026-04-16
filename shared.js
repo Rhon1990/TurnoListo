@@ -502,6 +502,15 @@ function persistTrackingToLocalStorage(tracking) {
   window.localStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(tracking));
 }
 
+function clearPersistedDataStore() {
+  cachedOrders = [];
+  cachedRestaurants = [];
+  cachedTracking = [];
+  window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem(RESTAURANT_STORAGE_KEY);
+  window.localStorage.removeItem(TRACKING_STORAGE_KEY);
+}
+
 function applyOrdersSnapshot(orders) {
   cachedOrders = normalizeOrders(orders);
   persistOrdersToLocalStorage(cachedOrders);
@@ -515,6 +524,35 @@ function applyRestaurantsSnapshot(restaurants) {
 function applyTrackingSnapshot(tracking) {
   cachedTracking = normalizePublicTracking(tracking);
   persistTrackingToLocalStorage(cachedTracking);
+}
+
+function mergeTrackingRecord(record) {
+  if (!record) return null;
+
+  const normalizedRecord = normalizePublicTracking([record])[0] || null;
+  if (!normalizedRecord) return null;
+
+  const recordKeys = new Set(
+    [
+      getTrackingLookupKey(normalizedRecord.publicTrackingToken),
+      getTrackingLookupKey(normalizedRecord.id),
+      getTrackingLookupKey(normalizedRecord.sourceOrderId),
+    ].filter(Boolean),
+  );
+
+  const nextTracking = loadPublicOrders()
+    .filter((existingRecord) => {
+      const existingKeys = [
+        getTrackingLookupKey(existingRecord.publicTrackingToken),
+        getTrackingLookupKey(existingRecord.id),
+        getTrackingLookupKey(existingRecord.sourceOrderId),
+      ].filter(Boolean);
+      return !existingKeys.some((key) => recordKeys.has(key));
+    })
+    .concat(normalizedRecord);
+
+  applyTrackingSnapshot(nextTracking);
+  return normalizedRecord;
 }
 
 async function initializeDataStore() {
@@ -531,13 +569,18 @@ async function initializeDataStore() {
 function disconnectPrivateFirebaseSubscriptions() {
   ordersUnsubscribe?.();
   restaurantsUnsubscribe?.();
+  trackingUnsubscribe?.();
   ordersUnsubscribe = null;
   restaurantsUnsubscribe = null;
+  trackingUnsubscribe = null;
 }
 
 function preparePrivateFirebaseSignOut() {
   disconnectPrivateFirebaseSubscriptions();
   clearCurrentUserProfile();
+  if (firebaseBackend?.enabled) {
+    clearPersistedDataStore();
+  }
   updateDataBackendMode();
 }
 
@@ -575,6 +618,10 @@ function getPrivateCollectionFilters(collectionName, profile = currentUserProfil
     if (collectionName === FIREBASE_RESTAURANTS_COLLECTION) {
       return profile.restaurantId ? [{ field: "id", value: profile.restaurantId }] : [];
     }
+
+    if (collectionName === FIREBASE_TRACKING_COLLECTION) {
+      return profile.restaurantId ? [{ field: "restaurantId", value: profile.restaurantId }] : [];
+    }
   }
 
   return [];
@@ -591,22 +638,7 @@ async function connectPublicTrackingToFirebase() {
 
   firebaseBackend = backend;
   updateDataBackendMode();
-
-  try {
-    const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION);
-
-    applyTrackingSnapshot(remoteTracking);
-
-    disconnectPublicFirebaseSubscriptions();
-    trackingUnsubscribe = backend.subscribeCollection(FIREBASE_TRACKING_COLLECTION, (tracking) => {
-      applyTrackingSnapshot(tracking.length ? tracking : []);
-      broadcastOrdersChanged();
-    });
-  } catch (error) {
-    console.error("No se pudo inicializar el tracking publico desde Firebase.", error);
-    notifyFirebaseError(error, "No se pudo cargar el seguimiento publico.");
-    disconnectPublicFirebaseSubscriptions();
-  }
+  disconnectPublicFirebaseSubscriptions();
 
   return { mode: dataBackendMode };
 }
@@ -629,6 +661,9 @@ async function connectPrivateDataStoreToFirebase() {
     disconnectPrivateFirebaseSubscriptions();
     firebaseBackend = backend;
     currentUserProfile = null;
+    if (getRequiredPrivateRole()) {
+      clearPersistedDataStore();
+    }
     updateDataBackendMode();
     console.info("Firebase disponible, pendiente de autenticacion para acceder a Firestore.");
     return { mode: dataBackendMode, reason: "auth-required" };
@@ -650,6 +685,7 @@ async function connectPrivateDataStoreToFirebase() {
 
     if (requiredRole && currentUserProfile?.role !== requiredRole) {
       disconnectPrivateFirebaseSubscriptions();
+      clearPersistedDataStore();
       console.info("Sesion autenticada sin acceso privado para esta vista.", {
         requiredRole,
         currentRole: currentUserProfile?.role || null,
@@ -657,18 +693,21 @@ async function connectPrivateDataStoreToFirebase() {
       return { mode: dataBackendMode, reason: "role-mismatch", requiredRole, currentRole: currentUserProfile?.role || null };
     }
 
-    const [remoteOrders, remoteRestaurants] = await Promise.all([
+    const [remoteOrders, remoteRestaurants, remoteTracking] = await Promise.all([
       firebaseBackend.loadCollection(FIREBASE_ORDERS_COLLECTION, {
         filters: getPrivateCollectionFilters(FIREBASE_ORDERS_COLLECTION, currentUserProfile),
       }),
       firebaseBackend.loadCollection(FIREBASE_RESTAURANTS_COLLECTION, {
         filters: getPrivateCollectionFilters(FIREBASE_RESTAURANTS_COLLECTION, currentUserProfile),
       }),
+      firebaseBackend.loadCollection(FIREBASE_TRACKING_COLLECTION, {
+        filters: getPrivateCollectionFilters(FIREBASE_TRACKING_COLLECTION, currentUserProfile),
+      }),
     ]);
 
     applyOrdersSnapshot(remoteOrders);
-
     applyRestaurantsSnapshot(remoteRestaurants);
+    applyTrackingSnapshot(remoteTracking);
     repairMissingPublicTrackingTokens(loadOrders());
     repairPublicTrackingRecordsFromOrders(loadOrders());
 
@@ -690,6 +729,15 @@ async function connectPrivateDataStoreToFirebase() {
         broadcastOrdersChanged();
       },
       { filters: getPrivateCollectionFilters(FIREBASE_RESTAURANTS_COLLECTION, currentUserProfile) },
+    );
+
+    trackingUnsubscribe = firebaseBackend.subscribeCollection(
+      FIREBASE_TRACKING_COLLECTION,
+      (tracking) => {
+        applyTrackingSnapshot(tracking.length ? tracking : []);
+        broadcastOrdersChanged();
+      },
+      { filters: getPrivateCollectionFilters(FIREBASE_TRACKING_COLLECTION, currentUserProfile) },
     );
   } catch (error) {
     console.error("No se pudo inicializar Firebase. Se mantiene localStorage.", error);
@@ -755,16 +803,37 @@ async function refreshOrdersFromBackend() {
   }
 }
 
-async function refreshPublicTrackingFromBackend() {
+async function refreshPublicTrackingFromBackend(publicId = "") {
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled) return { enabled: false, reason: "firebase-disabled" };
 
+  const requiredRole = getRequiredPrivateRole();
+
   try {
-    const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION);
-    applyTrackingSnapshot(remoteTracking.length ? remoteTracking : []);
+    if (requiredRole) {
+      const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION, {
+        filters: getPrivateCollectionFilters(FIREBASE_TRACKING_COLLECTION),
+      });
+      applyTrackingSnapshot(remoteTracking.length ? remoteTracking : []);
+      broadcastOrdersChanged();
+      return { enabled: true, refreshed: true, scope: "private" };
+    }
+
+    const normalizedPublicId = normalizePublicTrackingToken(publicId);
+    if (!normalizedPublicId || typeof backend.loadPublicTrackingOrder !== "function") {
+      return { enabled: true, refreshed: false, reason: "missing-public-id" };
+    }
+
+    const trackingRecord = await backend.loadPublicTrackingOrder(normalizedPublicId);
+    applyTrackingSnapshot(trackingRecord ? [trackingRecord] : []);
     broadcastOrdersChanged();
-    return { enabled: true, refreshed: true };
+    return { enabled: true, refreshed: true, found: Boolean(trackingRecord), scope: "public" };
   } catch (error) {
+    if (!requiredRole && error?.code === "not-found") {
+      applyTrackingSnapshot([]);
+      broadcastOrdersChanged();
+      return { enabled: true, refreshed: true, found: false, scope: "public" };
+    }
     console.error("No se pudo refrescar el tracking publico desde Firebase.", error);
     notifyFirebaseError(error, "No se pudo refrescar el seguimiento publico.");
     return { enabled: true, refreshed: false, error };
@@ -2187,35 +2256,53 @@ function submitOrderRating(id, score) {
   return updatePublicTrackingRating(id, score, "");
 }
 
-function updatePublicTrackingRating(id, score, comment = "") {
+async function updatePublicTrackingRating(id, score, comment = "") {
   const trackingOrder = getPublicOrderById(id);
   if (!trackingOrder) return null;
 
-  const nextTracking = loadPublicOrders().map((order) =>
-    order.id === id
-      ? {
-          ...order,
-          rating: {
-            score,
-            comment: comment.trim(),
-            createdAt: new Date().toISOString(),
-          },
-        }
-      : order,
-  );
+  const previousTracking = loadPublicOrders();
+  const nextRecord = {
+    ...trackingOrder,
+    rating: {
+      score,
+      comment: comment.trim(),
+      createdAt: new Date().toISOString(),
+    },
+  };
 
-  applyTrackingSnapshot(nextTracking);
-  if (firebaseBackend?.enabled) {
-    const nextRecord = nextTracking.find((order) => order.id === id);
-    firebaseBackend
-      .setDocument(FIREBASE_TRACKING_COLLECTION, id, nextRecord)
-      .catch((error) => {
-        console.error("No se pudo guardar la valoracion publica del pedido.", error);
-        notifyFirebaseError(error, "No se pudo guardar la valoracion del cliente.");
-      });
-  }
+  mergeTrackingRecord(nextRecord);
   broadcastOrdersChanged();
-  return nextTracking.find((order) => order.id === id) || null;
+
+  if (!firebaseBackend?.enabled) {
+    return nextRecord;
+  }
+
+  try {
+    if (!getRequiredPrivateRole() && typeof firebaseBackend.submitPublicTrackingRating === "function") {
+      const publicId = trackingOrder.publicTrackingToken || trackingOrder.sourceOrderId || trackingOrder.id;
+      const savedRecord = await firebaseBackend.submitPublicTrackingRating({
+        publicId,
+        score,
+        comment: comment.trim(),
+      });
+      const mergedRecord = savedRecord ? mergeTrackingRecord(savedRecord) : nextRecord;
+      broadcastOrdersChanged();
+      return mergedRecord;
+    }
+
+    if (typeof firebaseBackend.setDocument === "function") {
+      await firebaseBackend.setDocument(FIREBASE_TRACKING_COLLECTION, id, nextRecord);
+    }
+
+    broadcastOrdersChanged();
+    return nextRecord;
+  } catch (error) {
+    applyTrackingSnapshot(previousTracking);
+    broadcastOrdersChanged();
+    console.error("No se pudo guardar la valoracion publica del pedido.", error);
+    notifyFirebaseError(error, "No se pudo guardar la valoracion del cliente.");
+    return null;
+  }
 }
 
 function submitOrderRatingFeedback(id, score, comment) {

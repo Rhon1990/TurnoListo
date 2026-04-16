@@ -41,6 +41,24 @@ function trimValue(value) {
   return String(value || "").trim();
 }
 
+function normalizePublicTrackingLookupId(value) {
+  return trimValue(value).toUpperCase();
+}
+
+function assertValidPublicTrackingLookupId(value) {
+  const normalizedValue = normalizePublicTrackingLookupId(value);
+  if (!normalizedValue || !/^[A-Z0-9-]{4,40}$/.test(normalizedValue)) {
+    throw new HttpsError("invalid-argument", "El identificador publico del pedido no es valido.");
+  }
+  return normalizedValue;
+}
+
+function assertMaxLength(value, maxLength, message) {
+  if (trimValue(value).length > maxLength) {
+    throw new HttpsError("invalid-argument", message);
+  }
+}
+
 function normalizePhoneCountry(value) {
   const iso = String(value?.iso || "").trim().toUpperCase();
   if (!iso) return null;
@@ -108,6 +126,10 @@ function hashToken(token) {
   return crypto.createHash("sha256").update(String(token || "")).digest("hex");
 }
 
+function pickRandomChar(characters) {
+  return characters[crypto.randomInt(0, characters.length)];
+}
+
 function normalizeLogoUrl(value) {
   const logoUrl = String(value || "").trim();
   if (!logoUrl) return "";
@@ -142,6 +164,24 @@ function normalizeAppUrl(value) {
     return parsed.toString();
   } catch {
     throw new HttpsError("invalid-argument", "La URL de acceso del restaurante no es valida.");
+  }
+}
+
+function normalizeWebUrl(value, errorMessage) {
+  const url = trimValue(value);
+  if (!url) return "";
+
+  try {
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("invalid-protocol");
+    }
+    if (parsed.toString().length > 600) {
+      throw new Error("too-long");
+    }
+    return parsed.toString();
+  } catch {
+    throw new HttpsError("invalid-argument", errorMessage);
   }
 }
 
@@ -264,22 +304,91 @@ function generateRestaurantPassword(length = 14) {
   const symbols = "!@#$%*_-";
   const all = `${upper}${lower}${digits}${symbols}`;
   const chars = [
-    upper[Math.floor(Math.random() * upper.length)],
-    lower[Math.floor(Math.random() * lower.length)],
-    digits[Math.floor(Math.random() * digits.length)],
-    symbols[Math.floor(Math.random() * symbols.length)],
+    pickRandomChar(upper),
+    pickRandomChar(lower),
+    pickRandomChar(digits),
+    pickRandomChar(symbols),
   ];
 
   while (chars.length < length) {
-    chars.push(all[Math.floor(Math.random() * all.length)]);
+    chars.push(pickRandomChar(all));
   }
 
   for (let index = chars.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const swapIndex = crypto.randomInt(0, index + 1);
     [chars[index], chars[swapIndex]] = [chars[swapIndex], chars[index]];
   }
 
   return chars.join("");
+}
+
+function sanitizePublicTrackingRecord(record) {
+  if (!record) return null;
+
+  return {
+    id: trimValue(record.id),
+    restaurantId: trimValue(record.restaurantId),
+    restaurantName: trimValue(record.restaurantName),
+    restaurantLogoUrl: trimValue(record.restaurantLogoUrl),
+    publicTrackingToken: normalizePublicTrackingLookupId(record.publicTrackingToken),
+    sourceOrderId: normalizePublicTrackingLookupId(record.sourceOrderId),
+    orderNumber: trimValue(record.orderNumber),
+    customerName: trimValue(record.customerName),
+    pickupPoint: trimValue(record.pickupPoint),
+    estimatedReadyMinutes: Number.isFinite(Number(record.estimatedReadyMinutes))
+      ? Number(record.estimatedReadyMinutes)
+      : null,
+    promisedReadyAt: trimValue(record.promisedReadyAt),
+    status: trimValue(record.status),
+    rating: record.rating && typeof record.rating === "object"
+      ? {
+          score: Number(record.rating.score) || 0,
+          comment: trimValue(record.rating.comment),
+          createdAt: trimValue(record.rating.createdAt),
+        }
+      : null,
+    createdAt: trimValue(record.createdAt),
+    archivedAt: trimValue(record.archivedAt),
+  };
+}
+
+async function findTrackingRecordByPublicId(publicId) {
+  const rawPublicId = trimValue(publicId);
+  const normalizedPublicId = normalizePublicTrackingLookupId(publicId);
+  if (!rawPublicId && !normalizedPublicId) {
+    return null;
+  }
+
+  const trackingCollection = firestore.collection("tracking");
+  const docIdsToTry = [...new Set([rawPublicId, normalizedPublicId].filter(Boolean))];
+
+  for (const docId of docIdsToTry) {
+    const snapshot = await trackingCollection.doc(docId).get();
+    if (snapshot.exists) {
+      return {
+        id: snapshot.id,
+        data: snapshot.data() || {},
+      };
+    }
+  }
+
+  const queries = [
+    { field: "publicTrackingToken", value: normalizedPublicId },
+    { field: "sourceOrderId", value: normalizedPublicId },
+  ].filter((entry) => entry.value);
+
+  for (const entry of queries) {
+    const snapshot = await trackingCollection.where(entry.field, "==", entry.value).limit(1).get();
+    if (!snapshot.empty) {
+      const docSnapshot = snapshot.docs[0];
+      return {
+        id: docSnapshot.id,
+        data: docSnapshot.data() || {},
+      };
+    }
+  }
+
+  return null;
 }
 
 async function assertAdmin(authUid) {
@@ -575,6 +684,80 @@ exports.createAdminAccount = onCall(async (request) => {
   };
 });
 
+exports.getPublicTrackingOrder = onCall(async (request) => {
+  const publicId = assertValidPublicTrackingLookupId(request.data?.publicId || request.data?.id);
+
+  const trackingRecord = await findTrackingRecordByPublicId(publicId);
+  if (!trackingRecord) {
+    throw new HttpsError("not-found", "No se encontro el seguimiento solicitado.");
+  }
+
+  return {
+    tracking: sanitizePublicTrackingRecord({
+      id: trackingRecord.id,
+      ...trackingRecord.data,
+    }),
+  };
+});
+
+exports.submitPublicTrackingRating = onCall(async (request) => {
+  const publicId = assertValidPublicTrackingLookupId(request.data?.publicId || request.data?.id);
+  const score = Number.parseInt(String(request.data?.score || ""), 10);
+  const comment = trimValue(request.data?.comment);
+
+  if (!Number.isInteger(score) || score < 1 || score > 5) {
+    throw new HttpsError("invalid-argument", "La valoracion debe ser un numero entero entre 1 y 5.");
+  }
+
+  if (comment.length > 160) {
+    throw new HttpsError("invalid-argument", "El comentario es demasiado largo.");
+  }
+
+  const trackingRecord = await findTrackingRecordByPublicId(publicId);
+  if (!trackingRecord) {
+    throw new HttpsError("not-found", "No se encontro el seguimiento solicitado.");
+  }
+
+  const currentData = trackingRecord.data || {};
+  if (trimValue(currentData.status) !== "delivered") {
+    throw new HttpsError("failed-precondition", "Solo se puede valorar un pedido entregado.");
+  }
+
+  const existingRating = currentData.rating && typeof currentData.rating === "object" ? currentData.rating : null;
+  if (existingRating) {
+    const sameScore = Number(existingRating.score) === score;
+    const sameComment = trimValue(existingRating.comment) === comment;
+    if (!sameScore || !sameComment) {
+      throw new HttpsError("already-exists", "Este pedido ya tiene una valoracion registrada.");
+    }
+
+    return {
+      ok: true,
+      tracking: sanitizePublicTrackingRecord({
+        id: trackingRecord.id,
+        ...currentData,
+      }),
+    };
+  }
+
+  const rating = {
+    score,
+    comment,
+    createdAt: new Date().toISOString(),
+  };
+
+  await firestore.collection("tracking").doc(trackingRecord.id).set({ rating }, { merge: true });
+
+  return {
+    ok: true,
+    tracking: sanitizePublicTrackingRecord({
+      id: trackingRecord.id,
+      ...currentData,
+      rating,
+    }),
+  };
+});
+
 exports.submitContactInquiry = onCall(async (request) => {
   const data = request.data || {};
   const name = trimValue(data.name);
@@ -589,6 +772,13 @@ exports.submitContactInquiry = onCall(async (request) => {
   if (!name || name.length < 2) {
     throw new HttpsError("invalid-argument", "El nombre es obligatorio.");
   }
+
+  assertMaxLength(name, 120, "El nombre es demasiado largo.");
+  assertMaxLength(company, 120, "La empresa es demasiado larga.");
+  assertMaxLength(phone, 40, "El telefono es demasiado largo.");
+  assertMaxLength(interest, 80, "El motivo es demasiado largo.");
+  assertMaxLength(sourcePage, 80, "La pagina de origen no es valida.");
+  assertMaxLength(referrer, 600, "La referencia es demasiado larga.");
 
   if (!isValidEmail(email)) {
     throw new HttpsError("invalid-argument", "El correo es invalido.");
@@ -632,6 +822,9 @@ exports.registerClientPushSubscription = onCall(async (request) => {
   const data = request.data || {};
   const token = trimValue(data.token);
   const orderId = trimValue(data.orderId);
+  const requestedPublicId = trimValue(data.orderPublicId)
+    ? assertValidPublicTrackingLookupId(data.orderPublicId)
+    : "";
 
   if (!token || !orderId) {
     throw new HttpsError("invalid-argument", "Faltan el token push o el pedido a notificar.");
@@ -643,8 +836,20 @@ exports.registerClientPushSubscription = onCall(async (request) => {
   }
 
   const order = orderSnapshot.data() || {};
-  const clientUrl = trimValue(data.clientUrl) || "";
-  const orderPublicId = trimValue(data.orderPublicId) || trimValue(order.sourceOrderId) || orderId;
+  const clientUrl = normalizeWebUrl(data.clientUrl, "La URL publica del pedido no es valida.");
+  const expectedPublicIds = new Set(
+    [
+      normalizePublicTrackingLookupId(order.publicTrackingToken),
+      normalizePublicTrackingLookupId(order.sourceOrderId),
+      normalizePublicTrackingLookupId(orderId),
+    ].filter(Boolean),
+  );
+
+  if (requestedPublicId && !expectedPublicIds.has(requestedPublicId)) {
+    throw new HttpsError("invalid-argument", "El identificador publico del pedido no coincide con el pedido indicado.");
+  }
+
+  const orderPublicId = requestedPublicId || expectedPublicIds.values().next().value || orderId;
   const orderNumber = trimValue(data.orderNumber) || trimValue(order.orderNumber) || orderPublicId;
   const subscriptionId = hashToken(token);
   const nowIso = new Date().toISOString();

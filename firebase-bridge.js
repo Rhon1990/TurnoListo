@@ -212,6 +212,16 @@ window.__turnoFirebaseReadyPromise = (async () => {
       const result = await callable(payload);
       return result.data;
     },
+    async loadPublicTrackingOrder(publicId) {
+      const callable = httpsCallable(functions, "getPublicTrackingOrder");
+      const result = await callable({ publicId });
+      return result.data?.tracking || null;
+    },
+    async submitPublicTrackingRating(payload) {
+      const callable = httpsCallable(functions, "submitPublicTrackingRating");
+      const result = await callable(payload);
+      return result.data?.tracking || null;
+    },
     async enableClientPushNotifications(subscriptionData) {
       if (!messagingSupported || !messaging || !("Notification" in window) || !("serviceWorker" in navigator)) {
         return { enabled: false, reason: "unsupported" };

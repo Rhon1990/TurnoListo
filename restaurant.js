@@ -1436,14 +1436,25 @@ function renderDashboardDonut(container, items, centerLabel) {
   chart.className = "dashboard-donut__chart";
   chart.style.background = `conic-gradient(${segments.join(", ")})`;
   center.className = "dashboard-donut__center";
-  center.innerHTML = `<span>${translateText(centerLabel)}</span><strong>${total}</strong>`;
+  const centerCopy = document.createElement("span");
+  const centerValue = document.createElement("strong");
+  centerCopy.textContent = translateText(centerLabel);
+  centerValue.textContent = String(total);
+  center.append(centerCopy, centerValue);
   chart.append(center);
 
   legend.className = "dashboard-donut__legend";
   safeItems.forEach((item) => {
     const row = document.createElement("div");
+    const dot = document.createElement("span");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
     row.className = "dashboard-donut__legend-row";
-    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${translateText(item.label)}</span><strong>${item.count}</strong>`;
+    dot.className = "dashboard-donut__dot";
+    dot.style.background = item.color || "#ec7c0d";
+    label.textContent = translateText(item.label);
+    value.textContent = String(item.count);
+    row.append(dot, label, value);
     legend.append(row);
   });
 
