@@ -315,8 +315,10 @@ async function handleLoadOrder() {
   }
 
   if (!order) {
-    orderInput.setCustomValidity(translateKey("client.dynamic.order.invalid", "Ese QR no existe o ya no está disponible."));
+    const invalidOrderMessage = translateKey("client.dynamic.order.invalid", "Ese QR no existe o ya no está disponible.");
+    orderInput.setCustomValidity(invalidOrderMessage);
     orderInput.reportValidity();
+    showTurnoAlert(invalidOrderMessage, "warning", { timeoutMs: 3200 });
     return;
   }
 

@@ -526,6 +526,12 @@ function applyTrackingSnapshot(tracking) {
   persistTrackingToLocalStorage(cachedTracking);
 }
 
+function syncCachedStateFromLocalStorage() {
+  cachedOrders = normalizeOrders(readOrdersFromLocalStorage());
+  cachedRestaurants = normalizeRestaurants(readRestaurantsFromLocalStorage());
+  cachedTracking = normalizePublicTracking(readTrackingFromLocalStorage());
+}
+
 function mergeTrackingRecord(record) {
   if (!record) return null;
 
@@ -3084,16 +3090,21 @@ function getSyncChannel() {
 }
 
 function onOrdersChanged(callback) {
+  const handleExternalSync = () => {
+    syncCachedStateFromLocalStorage();
+    callback();
+  };
+
   window.addEventListener(SYNC_EVENT_NAME, callback);
-  window.addEventListener("storage", callback);
-  window.addEventListener("focus", callback);
+  window.addEventListener("storage", handleExternalSync);
+  window.addEventListener("focus", handleExternalSync);
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") callback();
+    if (document.visibilityState === "visible") handleExternalSync();
   });
 
   const channel = getSyncChannel();
   if (channel) {
-    channel.addEventListener("message", callback);
+    channel.addEventListener("message", handleExternalSync);
   }
 }
 
