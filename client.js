@@ -547,8 +547,18 @@ function hasClientEta(order) {
   return Boolean(String(order?.promisedReadyAt || "").trim());
 }
 
+function getReadyCelebrationMarker(order, status) {
+  if (status !== "ready") return "";
+
+  const statusTimestamp = String(order?.statusStartedAt || order?.updatedAt || "").trim();
+  if (statusTimestamp) return statusTimestamp;
+
+  const stableOrderId = String(order?.publicTrackingToken || order?.sourceOrderId || order?.id || "").trim();
+  return stableOrderId ? `${stableOrderId}:ready` : "ready";
+}
+
 function triggerReadyCelebration(previousStatus, nextStatus) {
-  const nextReadyMarker = nextStatus === "ready" ? String(currentOrder?.statusStartedAt || currentOrder?.updatedAt || "") : "";
+  const nextReadyMarker = getReadyCelebrationMarker(currentOrder, nextStatus);
 
   if (nextStatus !== "ready") {
     lastReadyAlertMarker = "";

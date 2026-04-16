@@ -33,7 +33,18 @@ function hasFirebaseConfig(config) {
 
 function getPreferredAuthPersistence() {
   const requiredRole = String(window.TURNO_LISTO_PRIVATE_ROLE || "").trim();
-  return requiredRole === "restaurant" ? browserSessionPersistence : browserLocalPersistence;
+  return requiredRole ? browserSessionPersistence : browserLocalPersistence;
+}
+
+function resolveAuthPersistence(options = {}) {
+  const requestedPersistence = String(options?.persistence || "").trim();
+  if (requestedPersistence === "local") {
+    return browserLocalPersistence;
+  }
+  if (requestedPersistence === "session") {
+    return browserSessionPersistence;
+  }
+  return getPreferredAuthPersistence();
 }
 
 function sanitizeForFirestore(value) {
@@ -177,7 +188,7 @@ window.__turnoFirebaseReadyPromise = (async () => {
       return auth.currentUser;
     },
     async signIn(username, password, options = {}) {
-      const persistence = options?.persistence === "session" ? browserSessionPersistence : browserLocalPersistence;
+      const persistence = resolveAuthPersistence(options);
       await setPersistence(auth, persistence);
       return signInWithEmailAndPassword(auth, String(username || "").trim(), String(password || ""));
     },
