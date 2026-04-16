@@ -88,6 +88,18 @@ const translateKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+
+function translateBuiltInOrderText(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized) return "";
+
+  if (["Pedido rápido", "Alta manual", "Cliente mostrador"].includes(normalized)) {
+    return translateText(normalized);
+  }
+
+  return normalized;
+}
+
 const CLIENT_STATUS_KEY_BY_STATUS = {
   received: "client.status.received",
   preparing: "client.status.preparing",
@@ -223,7 +235,7 @@ function renderClient() {
   syncOrderInputValue(publicOrderId);
   renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
-  ticketCustomer.textContent = order.customerName;
+  ticketCustomer.textContent = translateBuiltInOrderText(order.customerName);
   statusPill.textContent = translateText(meta.label);
   statusPill.style.background = meta.bg;
   statusPill.style.color = meta.color;

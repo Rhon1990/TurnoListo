@@ -551,10 +551,10 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
   }
 
   if (stats.aiNextAction) {
-    restaurantSpotlightTitle.textContent = stats.aiNextAction.title;
-    restaurantSpotlightBody.textContent = stats.aiNextAction.body;
-    restaurantSpotlightChipPrimary.textContent = stats.aiNextAction.primary;
-    restaurantSpotlightChipSecondary.textContent = stats.aiNextAction.secondary;
+    restaurantSpotlightTitle.textContent = translateRuntimeText(stats.aiNextAction.title);
+    restaurantSpotlightBody.textContent = translateRuntimeText(stats.aiNextAction.body);
+    restaurantSpotlightChipPrimary.textContent = translateRuntimeText(stats.aiNextAction.primary);
+    restaurantSpotlightChipSecondary.textContent = translateRuntimeText(stats.aiNextAction.secondary);
     return;
   }
 
@@ -1807,6 +1807,17 @@ function buildEmptyState(message) {
   return card;
 }
 
+function translateBuiltInOrderText(value) {
+  const normalized = String(value || "").trim();
+  if (!normalized) return "";
+
+  if (["Pedido rápido", "Alta manual", "Cliente mostrador"].includes(normalized)) {
+    return translateRuntimeText(normalized);
+  }
+
+  return normalized;
+}
+
 function buildOrderCard(order, isArchived) {
   const card = document.createElement("article");
   const compactButton = document.createElement("button");
@@ -1870,8 +1881,8 @@ function buildOrderCard(order, isArchived) {
   grid.className = "order-edit-grid";
   footer.className = "order-card__footer";
 
-  compactTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  compactLine.append(document.createTextNode(order.items));
+  compactTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  compactLine.append(document.createTextNode(translateBuiltInOrderText(order.items)));
   if (order.sourceOrderId) {
     compactLine.append(document.createTextNode(translateRuntimeText(` · Ticket ${order.sourceOrderId}`)));
   }
@@ -1952,12 +1963,12 @@ function buildOrderCard(order, isArchived) {
       wide: true,
       className: "field--priority",
     }),
-    buildFieldWithOptions(translateRuntimeText("Pedido"), "items", order.items, !isEditing, {
+    buildFieldWithOptions(translateRuntimeText("Pedido"), "items", translateBuiltInOrderText(order.items), !isEditing, {
       wide: true,
       className: "field--priority",
     }),
-    buildField(translateRuntimeText("Cliente"), "customerName", order.customerName, !isEditing),
-    buildField(translateRuntimeText("Origen"), "sourceSystem", order.sourceSystem, !isEditing),
+    buildField(translateRuntimeText("Cliente"), "customerName", translateBuiltInOrderText(order.customerName), !isEditing),
+    buildField(translateRuntimeText("Origen"), "sourceSystem", translateBuiltInOrderText(order.sourceSystem), !isEditing),
     buildFieldWithOptions(estimatedEtaField.label, "estimatedReadyMinutes", estimatedEtaField.value, !isEditing, {
       type: "number",
       placeholder: estimatedEtaField.placeholder,
@@ -2278,8 +2289,8 @@ function handleCreateOrder(event) {
 }
 
 function openCommentModal(order) {
-  commentTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  commentMeta.textContent = translateRuntimeText(`Valoración ${formatRating(order.rating?.score || 0)} · ${order.items}`);
+  commentTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  commentMeta.textContent = translateRuntimeText(`Valoración ${formatRating(order.rating?.score || 0)} · ${translateBuiltInOrderText(order.items)}`);
   commentBody.textContent = order.rating?.comment || translateRuntimeText("Sin comentario");
   commentModal.hidden = false;
 }
@@ -2294,7 +2305,10 @@ function openAiModal(order, triggerButton = null) {
   aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? translateRuntimeText(`Cuello: ${order.aiBottleneckLabel}`) : ""]
     .filter(Boolean)
     .join(" · ");
-  aiBody.textContent = [order.aiReason, "", order.aiRecommendation].filter(Boolean).join("\n");
+  aiBody.textContent = [order.aiReason, "", order.aiRecommendation]
+    .filter(Boolean)
+    .map((line) => translateRuntimeText(line))
+    .join("\n");
   aiModal.hidden = false;
   aiClose.focus();
 }
