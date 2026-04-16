@@ -908,16 +908,25 @@ async function handleRestaurantLogin(event) {
   } catch (error) {
     console.error("No se pudo iniciar sesion con Firebase Authentication.", error);
     const errorCode = String(error?.code || "");
+    const errorMessage = String(error?.message || "").trim().toLowerCase();
     const isCredentialError = [
       "auth/invalid-credential",
       "auth/user-not-found",
       "auth/wrong-password",
       "auth/invalid-login-credentials",
       "auth/invalid-email",
-    ].includes(errorCode);
+    ].includes(errorCode)
+      || errorMessage.includes("incorrect username or password")
+      || errorMessage.includes("invalid login credentials")
+      || errorMessage.includes("wrong-password")
+      || errorMessage.includes("wrong password")
+      || errorMessage.includes("user-not-found")
+      || errorMessage.includes("user not found");
 
     restaurantLoginFeedback.textContent =
-      knownRestaurant
+      isCredentialError
+        ? translateRuntimeText("Usuario o contrasena incorrectos.")
+        : knownRestaurant
         ? translateRuntimeText("No se pudo iniciar sesion. Verifica que la cuenta del restaurante exista en Firebase Authentication y que la clave coincida.")
         : translateRuntimeText("Usuario o contrasena incorrectos.");
     restaurantLoginFeedback.className = "form-feedback form-feedback--error";
@@ -978,7 +987,8 @@ async function handleRestaurantProfileLogoSelection(event) {
     selectedRestaurantProfileLogoUrl = await optimizeAccountImage(file);
     syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl);
   } catch (error) {
-    showTurnoAlert(error instanceof Error ? error.message : translateRuntimeText("No se pudo preparar el logo del restaurante."), "error");
+    const message = error instanceof Error ? translateRuntimeText(error.message) : translateRuntimeText("No se pudo preparar el logo del restaurante.");
+    showTurnoAlert(message, "error");
   }
 }
 

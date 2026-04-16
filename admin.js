@@ -823,7 +823,7 @@ async function handleRestaurantLogoSelection(event) {
     console.error("No se pudo preparar el logo del restaurante.", error);
     resetRestaurantLogoPreview();
     adminCreateFeedback.textContent =
-      error instanceof Error ? error.message : translateRuntimeText("No se pudo procesar el logo. Usa una imagen JPG, PNG o WebP mas ligera.");
+      error instanceof Error ? translateRuntimeText(error.message) : translateRuntimeText("No se pudo procesar el logo. Usa una imagen JPG, PNG o WebP mas ligera.");
     adminCreateFeedback.className = "form-feedback form-feedback--error";
     adminCreateFeedback.hidden = false;
     showTurnoAlert(adminCreateFeedback.textContent, "error");
@@ -1219,7 +1219,7 @@ async function handleAdminAvatarSelection(event) {
       adminProfileFeedback.textContent = "";
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : translateRuntimeText("No se pudo preparar la foto del administrador.");
+    const message = error instanceof Error ? translateRuntimeText(error.message) : translateRuntimeText("No se pudo preparar la foto del administrador.");
     if (adminProfileFeedback) {
       adminProfileFeedback.textContent = message;
       adminProfileFeedback.className = "form-feedback form-feedback--error";
@@ -2109,7 +2109,7 @@ function renderRestaurantDirectory(restaurants) {
       } catch (error) {
         console.error("No se pudo actualizar el logo del restaurante.", error);
         const message =
-          error instanceof Error ? error.message : translateRuntimeText("No se pudo actualizar el logo del restaurante.");
+          error instanceof Error ? translateRuntimeText(error.message) : translateRuntimeText("No se pudo actualizar el logo del restaurante.");
         adminCreateFeedback.textContent = message;
         adminCreateFeedback.className = "form-feedback form-feedback--error";
         adminCreateFeedback.hidden = false;
