@@ -835,7 +835,8 @@ async function refreshPublicTrackingFromBackend(publicId = "") {
     broadcastOrdersChanged();
     return { enabled: true, refreshed: true, found: Boolean(trackingRecord), scope: "public" };
   } catch (error) {
-    if (!requiredRole && error?.code === "not-found") {
+    const errorCode = String(error?.code || "").trim().toLowerCase();
+    if (!requiredRole && (errorCode === "not-found" || errorCode === "functions/not-found")) {
       applyTrackingSnapshot([]);
       broadcastOrdersChanged();
       return { enabled: true, refreshed: true, found: false, scope: "public" };
