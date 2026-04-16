@@ -78,29 +78,14 @@ initializeRestaurantProfilePage();
 function initializeRestaurantProfilePage() {
   restaurantProfileForm?.addEventListener("submit", handleRestaurantProfileSubmit);
   restaurantProfileLogoInput?.addEventListener("change", handleRestaurantProfileLogoSelection);
-  restaurantProfilePhoneCountryTrigger?.addEventListener("click", toggleRestaurantProfilePhoneCountryPanel);
-  restaurantProfilePhoneCountrySearch?.addEventListener("input", renderRestaurantProfilePhoneCountryList);
-  restaurantProfilePhoneLocal?.addEventListener("input", () => {
-    syncRestaurantProfilePhoneHiddenValue();
-    if (restaurantProfilePhoneLocal.value.trim()) {
-      setRestaurantProfilePhoneError("");
-    }
-  });
-  restaurantProfilePhoneLocal?.addEventListener("blur", () => {
-    validateRestaurantProfilePhoneNumber({ report: Boolean(restaurantProfilePhoneLocal?.value.trim()) });
-  });
   restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
   restaurantMenuLogout?.addEventListener("click", async () => {
     closeRestaurantAccountMenu();
     await handleRestaurantLogout();
   });
   window.addEventListener("click", handleRestaurantAccountOutsideClick);
-  window.addEventListener("click", handleRestaurantProfilePhoneOutsideClick);
-  window.addEventListener("keydown", handleRestaurantProfilePhoneKeydown);
   window.addEventListener("turnolisto:language-change", () => {
-    renderRestaurantProfilePhoneCountryState();
-    renderRestaurantProfilePhoneCountryList();
-    validateRestaurantProfilePhoneNumber({ report: Boolean(restaurantProfilePhoneLocal?.value.trim()) || Boolean(restaurantProfilePhoneError && !restaurantProfilePhoneError.hidden) });
+    restaurantProfilePhoneController?.refreshLanguage();
   });
   initializeRestaurantProfilePhoneField();
   waitForDataReady().then(() => {
@@ -388,7 +373,7 @@ function handleRestaurantAccountOutsideClick(event) {
 }
 
 function getRestaurantProfilePhoneCountryByIso(iso) {
-  return restaurantProfilePhoneController?.getCountryByIso(iso) || PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+  return restaurantProfilePhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
 }
 
 function setRestaurantProfilePhoneError(message = "") {
@@ -447,11 +432,11 @@ function handleRestaurantProfilePhoneKeydown(event) {
 }
 
 function initializeRestaurantProfilePhoneField() {
-  return restaurantProfilePhoneController?.reset();
+  return restaurantProfilePhoneController?.initialize();
 }
 
 function splitRestaurantProfilePhoneValue(value) {
-  return restaurantProfilePhoneController?.splitValue(value) || { iso: DEFAULT_PHONE_COUNTRY_ISO, local: "" };
+  return restaurantProfilePhoneController?.splitValue(value) || { iso: SHARED_DEFAULT_PHONE_COUNTRY_ISO, local: "" };
 }
 
 function applyRestaurantProfilePhoneValue(value) {

@@ -256,28 +256,6 @@ adminLoginTogglePassword.addEventListener("click", (event) => {
 adminCreateRestaurantForm.addEventListener("submit", handleCreateRestaurant);
 adminRestaurantLogoInput.addEventListener("change", handleRestaurantLogoSelection);
 adminPlanSelect.addEventListener("change", syncActivationDaysWithPlan);
-adminPhoneCountryTrigger?.addEventListener("click", toggleAdminPhoneCountryPanel);
-adminPhoneCountrySearch?.addEventListener("input", renderAdminPhoneCountryList);
-adminRestaurantPhoneLocal?.addEventListener("input", () => {
-  syncAdminPhoneHiddenValue();
-  if (adminPhoneError && !adminPhoneError.hidden) {
-    validateAdminPhoneNumber({ report: true });
-  }
-});
-adminRestaurantPhoneLocal?.addEventListener("blur", () => {
-  validateAdminPhoneNumber({ report: shouldReportPhoneValidation(adminRestaurantPhoneLocal, adminPhoneError) });
-});
-adminCreateAdminPhoneCountryTrigger?.addEventListener("click", toggleAdminCreateAdminPhoneCountryPanel);
-adminCreateAdminPhoneCountrySearch?.addEventListener("input", renderAdminCreateAdminPhoneCountryList);
-adminCreateAdminPhoneLocal?.addEventListener("input", () => {
-  syncAdminCreateAdminPhoneHiddenValue();
-  if (adminCreateAdminPhoneError && !adminCreateAdminPhoneError.hidden) {
-    validateAdminCreateAdminPhoneNumber({ report: true });
-  }
-});
-adminCreateAdminPhoneLocal?.addEventListener("blur", () => {
-  validateAdminCreateAdminPhoneNumber({ report: shouldReportPhoneValidation(adminCreateAdminPhoneLocal, adminCreateAdminPhoneError) });
-});
 adminDeleteBackdrop.addEventListener("click", closeDeleteModal);
 adminDeleteClose.addEventListener("click", closeDeleteModal);
 adminDeleteBack.addEventListener("click", closeDeleteModal);
@@ -341,17 +319,9 @@ adminProfileForm?.addEventListener("submit", handleAdminProfileSubmit);
 adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
 adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
 window.addEventListener("click", handleAdminAccountOutsideClick);
-window.addEventListener("click", handleAdminPhoneCountryOutsideClick);
-window.addEventListener("click", handleAdminCreateAdminPhoneCountryOutsideClick);
-window.addEventListener("keydown", handleAdminPhoneCountryKeydown);
-window.addEventListener("keydown", handleAdminCreateAdminPhoneKeydown);
 window.addEventListener("turnolisto:language-change", () => {
-  renderAdminPhoneCountryState();
-  renderAdminPhoneCountryList();
-  validateAdminPhoneNumber({ report: shouldReportPhoneValidation(adminRestaurantPhoneLocal, adminPhoneError) });
-  renderAdminCreateAdminPhoneCountryState();
-  renderAdminCreateAdminPhoneCountryList();
-  validateAdminCreateAdminPhoneNumber({ report: shouldReportPhoneValidation(adminCreateAdminPhoneLocal, adminCreateAdminPhoneError) });
+  adminRestaurantPhoneController?.refreshLanguage();
+  adminCreateAdminPhoneController?.refreshLanguage();
   if (isAdminAuthenticated()) {
     renderAdminWorkspace();
     void refreshOpenAdminModals();
@@ -596,7 +566,7 @@ async function handleCreateRestaurant(event) {
 }
 
 function getPhoneCountryByIso(iso) {
-  return adminRestaurantPhoneController?.getCountryByIso(iso) || PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+  return adminRestaurantPhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
 }
 
 function shouldReportPhoneValidation(input, errorElement) {
@@ -659,7 +629,7 @@ function resetAdminPhoneField() {
 }
 
 function initializeAdminPhoneField() {
-  return adminRestaurantPhoneController?.reset();
+  return adminRestaurantPhoneController?.initialize();
 }
 
 function setAdminCreateAdminPhoneError(message = "") {
@@ -703,7 +673,7 @@ function resetAdminCreateAdminPhoneField() {
 }
 
 function initializeAdminCreateAdminPhoneField() {
-  return adminCreateAdminPhoneController?.reset();
+  return adminCreateAdminPhoneController?.initialize();
 }
 
 function resetAdminRestaurantLogoFilename() {

@@ -228,17 +228,6 @@ restaurantMenuLogout?.addEventListener("click", async () => {
 });
 restaurantProfileForm?.addEventListener("submit", handleRestaurantProfileSubmit);
 restaurantProfileLogoInput?.addEventListener("change", handleRestaurantProfileLogoSelection);
-restaurantProfilePhoneCountryTrigger?.addEventListener("click", toggleRestaurantProfilePhoneCountryPanel);
-restaurantProfilePhoneCountrySearch?.addEventListener("input", renderRestaurantProfilePhoneCountryList);
-restaurantProfilePhoneLocal?.addEventListener("input", () => {
-  syncRestaurantProfilePhoneHiddenValue();
-  if (restaurantProfilePhoneError && !restaurantProfilePhoneError.hidden) {
-    validateRestaurantProfilePhoneNumber({ report: true });
-  }
-});
-restaurantProfilePhoneLocal?.addEventListener("blur", () => {
-  validateRestaurantProfilePhoneNumber({ report: Boolean(restaurantProfilePhoneLocal?.value.trim()) });
-});
 restaurantHistoryQuickFilters.forEach((button) => {
   button.addEventListener("click", () => {
     activeArchivedPeriod = "day";
@@ -248,12 +237,8 @@ restaurantHistoryQuickFilters.forEach((button) => {
   });
 });
 window.addEventListener("click", handleRestaurantAccountOutsideClick);
-window.addEventListener("click", handleRestaurantProfilePhoneOutsideClick);
-window.addEventListener("keydown", handleRestaurantProfilePhoneKeydown);
 window.addEventListener("turnolisto:language-change", () => {
-  renderRestaurantProfilePhoneCountryState();
-  renderRestaurantProfilePhoneCountryList();
-  validateRestaurantProfilePhoneNumber({ report: shouldReportPhoneValidation(restaurantProfilePhoneLocal, restaurantProfilePhoneError) });
+  restaurantProfilePhoneController?.refreshLanguage();
   if (getCurrentRestaurantSession()) {
     renderRestaurant();
     refreshOpenRestaurantModals();
@@ -1034,7 +1019,7 @@ function handleRestaurantProfileSubmit(event) {
 }
 
 function getRestaurantProfilePhoneCountryByIso(iso) {
-  return restaurantProfilePhoneController?.getCountryByIso(iso) || PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+  return restaurantProfilePhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
 }
 
 function shouldReportPhoneValidation(input, errorElement) {
@@ -1105,11 +1090,11 @@ function handleRestaurantProfilePhoneKeydown(event) {
 }
 
 function initializeRestaurantProfilePhoneField() {
-  return restaurantProfilePhoneController?.reset();
+  return restaurantProfilePhoneController?.initialize();
 }
 
 function splitRestaurantProfilePhoneValue(value) {
-  return restaurantProfilePhoneController?.splitValue(value) || { iso: DEFAULT_PHONE_COUNTRY_ISO, local: "" };
+  return restaurantProfilePhoneController?.splitValue(value) || { iso: SHARED_DEFAULT_PHONE_COUNTRY_ISO, local: "" };
 }
 
 function applyRestaurantProfilePhoneValue(value) {

@@ -84,29 +84,14 @@ function initializeAdminProfilePage() {
   adminMessagesShortcut?.addEventListener("click", () => {
     window.location.href = "./admin.html#messages";
   });
-  adminCreateAdminPhoneCountryTrigger?.addEventListener("click", toggleCreateAdminPhoneCountryPanel);
-  adminCreateAdminPhoneCountrySearch?.addEventListener("input", renderCreateAdminPhoneCountryList);
-  adminCreateAdminPhoneLocal?.addEventListener("input", () => {
-    syncCreateAdminPhoneHiddenValue();
-    if (adminCreateAdminPhoneError && !adminCreateAdminPhoneError.hidden) {
-      validateCreateAdminPhoneNumber({ report: true });
-    }
-  });
-  adminCreateAdminPhoneLocal?.addEventListener("blur", () => {
-    validateCreateAdminPhoneNumber({ report: Boolean(adminCreateAdminPhoneLocal?.value.trim()) });
-  });
   adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
   adminMenuLogout?.addEventListener("click", async () => {
     closeAdminAccountMenu();
     await handleAdminLogout();
   });
   window.addEventListener("click", handleAdminAccountOutsideClick);
-  window.addEventListener("click", handleCreateAdminPhoneOutsideClick);
-  window.addEventListener("keydown", handleCreateAdminPhoneKeydown);
   window.addEventListener("turnolisto:language-change", () => {
-    renderCreateAdminPhoneCountryState();
-    renderCreateAdminPhoneCountryList();
-    validateCreateAdminPhoneNumber({ report: Boolean(adminCreateAdminPhoneLocal?.value.trim()) || Boolean(adminCreateAdminPhoneError && !adminCreateAdminPhoneError.hidden) });
+    createAdminPhoneController?.refreshLanguage();
   });
   waitForDataReady().then(() => {
     initializeCreateAdminPhoneField();
@@ -190,7 +175,7 @@ function renderAdminProfile(profile) {
 }
 
 function getPhoneCountryByIso(iso) {
-  return createAdminPhoneController?.getCountryByIso(iso) || PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+  return createAdminPhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
 }
 
 function setCreateAdminPhoneError(message = "") {
@@ -253,7 +238,7 @@ function resetCreateAdminPhoneField() {
 }
 
 function initializeCreateAdminPhoneField() {
-  return createAdminPhoneController?.reset();
+  return createAdminPhoneController?.initialize();
 }
 
 function buildAdminProfileViewModel(profile, user) {

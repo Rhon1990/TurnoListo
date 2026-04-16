@@ -62,29 +62,14 @@ const contactPhoneController = window.TurnoListoPhoneFields?.create({
 
 if (contactForm && contactFeedback && contactSubmitButton) {
   contactForm.addEventListener("submit", handleContactSubmit);
-  contactPhoneCountryTrigger?.addEventListener("click", toggleContactPhoneCountryPanel);
-  contactPhoneCountrySearch?.addEventListener("input", renderContactPhoneCountryList);
-  contactPhoneLocal?.addEventListener("input", () => {
-    syncContactPhoneHiddenValue();
-    if (contactPhoneError && !contactPhoneError.hidden) {
-      validateContactPhoneNumber({ report: true });
-    }
-  });
-  contactPhoneLocal?.addEventListener("blur", () => {
-    validateContactPhoneNumber({ report: Boolean(contactPhoneLocal?.value.trim()) });
-  });
   restaurantAccountButton?.addEventListener("click", toggleRestaurantAccountMenu);
   restaurantMenuLogout?.addEventListener("click", async () => {
     closeRestaurantAccountMenu();
     await handleRestaurantLogout();
   });
   window.addEventListener("click", handleRestaurantAccountOutsideClick);
-  window.addEventListener("click", handleContactPhoneOutsideClick);
-  window.addEventListener("keydown", handleContactPhoneKeydown);
   window.addEventListener("turnolisto:language-change", () => {
-    renderContactPhoneCountryState();
-    renderContactPhoneCountryList();
-    validateContactPhoneNumber({ report: shouldReportPhoneValidation(contactPhoneLocal, contactPhoneError) });
+    contactPhoneController?.refreshLanguage();
     renderRestaurantAccount(currentRestaurantAccount);
   });
   initializeContactPhoneField();
@@ -296,7 +281,7 @@ function setInputValueIfEmpty(element, value) {
 }
 
 function getPhoneCountryByIso(iso) {
-  return contactPhoneController?.getCountryByIso(iso) || PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+  return contactPhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
 }
 
 function shouldReportPhoneValidation(input, errorElement) {
@@ -352,11 +337,11 @@ function handleContactPhoneKeydown(event) {
 }
 
 function initializeContactPhoneField() {
-  return contactPhoneController?.reset();
+  return contactPhoneController?.initialize();
 }
 
 function splitContactPhoneValue(value) {
-  return contactPhoneController?.splitValue(value) || { iso: DEFAULT_PHONE_COUNTRY_ISO, local: "" };
+  return contactPhoneController?.splitValue(value) || { iso: SHARED_DEFAULT_PHONE_COUNTRY_ISO, local: "" };
 }
 
 function setContactPhoneValueIfEmpty(value) {

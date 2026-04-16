@@ -124,6 +124,7 @@ function initializePhoneFieldHelpers() {
       errorElement,
     } = elements;
     let selectedCountryIso = String(options.defaultCountryIso || DEFAULT_PHONE_COUNTRY_ISO).trim() || DEFAULT_PHONE_COUNTRY_ISO;
+    let initialized = false;
 
     function shouldReportValidation() {
       return Boolean(String(localInput?.value || "").trim()) || Boolean(errorElement && !errorElement.hidden);
@@ -386,6 +387,7 @@ function initializePhoneFieldHelpers() {
 
     function initialize() {
       if (!field) return api;
+      if (initialized) return api;
       countryTrigger?.addEventListener("click", togglePanel);
       countrySearch?.addEventListener("input", renderList);
       localInput?.addEventListener("input", () => {
@@ -397,6 +399,7 @@ function initializePhoneFieldHelpers() {
       });
       window.addEventListener("click", handleOutsideClick);
       window.addEventListener("keydown", handleKeydown);
+      initialized = true;
       reset();
       return api;
     }
