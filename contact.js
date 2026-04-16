@@ -49,9 +49,16 @@ const PHONE_COUNTRIES = [
   { iso: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55", placeholder: "11 91234 5678", minDigits: 11, maxDigits: 11 },
 ];
 const DEFAULT_PHONE_COUNTRY_ISO = "ES";
+const translateText = (value) =>
+  window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+const translateKey = (key, fallback = "") =>
+  window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const formatKey = (key, params = {}, fallback = "") =>
+  window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 
 let contactPrefillSnapshot = null;
 let selectedContactPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+let currentRestaurantAccount = null;
 
 if (contactForm && contactFeedback && contactSubmitButton) {
   contactForm.addEventListener("submit", handleContactSubmit);
@@ -74,6 +81,11 @@ if (contactForm && contactFeedback && contactSubmitButton) {
   window.addEventListener("click", handleRestaurantAccountOutsideClick);
   window.addEventListener("click", handleContactPhoneOutsideClick);
   window.addEventListener("keydown", handleContactPhoneKeydown);
+  window.addEventListener("turnolisto:language-change", () => {
+    renderContactPhoneCountryState();
+    renderContactPhoneCountryList();
+    renderRestaurantAccount(currentRestaurantAccount);
+  });
   initializeContactPhoneField();
   initializeContactPrefill();
 }
@@ -114,7 +126,10 @@ async function handleContactSubmit(event) {
   };
 
   if (payload.message.length < 5) {
-    setContactFeedback("Escribe un mensaje un poco más descriptivo, al menos 5 caracteres.", "error");
+    setContactFeedback(
+      translateKey("contact.dynamic.feedback.message_short", "Escribe un mensaje un poco más descriptivo, al menos 5 caracteres."),
+      "error",
+    );
     contactSubmitButton.disabled = false;
     return;
   }
@@ -129,15 +144,24 @@ async function handleContactSubmit(event) {
     contactForm.reset();
     applyContactPrefillSnapshot();
     setContactFeedback(
-      "Tu solicitud se registró correctamente. El equipo de TurnoListo la revisará desde la bandeja interna de administración.",
+      translateKey(
+        "contact.dynamic.feedback.sent",
+        "Tu solicitud se registró correctamente. El equipo de TurnoListo la revisará desde la bandeja interna de administración.",
+      ),
       "success",
     );
   } catch (error) {
     console.error("No se pudo enviar el formulario de contacto.", error);
     const message =
       error?.message && String(error.message).includes("demasiado corto")
-        ? "Escribe un mensaje un poco más descriptivo para poder enviarlo."
-        : "No se pudo registrar tu solicitud ahora mismo. Inténtalo de nuevo en unos minutos.";
+        ? translateKey(
+          "contact.dynamic.feedback.message_short_retry",
+          "Escribe un mensaje un poco más descriptivo para poder enviarlo.",
+        )
+        : translateKey(
+          "contact.dynamic.feedback.failed",
+          "No se pudo registrar tu solicitud ahora mismo. Inténtalo de nuevo en unos minutos.",
+        );
     setContactFeedback(
       message,
       "error",
@@ -288,7 +312,7 @@ function renderContactPhoneCountryState() {
   const country = getPhoneCountryByIso(selectedContactPhoneCountryIso);
   if (contactPhoneCountryFlag) contactPhoneCountryFlag.textContent = country.flag;
   if (contactPhoneCountryDial) contactPhoneCountryDial.textContent = country.dialCode;
-  if (contactPhoneCountryName) contactPhoneCountryName.textContent = country.name;
+  if (contactPhoneCountryName) contactPhoneCountryName.textContent = translateText(country.name);
   if (contactPhoneLocal && !contactPhoneLocal.value.trim()) {
     contactPhoneLocal.placeholder = country.placeholder;
   }
@@ -341,10 +365,24 @@ function validateContactPhoneNumber(options = {}) {
   }
 
   if (localDigits.length < country.minDigits || localDigits.length > country.maxDigits) {
+    const countryName = translateText(country.name);
     const message =
       country.minDigits === country.maxDigits
-        ? `El móvil de ${country.name} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`
-        : `El móvil de ${country.name} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`;
+        ? formatKey(
+          "contact.dynamic.phone.invalid.fixed",
+          { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
+          `El móvil de ${countryName} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        )
+        : formatKey(
+          "contact.dynamic.phone.invalid.range",
+          {
+            country: countryName,
+            minDigits: country.minDigits,
+            maxDigits: country.maxDigits,
+            dialCode: country.dialCode,
+          },
+          `El móvil de ${countryName} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        );
     if (options.report) setContactPhoneError(message);
     return { valid: false, message };
   }
@@ -361,9 +399,11 @@ function renderContactPhoneCountryList() {
   contactPhoneCountryList.innerHTML = "";
 
   const filteredCountries = PHONE_COUNTRIES.filter((country) => {
+    const localizedCountryName = translateText(country.name).toLowerCase();
     if (!query) return true;
     return (
       country.name.toLowerCase().includes(query) ||
+      localizedCountryName.includes(query) ||
       country.dialCode.toLowerCase().includes(query) ||
       country.iso.toLowerCase().includes(query)
     );
@@ -372,7 +412,7 @@ function renderContactPhoneCountryList() {
   if (!filteredCountries.length) {
     const emptyState = document.createElement("p");
     emptyState.className = "phone-country-list__empty";
-    emptyState.textContent = "No encontramos ningún país con esa búsqueda.";
+    emptyState.textContent = translateKey("contact.dynamic.phone.empty_search", "No encontramos ningún país con esa búsqueda.");
     contactPhoneCountryList.append(emptyState);
     return;
   }
@@ -401,7 +441,7 @@ function renderContactPhoneCountryList() {
 
     const name = document.createElement("span");
     name.className = "phone-country-option__name";
-    name.textContent = country.name;
+    name.textContent = translateText(country.name);
 
     const dial = document.createElement("span");
     dial.className = "phone-country-option__dial";
@@ -502,10 +542,13 @@ function setContactPhoneValueIfEmpty(value) {
 
 function renderRestaurantAccount(restaurant) {
   if (!restaurantAccountName) return;
+  currentRestaurantAccount = restaurant || null;
   const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
-  restaurantAccountName.textContent = restaurantName || "Sin datos cargados";
-  restaurantAccountMeta.textContent = restaurantName ? "Acceso verificado" : "Cuenta no cargada";
+  restaurantAccountName.textContent = restaurantName || translateKey("restaurant.account.emptyName", "Sin datos cargados");
+  restaurantAccountMeta.textContent = restaurantName
+    ? translateText("Acceso verificado")
+    : translateKey("restaurant.account.emptyMeta", "Cuenta no cargada");
   restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || "?";
 
   if (logoUrl) {

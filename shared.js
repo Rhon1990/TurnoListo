@@ -2357,11 +2357,11 @@ function getAdminDashboardStats(options = {}) {
   const aiPortfolioAction = aiPriorityRestaurant
     ? Number(aiPriorityRestaurant.adaptiveModel?.sampleCount || 0) >= 8 &&
       !aiPriorityRestaurant.restaurantOrders?.some((order) => isWithinLastDays(order.createdAt, 7))
-      ? `Recupera ${aiPriorityRestaurant.restaurant.name}: tenía IA ya entrenada, pero su uso cayó y puede perder hábito.`
+      ? { key: "admin.dynamic.insight.ai_signal.recover", params: { name: aiPriorityRestaurant.restaurant.name } }
       : Number(aiPriorityRestaurant.adaptiveModel?.sampleCount || 0) < 8
-        ? `Empuja ${aiPriorityRestaurant.restaurant.name}: ya tiene volumen suficiente para terminar de entrenar una IA útil para el local.`
-        : `${aiPriorityRestaurant.restaurant.name} es buen candidato para usar la IA como caso de éxito comercial.`
-    : "Todavia no hay suficiente actividad para priorizar una accion IA de cartera.";
+        ? { key: "admin.dynamic.insight.ai_signal.push", params: { name: aiPriorityRestaurant.restaurant.name } }
+        : { key: "admin.dynamic.insight.ai_signal.success", params: { name: aiPriorityRestaurant.restaurant.name } }
+    : { key: "admin.dynamic.insight.ai_signal.empty", params: {} };
   const portfolioBottleneckCounts = restaurantsWithOrders.reduce(
     (accumulator, item) => {
       const baselines = item.adaptiveModel?.stageBaselines || {};
@@ -2384,12 +2384,12 @@ function getAdminDashboardStats(options = {}) {
     portfolioBottleneckEntry && portfolioBottleneckEntry[1] > 0
       ? {
           stage: portfolioBottleneckEntry[0],
-          label:
+          labelKey:
             portfolioBottleneckEntry[0] === "received"
-              ? "entrada a cocina"
+              ? "admin.bottleneck.received"
               : portfolioBottleneckEntry[0] === "preparing"
-                ? "preparacion"
-                : "recogida",
+                ? "admin.bottleneck.preparing"
+                : "admin.bottleneck.ready",
           count: portfolioBottleneckEntry[1],
         }
       : null;
@@ -2424,19 +2424,19 @@ function getAdminDashboardStats(options = {}) {
     aiPortfolioAction,
     dominantPortfolioBottleneck,
     accessMix: [
-      { label: "Activos", count: activeRestaurants.length, color: "#1f7a63" },
-      { label: "Vencen pronto", count: soonToExpire, color: "#ec7c0d" },
-      { label: "Vencidos", count: expiredRestaurants.length, color: "#b42318" },
+      { labelKey: "admin.chart.access.active", count: activeRestaurants.length, color: "#1f7a63" },
+      { labelKey: "admin.chart.access.expiring", count: soonToExpire, color: "#ec7c0d" },
+      { labelKey: "admin.chart.access.expired", count: expiredRestaurants.length, color: "#b42318" },
     ],
     adoptionMix: [
-      { label: `Activos ${periodMeta.label.toLowerCase()}`, count: recentlyActiveRestaurants, color: "#1f7a63" },
-      { label: `Sin actividad ${periodMeta.label.toLowerCase()}`, count: dormantRestaurants, color: "#ec7c0d" },
-      { label: "Sin pedidos", count: restaurantsWithoutOrders, color: "#ec7c0d" },
+      { labelKey: `admin.chart.adoption.active.${period}`, count: recentlyActiveRestaurants, color: "#1f7a63" },
+      { labelKey: `admin.chart.adoption.inactive.${period}`, count: dormantRestaurants, color: "#ec7c0d" },
+      { labelKey: "admin.chart.adoption.no_orders", count: restaurantsWithoutOrders, color: "#ec7c0d" },
     ],
     orderOutcomeMix: [
-      { label: "Abiertos", count: activeCreatedOrders.length, color: "#ec7c0d" },
-      { label: "Entregados", count: deliveredMilestoneOrders.length, color: "#1f7a63" },
-      { label: "Cancelados", count: cancelledMilestoneOrders.length, color: "#b42318" },
+      { labelKey: "admin.chart.outcome.open", count: activeCreatedOrders.length, color: "#ec7c0d" },
+      { labelKey: "admin.chart.outcome.delivered", count: deliveredMilestoneOrders.length, color: "#1f7a63" },
+      { labelKey: "admin.chart.outcome.cancelled", count: cancelledMilestoneOrders.length, color: "#b42318" },
     ],
   };
 }

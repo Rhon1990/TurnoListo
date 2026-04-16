@@ -67,6 +67,12 @@ const PHONE_COUNTRIES = [
 ];
 const DEFAULT_PHONE_COUNTRY_ISO = "ES";
 let selectedCreateAdminPhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
+const translateText = (value) =>
+  window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+const translateKey = (key, fallback = "") =>
+  window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const formatKey = (key, params = {}, fallback = "") =>
+  window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 
 initializeAdminProfilePage();
 
@@ -97,6 +103,10 @@ function initializeAdminProfilePage() {
   window.addEventListener("click", handleAdminAccountOutsideClick);
   window.addEventListener("click", handleCreateAdminPhoneOutsideClick);
   window.addEventListener("keydown", handleCreateAdminPhoneKeydown);
+  window.addEventListener("turnolisto:language-change", () => {
+    renderCreateAdminPhoneCountryState();
+    renderCreateAdminPhoneCountryList();
+  });
   waitForDataReady().then(() => {
     initializeCreateAdminPhoneField();
     initializeAdminProfileAuth();
@@ -196,7 +206,7 @@ function renderCreateAdminPhoneCountryState() {
   const country = getPhoneCountryByIso(selectedCreateAdminPhoneCountryIso);
   if (adminCreateAdminPhoneCountryFlag) adminCreateAdminPhoneCountryFlag.textContent = country.flag;
   if (adminCreateAdminPhoneCountryDial) adminCreateAdminPhoneCountryDial.textContent = country.dialCode;
-  if (adminCreateAdminPhoneCountryName) adminCreateAdminPhoneCountryName.textContent = country.name;
+  if (adminCreateAdminPhoneCountryName) adminCreateAdminPhoneCountryName.textContent = translateText(country.name);
   if (adminCreateAdminPhoneLocal && !adminCreateAdminPhoneLocal.value.trim()) {
     adminCreateAdminPhoneLocal.placeholder = country.placeholder;
   }
@@ -255,10 +265,24 @@ function validateCreateAdminPhoneNumber(options = {}) {
   }
 
   if (localDigits.length < country.minDigits || localDigits.length > country.maxDigits) {
+    const countryName = translateText(country.name);
     const message =
       country.minDigits === country.maxDigits
-        ? `El móvil de ${country.name} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`
-        : `El móvil de ${country.name} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`;
+        ? formatKey(
+          "contact.dynamic.phone.invalid.fixed",
+          { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
+          `El móvil de ${countryName} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        )
+        : formatKey(
+          "contact.dynamic.phone.invalid.range",
+          {
+            country: countryName,
+            minDigits: country.minDigits,
+            maxDigits: country.maxDigits,
+            dialCode: country.dialCode,
+          },
+          `El móvil de ${countryName} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        );
     if (options.report) setCreateAdminPhoneError(message);
     return { valid: false, message };
   }
@@ -281,9 +305,11 @@ function renderCreateAdminPhoneCountryList() {
   adminCreateAdminPhoneCountryList.innerHTML = "";
 
   const filteredCountries = PHONE_COUNTRIES.filter((country) => {
+    const localizedCountryName = translateText(country.name).toLowerCase();
     if (!query) return true;
     return (
       country.name.toLowerCase().includes(query) ||
+      localizedCountryName.includes(query) ||
       country.dialCode.toLowerCase().includes(query) ||
       country.iso.toLowerCase().includes(query)
     );
@@ -292,7 +318,7 @@ function renderCreateAdminPhoneCountryList() {
   if (!filteredCountries.length) {
     const emptyState = document.createElement("p");
     emptyState.className = "phone-country-list__empty";
-    emptyState.textContent = "No encontramos ningún país con esa búsqueda.";
+    emptyState.textContent = translateKey("contact.dynamic.phone.empty_search", "No encontramos ningún país con esa búsqueda.");
     adminCreateAdminPhoneCountryList.append(emptyState);
     return;
   }
@@ -321,7 +347,7 @@ function renderCreateAdminPhoneCountryList() {
 
     const name = document.createElement("span");
     name.className = "phone-country-option__name";
-    name.textContent = country.name;
+    name.textContent = translateText(country.name);
 
     const dial = document.createElement("span");
     dial.className = "phone-country-option__dial";

@@ -108,6 +108,12 @@ const dashboardHeroLeadMetric = document.querySelector("#dashboardHeroLeadMetric
 const dashboardHeroLeadHint = document.querySelector("#dashboardHeroLeadHint");
 const dashboardHeroActiveNow = document.querySelector("#dashboardHeroActiveNow");
 const dashboardHeroReadyNow = document.querySelector("#dashboardHeroReadyNow");
+const translateRuntimeText = (value) =>
+  window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+const translateRuntimeKey = (key, fallback = "") =>
+  window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const formatRuntimeKey = (key, params = {}, fallback = "") =>
+  window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
 const restaurantDashboardPeriod = document.querySelector("#restaurantDashboardPeriod");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
@@ -242,6 +248,11 @@ restaurantHistoryQuickFilters.forEach((button) => {
 window.addEventListener("click", handleRestaurantAccountOutsideClick);
 window.addEventListener("click", handleRestaurantProfilePhoneOutsideClick);
 window.addEventListener("keydown", handleRestaurantProfilePhoneKeydown);
+window.addEventListener("turnolisto:language-change", () => {
+  if (getCurrentRestaurantSession()) {
+    renderRestaurant();
+  }
+});
 initializeRestaurantProfilePhoneField();
 [
   activeSearchInput,
@@ -548,7 +559,7 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
   }
 
   if (stats.aiFocusOrder) {
-    restaurantSpotlightTitle.textContent = `Prioriza ${stats.aiFocusOrder.orderNumber} ahora`;
+    restaurantSpotlightTitle.textContent = translateRuntimeText(`Prioriza ${stats.aiFocusOrder.orderNumber} ahora`);
     restaurantSpotlightBody.textContent =
       stats.aiFocusOrder.aiRiskLevel === "high"
         ? translateText(
@@ -574,9 +585,13 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
             "No hay pedidos en riesgo alto ahora mismo. Puedes usar esta vista para mantener ritmo y anticiparte antes del siguiente pico de demanda.",
           );
     restaurantSpotlightChipPrimary.textContent =
-      stats.aiModelSampleSize >= 8 ? `IA ${stats.aiModelConfidenceLabel}` : `Activos ${stats.activeNow}`;
+      stats.aiModelSampleSize >= 8
+        ? translateRuntimeText(`IA ${stats.aiModelConfidenceLabel}`)
+        : translateRuntimeText(`Activos ${stats.activeNow}`);
     restaurantSpotlightChipSecondary.textContent =
-      stats.aiModelSampleSize >= 8 ? `Error medio ${stats.aiModelMeanAbsoluteError ?? "--"} min` : `Listos ${stats.readyNow}`;
+      stats.aiModelSampleSize >= 8
+        ? translateRuntimeText(`Error medio ${stats.aiModelMeanAbsoluteError ?? "--"} min`)
+        : translateRuntimeText(`Listos ${stats.readyNow}`);
     return;
   }
 
@@ -599,8 +614,12 @@ function renderRestaurantCreateHints(restaurant, allOrders = loadOrders()) {
   restaurantCreateDemoHint.hidden = false;
   restaurantCreateDemoHint.textContent =
     demoUsage.remainingOrders > 0
-      ? `Demo comercial activa: te quedan ${demoUsage.remainingOrders} de ${demoUsage.maxOrders} pedidos para enseñar QR, seguimiento e IA adaptativa en una prueba real.`
-      : `Demo comercial completada: ya has consumido ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos. Activa el plan completo para seguir operando sin limite.`;
+      ? translateRuntimeText(
+        `Demo comercial activa: te quedan ${demoUsage.remainingOrders} de ${demoUsage.maxOrders} pedidos para enseñar QR, seguimiento e IA adaptativa en una prueba real.`,
+      )
+      : translateRuntimeText(
+        `Demo comercial completada: ya has consumido ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos. Activa el plan completo para seguir operando sin limite.`,
+      );
 }
 
 function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
@@ -1016,7 +1035,7 @@ function renderRestaurantProfilePhoneCountryState() {
   const country = getRestaurantProfilePhoneCountryByIso(selectedRestaurantProfilePhoneCountryIso);
   if (restaurantProfilePhoneCountryFlag) restaurantProfilePhoneCountryFlag.textContent = country.flag;
   if (restaurantProfilePhoneCountryDial) restaurantProfilePhoneCountryDial.textContent = country.dialCode;
-  if (restaurantProfilePhoneCountryName) restaurantProfilePhoneCountryName.textContent = country.name;
+  if (restaurantProfilePhoneCountryName) restaurantProfilePhoneCountryName.textContent = translateRuntimeText(country.name);
   if (restaurantProfilePhoneLocal && !restaurantProfilePhoneLocal.value.trim()) {
     restaurantProfilePhoneLocal.placeholder = country.placeholder;
   }
@@ -1069,10 +1088,24 @@ function validateRestaurantProfilePhoneNumber(options = {}) {
   }
 
   if (localDigits.length < country.minDigits || localDigits.length > country.maxDigits) {
+    const countryName = translateRuntimeText(country.name);
     const message =
       country.minDigits === country.maxDigits
-        ? `El móvil de ${country.name} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`
-        : `El móvil de ${country.name} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`;
+        ? formatRuntimeKey(
+          "contact.dynamic.phone.invalid.fixed",
+          { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
+          `El móvil de ${countryName} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        )
+        : formatRuntimeKey(
+          "contact.dynamic.phone.invalid.range",
+          {
+            country: countryName,
+            minDigits: country.minDigits,
+            maxDigits: country.maxDigits,
+            dialCode: country.dialCode,
+          },
+          `El móvil de ${countryName} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        );
     if (options.report) setRestaurantProfilePhoneError(message);
     return { valid: false, message };
   }
@@ -1089,9 +1122,11 @@ function renderRestaurantProfilePhoneCountryList() {
   restaurantProfilePhoneCountryList.innerHTML = "";
 
   const filteredCountries = PHONE_COUNTRIES.filter((country) => {
+    const localizedCountryName = translateRuntimeText(country.name).toLowerCase();
     if (!query) return true;
     return (
       country.name.toLowerCase().includes(query) ||
+      localizedCountryName.includes(query) ||
       country.dialCode.toLowerCase().includes(query) ||
       country.iso.toLowerCase().includes(query)
     );
@@ -1100,7 +1135,7 @@ function renderRestaurantProfilePhoneCountryList() {
   if (!filteredCountries.length) {
     const emptyState = document.createElement("p");
     emptyState.className = "phone-country-list__empty";
-    emptyState.textContent = "No encontramos ningún país con esa búsqueda.";
+    emptyState.textContent = translateRuntimeKey("contact.dynamic.phone.empty_search", "No encontramos ningún país con esa búsqueda.");
     restaurantProfilePhoneCountryList.append(emptyState);
     return;
   }
@@ -1129,7 +1164,7 @@ function renderRestaurantProfilePhoneCountryList() {
 
     const name = document.createElement("span");
     name.className = "phone-country-option__name";
-    name.textContent = country.name;
+    name.textContent = translateRuntimeText(country.name);
 
     const dial = document.createElement("span");
     dial.className = "phone-country-option__dial";
@@ -1389,18 +1424,18 @@ function renderDashboard(stats) {
   dashboardDelayedActive.textContent = stats.delayedActive;
   dashboardDelayedActiveAction.textContent = stats.delayedActive;
   dashboardLongestWait.textContent = formatDurationMinutes(stats.longestActiveMinutes);
-  dashboardSlowestOrder.textContent = stats.slowestOrder ? stats.slowestOrder.orderNumber : "Sin datos";
+  dashboardSlowestOrder.textContent = stats.slowestOrder ? stats.slowestOrder.orderNumber : translateRuntimeText("Sin datos");
   dashboardSlowestOrderHint.textContent = stats.slowestOrder
-    ? `${stats.slowestOrder.customerName} · ${formatDurationMinutes(getOrderDurationMinutes(stats.slowestOrder))}`
-    : "Pedido con mayor espera activa";
-  dashboardSlowestStatus.textContent = stats.slowestStatus ? stats.slowestStatus.label : "Sin datos";
+    ? translateRuntimeText(`${stats.slowestOrder.customerName} · ${formatDurationMinutes(getOrderDurationMinutes(stats.slowestOrder))}`)
+    : translateRuntimeText("Pedido con mayor espera activa");
+  dashboardSlowestStatus.textContent = stats.slowestStatus ? translateRuntimeText(stats.slowestStatus.label) : translateRuntimeText("Sin datos");
   dashboardSlowestStatusHint.textContent = stats.slowestStatus
-    ? `Promedio ${formatStatusDurationLabel(stats.slowestStatus.averageMinutes)}`
-    : "Promedio por estado";
+    ? translateRuntimeText(`Promedio ${formatStatusDurationLabel(stats.slowestStatus.averageMinutes)}`)
+    : translateRuntimeText("Promedio por estado");
   dashboardFeedbackCountCard.textContent = stats.feedbackCount;
   dashboardAiHighRisk.textContent = stats.aiHighRiskCount;
   dashboardAiPressure.textContent = stats.aiPressureLabel;
-  dashboardAiEtaGap.textContent = `${stats.aiAverageExtraMinutes} min`;
+  dashboardAiEtaGap.textContent = translateRuntimeText(`${stats.aiAverageExtraMinutes} min`);
   dashboardAiConfidence.textContent = stats.aiModelConfidenceLabel;
   dashboardAiConfidence.classList.toggle(
     "dashboard-card__value--compact",
@@ -1408,23 +1443,27 @@ function renderDashboard(stats) {
   );
   dashboardAiConfidenceHint.textContent =
     stats.aiModelSampleSize >= 1
-      ? `${stats.aiModelSampleSize} cierres reales del local${stats.aiModelMeanAbsoluteError !== null ? ` · error medio ${stats.aiModelMeanAbsoluteError} min` : ""}`
-      : "Todavia reuniendo muestras del local";
+      ? translateRuntimeText(
+        `${stats.aiModelSampleSize} cierres reales del local${stats.aiModelMeanAbsoluteError !== null ? ` · error medio ${stats.aiModelMeanAbsoluteError} min` : ""}`,
+      )
+      : translateRuntimeText("Todavia reuniendo muestras del local");
   dashboardFeedbackCount.textContent = stats.feedbackCount;
   dashboardLowRatingCount.textContent = stats.lowRatingCount;
-  dashboardPeakHour.textContent = `Hora pico ${stats.peakHour}`;
+  dashboardPeakHour.textContent = translateRuntimeText(`Hora pico ${stats.peakHour}`);
   dashboardCancellationRate.textContent = `${stats.cancellationRate}%`;
   dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
   dashboardAiFocusOrder.textContent = stats.aiFocusOrder
-    ? `${stats.aiFocusOrder.orderNumber} · ${formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel)}`
-    : "Sin datos";
+    ? translateRuntimeText(`${stats.aiFocusOrder.orderNumber} · ${formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel)}`)
+    : translateRuntimeText("Sin datos");
   dashboardHeroLeadMetric.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgDeliveredMinutes) : "--:--";
   dashboardHeroLeadHint.textContent = stats.deliveredCount
-    ? `${stats.onTimeRate}% de pedidos resueltos en 15 min o menos ${stats.periodScopeLabel} · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`
-    : `En cuanto cierres pedidos ${stats.periodScopeLabel}, aquí verás la velocidad real y el aprendizaje del local`;
+    ? translateRuntimeText(
+      `${stats.onTimeRate}% de pedidos resueltos en 15 min o menos ${stats.periodScopeLabel} · modelo ${stats.aiModelConfidenceLabel.toLowerCase()}`,
+    )
+    : translateRuntimeText(`En cuanto cierres pedidos ${stats.periodScopeLabel}, aquí verás la velocidad real y el aprendizaje del local`);
   dashboardHeroActiveNow.textContent = stats.activeNow;
   dashboardHeroReadyNow.textContent = stats.readyNow;
-  dashboardHeroRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : "Sin datos";
+  dashboardHeroRating.textContent = stats.averageRating ? `${stats.averageRating} / 5` : translateRuntimeText("Sin datos");
 
   dashboardStatusDonut.innerHTML = "";
   dashboardStatusBars.innerHTML = "";
@@ -1492,6 +1531,8 @@ function renderDashboard(stats) {
 }
 
 function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   container.innerHTML = "";
   const safeItems = Array.isArray(items) ? items.filter(Boolean) : [];
   const maxValue = safeItems.reduce((max, item) => Math.max(max, Number(item.count || 0)), 0);
@@ -1499,7 +1540,7 @@ function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suf
   if (!safeItems.length || maxValue <= 0) {
     const empty = document.createElement("article");
     empty.className = "dashboard-insight";
-    empty.textContent = emptyMessage;
+    empty.textContent = translateText(emptyMessage);
     container.append(empty);
     return;
   }
@@ -1516,8 +1557,8 @@ function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suf
     track.className = "dashboard-bar__track";
     value.className = "dashboard-bar__value";
 
-    label.textContent = item.label;
-    value.textContent = item.valueLabel || String(item.count || 0);
+    label.textContent = translateText(item.label);
+    value.textContent = item.valueLabel ? translateText(item.valueLabel) : String(item.count || 0);
     fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
     fill.style.background = item.color || "#ec7c0d";
     track.append(fill);
@@ -1527,6 +1568,8 @@ function renderDashboardBarChart(container, items, emptyMessage = "Sin datos suf
 }
 
 function renderDashboardDonut(container, items, centerLabel) {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   container.innerHTML = "";
   const safeItems = Array.isArray(items) ? items.filter((item) => Number(item?.count || 0) > 0) : [];
   const total = safeItems.reduce((sum, item) => sum + Number(item.count || 0), 0);
@@ -1534,7 +1577,7 @@ function renderDashboardDonut(container, items, centerLabel) {
   if (!total) {
     const empty = document.createElement("article");
     empty.className = "dashboard-insight dashboard-insight--empty-chart";
-    empty.textContent = "Sin datos suficientes por ahora.";
+    empty.textContent = translateText("Sin datos suficientes por ahora.");
     container.append(empty);
     return;
   }
@@ -1553,14 +1596,14 @@ function renderDashboardDonut(container, items, centerLabel) {
   chart.className = "dashboard-donut__chart";
   chart.style.background = `conic-gradient(${segments.join(", ")})`;
   center.className = "dashboard-donut__center";
-  center.innerHTML = `<span>${centerLabel}</span><strong>${total}</strong>`;
+  center.innerHTML = `<span>${translateText(centerLabel)}</span><strong>${total}</strong>`;
   chart.append(center);
 
   legend.className = "dashboard-donut__legend";
   safeItems.forEach((item) => {
     const row = document.createElement("div");
     row.className = "dashboard-donut__legend-row";
-    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${item.label}</span><strong>${item.count}</strong>`;
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${translateText(item.label)}</span><strong>${item.count}</strong>`;
     legend.append(row);
   });
 
@@ -1568,60 +1611,56 @@ function renderDashboardDonut(container, items, centerLabel) {
 }
 
 function buildImprovementInsights(stats) {
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   const insights = [];
 
   if (stats.aiModelSampleSize >= 8) {
-    insights.push(
-      `La IA ya aprende de ${stats.aiModelSampleSize} cierres reales del local y opera con confianza ${stats.aiModelConfidenceLabel.toLowerCase()}.`,
-    );
+    insights.push(translateText(`La IA ya aprende de ${stats.aiModelSampleSize} cierres reales del local y opera con confianza ${stats.aiModelConfidenceLabel.toLowerCase()}.`));
   } else {
-    insights.push("La IA todavia esta aprendiendo este restaurante. Cuantos mas pedidos cierres, mejor ajustara ETAs, prioridades y decisiones de servicio.");
+    insights.push(translateText("La IA todavia esta aprendiendo este restaurante. Cuantos mas pedidos cierres, mejor ajustara ETAs, prioridades y decisiones de servicio."));
   }
 
   if (stats.aiDominantBottleneck) {
-    insights.push(
-      `Cuello dominante ${stats.periodScopeLabel}: ${stats.aiDominantBottleneck.label}. Afecta a ${stats.aiDominantBottleneck.count} pedido${stats.aiDominantBottleneck.count === 1 ? "" : "s"} activos.`,
-    );
+    insights.push(translateText(`Cuello dominante ${stats.periodScopeLabel}: ${stats.aiDominantBottleneck.label}. Afecta a ${stats.aiDominantBottleneck.count} pedido${stats.aiDominantBottleneck.count === 1 ? "" : "s"} activos.`));
   }
 
   if (stats.aiHighRiskCount >= 1) {
-    insights.push(
-      `La IA adaptativa detecta ${stats.aiHighRiskCount} pedido${stats.aiHighRiskCount === 1 ? "" : "s"} en riesgo alto. Conviene actuar antes de que impacten en experiencia o cancelaciones.`,
-    );
+    insights.push(translateText(`La IA adaptativa detecta ${stats.aiHighRiskCount} pedido${stats.aiHighRiskCount === 1 ? "" : "s"} en riesgo alto. Conviene actuar antes de que impacten en experiencia o cancelaciones.`));
   } else if (stats.aiAttentionCount >= 2) {
-    insights.push("La IA ve varios pedidos bajo presion. Aun no estan fuera de tiempo, pero la cola empieza a tensarse.");
+    insights.push(translateText("La IA ve varios pedidos bajo presion. Aun no estan fuera de tiempo, pero la cola empieza a tensarse."));
   }
 
   if (stats.aiAverageExtraMinutes >= 4) {
-    insights.push("La prediccion adaptativa ya añade varios minutos sobre la promesa actual. Hay señales de saturacion en cocina o recogida.");
+    insights.push(translateText("La prediccion adaptativa ya añade varios minutos sobre la promesa actual. Hay señales de saturacion en cocina o recogida."));
   }
 
   if (stats.avgDeliveredMinutes >= 20) {
-    insights.push("El tiempo medio de entrega esta alto. Conviene revisar preparacion y retirada para bajar la espera.");
+    insights.push(translateText("El tiempo medio de entrega esta alto. Conviene revisar preparacion y retirada para bajar la espera."));
   } else if (stats.deliveredCount > 0) {
-    insights.push("El promedio de entrega va bien. Mantener este ritmo ayuda a reducir colas, reforzar experiencia y sostener valor percibido.");
+    insights.push(translateText("El promedio de entrega va bien. Mantener este ritmo ayuda a reducir colas, reforzar experiencia y sostener valor percibido."));
   }
 
   if (stats.delayedActive >= 2) {
-    insights.push("Hay varios pedidos activos con más de 15 minutos. Priorizar estos pedidos puede evitar reclamaciones.");
+    insights.push(translateText("Hay varios pedidos activos con más de 15 minutos. Priorizar estos pedidos puede evitar reclamaciones."));
   }
 
   if (stats.onTimeRate > 0 && stats.onTimeRate < 70) {
-    insights.push("Menos del 70% de los pedidos se entregan en 15 minutos. Aquí hay margen directo para mejorar la operación.");
+    insights.push(translateText("Menos del 70% de los pedidos se entregan en 15 minutos. Aquí hay margen directo para mejorar la operación."));
   }
 
   if (stats.cancellationRate >= 10) {
-    insights.push("La tasa de cancelación es relevante. Merece revisar retrasos, stock o comunicación con el cliente.");
+    insights.push(translateText("La tasa de cancelación es relevante. Merece revisar retrasos, stock o comunicación con el cliente."));
   }
 
   if (stats.averageRating && Number(stats.averageRating) < 4) {
-    insights.push("La valoración media está por debajo de 4. Revisar comentarios bajos puede señalar fallos repetidos.");
+    insights.push(translateText("La valoración media está por debajo de 4. Revisar comentarios bajos puede señalar fallos repetidos."));
   } else if (stats.ratedCount > 0) {
-    insights.push("La satisfacción del cliente es sólida. Pedir más valoraciones puede reforzar esta métrica.");
+    insights.push(translateText("La satisfacción del cliente es sólida. Pedir más valoraciones puede reforzar esta métrica."));
   }
 
   if (stats.lowRatingCount >= 2) {
-    insights.push(`Hay varias valoraciones bajas ${stats.periodScopeLabel}. Conviene revisar esos casos antes de que se repitan en más clientes.`);
+    insights.push(translateText(`Hay varias valoraciones bajas ${stats.periodScopeLabel}. Conviene revisar esos casos antes de que se repitan en más clientes.`));
   }
 
   return insights.slice(0, 3);

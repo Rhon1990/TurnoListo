@@ -88,6 +88,12 @@ const adminDeleteBack = document.querySelector("#adminDeleteBack");
 const adminDeleteConfirm = document.querySelector("#adminDeleteConfirm");
 const adminDeleteMeta = document.querySelector("#adminDeleteMeta");
 const adminActivatePlanModal = document.querySelector("#adminActivatePlanModal");
+const translateRuntimeText = (value) =>
+  window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+const translateRuntimeKey = (key, fallback = "") =>
+  window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const formatRuntimeKey = (key, params = {}, fallback = "") =>
+  window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const adminActivatePlanBackdrop = document.querySelector("#adminActivatePlanBackdrop");
 const adminActivatePlanClose = document.querySelector("#adminActivatePlanClose");
 const adminActivatePlanBack = document.querySelector("#adminActivatePlanBack");
@@ -293,6 +299,11 @@ adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
 window.addEventListener("click", handleAdminAccountOutsideClick);
 window.addEventListener("click", handleAdminPhoneCountryOutsideClick);
 window.addEventListener("keydown", handleAdminPhoneCountryKeydown);
+window.addEventListener("turnolisto:language-change", () => {
+  if (isAdminAuthenticated()) {
+    renderAdminWorkspace();
+  }
+});
 window.addEventListener("hashchange", () => {
   syncAdminSectionFromHash();
   if (isAdminAuthenticated()) {
@@ -543,7 +554,7 @@ function renderAdminPhoneCountryState() {
   const country = getPhoneCountryByIso(selectedPhoneCountryIso);
   if (adminPhoneCountryFlag) adminPhoneCountryFlag.textContent = country.flag;
   if (adminPhoneCountryDial) adminPhoneCountryDial.textContent = country.dialCode;
-  if (adminPhoneCountryName) adminPhoneCountryName.textContent = country.name;
+  if (adminPhoneCountryName) adminPhoneCountryName.textContent = translateRuntimeText(country.name);
   if (adminRestaurantPhoneLocal && !adminRestaurantPhoneLocal.value.trim()) {
     adminRestaurantPhoneLocal.placeholder = country.placeholder;
   }
@@ -603,7 +614,19 @@ function validateAdminPhoneNumber(options = {}) {
       };
     }
 
-    const message = `Introduce un número móvil de ${formatPhoneDigitsRule(country)} para ${country.name}.`;
+    const countryName = translateRuntimeText(country.name);
+    const message =
+      country.minDigits === country.maxDigits
+        ? formatRuntimeKey(
+          "contact.dynamic.phone.required.fixed",
+          { country: countryName, digits: country.minDigits },
+          `Introduce un número móvil de ${country.minDigits} dígitos para ${countryName}.`,
+        )
+        : formatRuntimeKey(
+          "contact.dynamic.phone.required.range",
+          { country: countryName, minDigits: country.minDigits, maxDigits: country.maxDigits },
+          `Introduce un número móvil de entre ${country.minDigits} y ${country.maxDigits} dígitos para ${countryName}.`,
+        );
     if (options.report) setAdminPhoneError(message);
     return { valid: false, message };
   }
@@ -613,10 +636,24 @@ function validateAdminPhoneNumber(options = {}) {
   }
 
   if (localDigits.length < country.minDigits || localDigits.length > country.maxDigits) {
+    const countryName = translateRuntimeText(country.name);
     const message =
       country.minDigits === country.maxDigits
-        ? `El móvil de ${country.name} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`
-        : `El móvil de ${country.name} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`;
+        ? formatRuntimeKey(
+          "contact.dynamic.phone.invalid.fixed",
+          { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
+          `El móvil de ${countryName} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        )
+        : formatRuntimeKey(
+          "contact.dynamic.phone.invalid.range",
+          {
+            country: countryName,
+            minDigits: country.minDigits,
+            maxDigits: country.maxDigits,
+            dialCode: country.dialCode,
+          },
+          `El móvil de ${countryName} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
+        );
     if (options.report) setAdminPhoneError(message);
     return { valid: false, message };
   }
@@ -645,9 +682,11 @@ function renderAdminPhoneCountryList() {
   adminPhoneCountryList.innerHTML = "";
 
   const filteredCountries = PHONE_COUNTRIES.filter((country) => {
+    const localizedCountryName = translateRuntimeText(country.name).toLowerCase();
     if (!query) return true;
     return (
       country.name.toLowerCase().includes(query) ||
+      localizedCountryName.includes(query) ||
       country.dialCode.toLowerCase().includes(query) ||
       country.iso.toLowerCase().includes(query)
     );
@@ -656,7 +695,7 @@ function renderAdminPhoneCountryList() {
   if (!filteredCountries.length) {
     const emptyState = document.createElement("p");
     emptyState.className = "phone-country-list__empty";
-    emptyState.textContent = "No encontramos ningún país con esa búsqueda.";
+    emptyState.textContent = translateRuntimeKey("contact.dynamic.phone.empty_search", "No encontramos ningún país con esa búsqueda.");
     adminPhoneCountryList.append(emptyState);
     return;
   }
@@ -685,7 +724,7 @@ function renderAdminPhoneCountryList() {
 
     const name = document.createElement("span");
     name.className = "phone-country-option__name";
-    name.textContent = country.name;
+    name.textContent = translateRuntimeText(country.name);
 
     const dial = document.createElement("span");
     dial.className = "phone-country-option__dial";
@@ -1486,6 +1525,8 @@ async function toggleAdminInquiryRead(item) {
 function renderAdminDashboard(stats) {
   const translateText = (value) =>
     window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+  const formatKey = (key, params = {}, fallback = "") =>
+    window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
   if (adminDashboardPeriod) {
     adminDashboardPeriod.value = stats.period;
   }
@@ -1505,29 +1546,37 @@ function renderAdminDashboard(stats) {
     : 0;
   const riskCount = stats.dormantRestaurants + stats.restaurantsWithoutOrders;
   adminHeroActiveBase.textContent = stats.activeRestaurants;
-  adminHeroActiveBaseHint.textContent = `${activeBaseRate}% de la base con acceso vigente`;
+  adminHeroActiveBaseHint.textContent = formatKey("admin.dynamic.base_active_rate", { count: activeBaseRate });
   adminHeroWeeklyActivity.textContent = `${weeklyActivityRate}%`;
-  adminHeroWeeklyActivityHint.textContent = `${stats.recentlyActiveRestaurants} restaurantes registraron pedidos ${stats.periodScopeLabel}`;
+  adminHeroWeeklyActivityHint.textContent = formatKey(`admin.dynamic.orders_recorded.${stats.period}`, {
+    count: stats.recentlyActiveRestaurants,
+  });
   adminHeroRenewal.textContent = stats.expiredRestaurants + stats.soonToExpire;
-  adminHeroRenewalHint.textContent = `${stats.expiredRestaurants} vencidos y ${stats.soonToExpire} por vencer`;
+  adminHeroRenewalHint.textContent = formatKey("admin.dynamic.renewal_status", {
+    expired: stats.expiredRestaurants,
+    soon: stats.soonToExpire,
+  });
   adminHeroRisk.textContent = riskCount;
-  adminHeroRiskHint.textContent = `${stats.dormantRestaurants} con señal de inactividad ${stats.periodResultsLabel} y ${stats.restaurantsWithoutOrders} sin activar`;
+  adminHeroRiskHint.textContent = formatKey(`admin.dynamic.risk_status.${stats.period}`, {
+    dormant: stats.dormantRestaurants,
+    inactive: stats.restaurantsWithoutOrders,
+  });
   const actionQueues = getAdminActionQueues({ period: stats.period });
   adminActionRenewalCount.textContent = actionQueues.renewal;
   adminActionOnboardingCount.textContent = actionQueues.onboarding;
   adminActionRiskCount.textContent = actionQueues["at-risk"];
   adminActionHealthyCount.textContent = actionQueues.healthy;
   adminActionRenewalHint.textContent = actionQueues.renewal
-    ? `${actionQueues.renewal} cuentas necesitan renovación o contacto comercial inmediato`
+    ? formatKey("admin.dynamic.queue.renewal", { count: actionQueues.renewal })
     : "No hay cuentas urgentes de renovación ahora mismo";
   adminActionOnboardingHint.textContent = actionQueues.onboarding
-    ? `${actionQueues.onboarding} locales necesitan activar hábito y primer valor claro`
+    ? formatKey("admin.dynamic.queue.onboarding", { count: actionQueues.onboarding })
     : "No hay onboarding bloqueado en este momento";
   adminActionRiskHint.textContent = actionQueues["at-risk"]
-    ? `${actionQueues["at-risk"]} restaurantes muestran señales de caída de uso o posible churn`
+    ? formatKey("admin.dynamic.queue.risk", { count: actionQueues["at-risk"] })
     : "No hay señales de riesgo relevantes ahora";
   adminActionHealthyHint.textContent = actionQueues.healthy
-    ? `${actionQueues.healthy} cuentas están listas para retención, reseñas o expansión`
+    ? formatKey("admin.dynamic.queue.healthy", { count: actionQueues.healthy })
     : "Aún no hay base sana suficiente para empujar upsell";
 
   adminTopRestaurantPanel.innerHTML = "";
@@ -1549,16 +1598,22 @@ function renderAdminDashboard(stats) {
   adminDatasetAdaptive.textContent = stats.trainedRestaurantCount;
   adminDatasetAdaptiveHint.textContent =
     stats.trainedRestaurantCount > 0
-      ? `${stats.highConfidenceModelCount} con confianza alta · error medio ${stats.averageModelError} min`
+      ? formatKey("admin.dynamic.dataset_adaptive_hint", {
+          count: stats.highConfidenceModelCount,
+          error: stats.averageModelError,
+        })
       : "Aun no hay locales con suficiente historico para adaptar el modelo";
 
   const topBox = document.createElement("article");
   topBox.className = "dashboard-insight";
   if (stats.topRestaurant) {
-    topBox.textContent =
-      `${stats.topRestaurant.restaurant.name} lidera ${stats.periodResultsLabel} con ${stats.topRestaurant.orderCount} pedidos creados y un promedio de ${formatDurationMinutes(stats.topRestaurant.avgDeliveryMinutes)} en sus entregas del periodo.`;
+    topBox.textContent = formatKey(`admin.dynamic.top_restaurant.${stats.period}`, {
+      name: stats.topRestaurant.restaurant.name,
+      orders: stats.topRestaurant.orderCount,
+      avg: formatDurationMinutes(stats.topRestaurant.avgDeliveryMinutes),
+    });
   } else {
-    topBox.textContent = `Todavía no hay actividad suficiente ${stats.periodResultsLabel} para destacar un restaurante.`;
+    topBox.textContent = formatKey(`admin.dynamic.top_restaurant.empty.${stats.period}`);
   }
   adminTopRestaurantPanel.append(topBox);
 
@@ -1573,9 +1628,10 @@ function renderAdminDashboard(stats) {
       label: item.restaurant.name,
       count: item.orderCount,
       color: "#ec7c0d",
-      valueLabel: `${item.orderCount} pedidos`,
+      valueLabelKey: "common.count.orders",
+      valueLabelParams: { count: item.orderCount },
     })),
-    translateText("Todavía no hay suficiente actividad para mostrar un ranking."),
+    formatKey("admin.dynamic.ranking.empty"),
   );
 
   buildAdminInsights(stats).forEach((message) => {
@@ -1594,31 +1650,31 @@ function renderAdminDashboard(stats) {
 }
 
 function buildDatasetInsights(dataset, deliveredDataset, readyDataset, stats) {
+  const formatKey = (key, params = {}, fallback = "") =>
+    window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
   const insights = [];
 
   if (!dataset.length) {
-    insights.push("Todavía no hay pedidos suficientes para construir un dataset de entrenamiento.");
+    insights.push(formatKey("admin.dynamic.dataset.empty"));
     return insights;
   }
 
-  insights.push(`${dataset.length} pedidos ya incluyen contexto operativo capturado para entrenamiento real por restaurante.`);
+  insights.push(formatKey("admin.dynamic.dataset.captured", { count: dataset.length }));
 
   if (deliveredDataset.length > 0) {
-    insights.push(`${deliveredDataset.length} ejemplos ya permiten modelar minutos reales hasta entrega.`);
+    insights.push(formatKey("admin.dynamic.dataset.delivered", { count: deliveredDataset.length }));
   }
 
   if (readyDataset.length > 0) {
-    insights.push(`${readyDataset.length} ejemplos ya permiten modelar minutos reales hasta listo.`);
+    insights.push(formatKey("admin.dynamic.dataset.ready", { count: readyDataset.length }));
   }
 
   if (stats?.trainedRestaurantCount > 0) {
-    insights.push(
-      `${stats.trainedRestaurantCount} restaurante${stats.trainedRestaurantCount === 1 ? "" : "s"} ya tienen un modelo adaptado en producción con error medio de ${stats.averageModelError} min.`,
-    );
+    insights.push(formatKey("admin.dynamic.dataset.trained", { count: stats.trainedRestaurantCount, error: stats.averageModelError }));
   }
 
   if (!deliveredDataset.length && !readyDataset.length) {
-    insights.push("Aún faltan hitos finales para entrenar un ETA predictivo real, pero la instrumentación ya está acumulando base.");
+    insights.push(formatKey("admin.dynamic.dataset.pending"));
   }
 
   return insights.slice(0, 3);
@@ -1647,6 +1703,8 @@ function handleExportPredictionDataset() {
 function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficientes por ahora.") {
   const translateText = (value) =>
     window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+  const formatKey = (key, params = {}, fallback = "") =>
+    window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
   container.innerHTML = "";
   const safeItems = Array.isArray(items) ? items.filter(Boolean) : [];
   const maxValue = safeItems.reduce((max, item) => Math.max(max, Number(item.count || 0)), 0);
@@ -1671,10 +1729,14 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
     track.className = "dashboard-bar__track";
     value.className = "dashboard-bar__value";
 
-    label.textContent = translateText(item.label);
+    label.textContent = item.labelKey ? formatKey(item.labelKey, item.labelParams) : translateText(item.label);
     fill.style.width = `${Math.max(10, Math.round((Number(item.count || 0) / maxValue) * 100))}%`;
     fill.style.background = item.color || "#ec7c0d";
-    value.textContent = item.valueLabel ? translateText(item.valueLabel) : String(item.count || 0);
+    value.textContent = item.valueLabelKey
+      ? formatKey(item.valueLabelKey, item.valueLabelParams)
+      : item.valueLabel
+        ? translateText(item.valueLabel)
+        : String(item.count || 0);
 
     track.append(fill);
     row.append(label, track, value);
@@ -1685,6 +1747,8 @@ function renderAdminBarChart(container, items, emptyMessage = "Sin datos suficie
 function renderDashboardDonut(container, items, centerLabel) {
   const translateText = (value) =>
     window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+  const formatKey = (key, params = {}, fallback = "") =>
+    window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
   container.innerHTML = "";
   const safeItems = Array.isArray(items) ? items.filter((item) => Number(item?.count || 0) > 0) : [];
   const total = safeItems.reduce((sum, item) => sum + Number(item.count || 0), 0);
@@ -1718,7 +1782,7 @@ function renderDashboardDonut(container, items, centerLabel) {
   safeItems.forEach((item) => {
     const row = document.createElement("div");
     row.className = "dashboard-donut__legend-row";
-    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${translateText(item.label)}</span><strong>${item.count}</strong>`;
+    row.innerHTML = `<span class="dashboard-donut__dot" style="background:${item.color || "#ec7c0d"}"></span><span>${item.labelKey ? formatKey(item.labelKey, item.labelParams) : translateText(item.label)}</span><strong>${item.count}</strong>`;
     legend.append(row);
   });
 
@@ -1726,70 +1790,65 @@ function renderDashboardDonut(container, items, centerLabel) {
 }
 
 function buildAdminInsights(stats) {
-  const translateText = (value) =>
-    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+  const formatKey = (key, params = {}, fallback = "") =>
+    window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
   const insights = [];
 
   if (stats.expiredRestaurants > 0) {
-    insights.push(translateText(`Hay ${stats.expiredRestaurants} restaurantes con acceso vencido. Conviene revisar cobro o renovación.`));
+    insights.push(formatKey("admin.dynamic.insight.expired", { count: stats.expiredRestaurants }));
   }
 
   if (stats.soonToExpire > 0) {
-    insights.push(translateText(`${stats.soonToExpire} restaurantes vencen en menos de 7 días. Buen momento para activar recordatorios.`));
+    insights.push(formatKey("admin.dynamic.insight.expiring_soon", { count: stats.soonToExpire }));
   }
 
   if (stats.activeOrders > stats.deliveredOrders) {
-    insights.push(
-      translateText(`Los pedidos abiertos creados ${stats.periodResultsLabel} superan a los entregados en ese mismo periodo. Conviene revisar si algunos locales necesitan apoyo.`),
-    );
+    insights.push(formatKey(`admin.dynamic.insight.open_vs_delivered.${stats.period}`));
   }
 
   if (stats.aiPortfolioAction) {
-    insights.push(translateText(`Señal IA de cartera: ${stats.aiPortfolioAction}`));
+    insights.push(
+      formatKey("admin.dynamic.insight.ai_signal.prefix", {
+        message: formatKey(stats.aiPortfolioAction.key, stats.aiPortfolioAction.params),
+      }),
+    );
   }
 
   if (stats.dominantPortfolioBottleneck) {
-    insights.push(
-      translateText(
-        `Patrón inferido en la cartera: ${stats.dominantPortfolioBottleneck.label}. Aparece como fricción principal en ${stats.dominantPortfolioBottleneck.count} restaurante${stats.dominantPortfolioBottleneck.count === 1 ? "" : "s"} con IA activa.`,
-      ),
-    );
+    insights.push(formatKey("admin.dynamic.insight.bottleneck", {
+      label: formatKey(stats.dominantPortfolioBottleneck.labelKey),
+      count: stats.dominantPortfolioBottleneck.count,
+    }));
   }
 
   if (stats.restaurantsWithoutOrders > 0) {
-    insights.push(
-      translateText(`${stats.restaurantsWithoutOrders} restaurantes aún no han hecho su primer pedido. Necesitan onboarding o seguimiento comercial.`),
-    );
+    insights.push(formatKey("admin.dynamic.insight.without_orders", { count: stats.restaurantsWithoutOrders }));
   }
 
   if (stats.demoRestaurantCount > 0) {
-    insights.push(
-      translateText(
-        `${stats.demoRestaurantCount} demo${stats.demoRestaurantCount === 1 ? "" : "s"} activas y ${stats.demoReadyToConvertCount} listas para empujar conversion a plan completo.`,
-      ),
-    );
+    insights.push(formatKey("admin.dynamic.insight.demo_ready", {
+      count: stats.demoRestaurantCount,
+      ready: stats.demoReadyToConvertCount,
+    }));
   }
 
   if (stats.dormantRestaurants > 0) {
-    insights.push(
-      translateText(`${stats.dormantRestaurants} restaurantes no registran actividad ${stats.periodResultsLabel}. Esto es una señal de posible churn, no una baja confirmada.`),
-    );
+    insights.push(formatKey(`admin.dynamic.insight.dormant.${stats.period}`, { count: stats.dormantRestaurants }));
   }
 
   if (stats.trainedRestaurantCount > 0) {
-    insights.push(
-      translateText(
-        `${stats.trainedRestaurantCount} locales ya operan con modelo adaptado y ${stats.highConfidenceModelCount} lo hacen con confianza alta.`,
-      ),
-    );
+    insights.push(formatKey("admin.dynamic.insight.trained", {
+      count: stats.trainedRestaurantCount,
+      high: stats.highConfidenceModelCount,
+    }));
   }
 
   if (stats.expiredRestaurants === 0 && stats.soonToExpire === 0 && stats.restaurantsWithoutOrders === 0) {
-    insights.push(translateText("La base está sana: ahora la oportunidad es empujar más frecuencia y más valoraciones de cliente."));
+    insights.push(formatKey("admin.dynamic.insight.healthy_base"));
   }
 
   if (!insights.length) {
-    insights.push(translateText("La cartera va estable. Aquí aparecerán señales cuando detectemos vencimientos, caída de uso o cuellos de botella."));
+    insights.push(formatKey("admin.dynamic.insight.stable"));
   }
 
   return insights.slice(0, 3);
@@ -1945,12 +2004,14 @@ function renderRestaurantDirectory(restaurants) {
     playbook.className = "admin-card__playbook";
     playbookLabel.className = "admin-card__playbook-label";
     playbookText.className = "admin-card__playbook-text";
-    status.textContent = restaurant.status === "active" ? "Activo" : "Vencido";
+    status.textContent = translateRuntimeText(restaurant.status === "active" ? "Activo" : "Vencido");
     status.style.background = restaurant.status === "active" ? "rgba(31, 122, 99, 0.12)" : "rgba(127, 29, 29, 0.12)";
     status.style.color = restaurant.status === "active" ? "#1f7a63" : "#7f1d1d";
     syncRestaurantHealthPill(health, restaurant.healthSegment);
     demoBadge.hidden = !isDemoRestaurant(restaurant);
-    demoBadge.textContent = isDemoRestaurant(restaurant) ? `DEMO ${demoUsage.usedOrders}/${demoUsage.maxOrders}` : "";
+    demoBadge.textContent = isDemoRestaurant(restaurant)
+      ? translateRuntimeText(`DEMO ${demoUsage.usedOrders}/${demoUsage.maxOrders}`)
+      : "";
     grid.className = "admin-card__grid";
     brandFallback.className = "admin-card__brand-fallback";
     accountStack.className = "admin-card__account-stack";
@@ -1963,55 +2024,55 @@ function renderRestaurantDirectory(restaurants) {
     notesSummary.className = "admin-card__notes";
     notesSummaryLabel.className = "admin-card__notes-label";
     title.textContent = restaurant.name;
-    login.textContent = `Correo auth: ${restaurant.username}`;
-    owner.textContent = `Responsable: ${restaurant.ownerName || "Sin definir"}`;
-    contact.textContent = `Contacto: ${restaurant.email || "Sin correo"} · ${restaurant.phone || "Sin móvil"}`;
-    address.textContent = `Dirección: ${restaurant.address || "Sin dirección"} · ${restaurant.city || "Sin ciudad"}`;
+    login.textContent = translateRuntimeText(`Correo auth: ${restaurant.username}`);
+    owner.textContent = translateRuntimeText(`Responsable: ${restaurant.ownerName || "Sin definir"}`);
+    contact.textContent = translateRuntimeText(`Contacto: ${restaurant.email || "Sin correo"} · ${restaurant.phone || "Sin móvil"}`);
+    address.textContent = translateRuntimeText(`Dirección: ${restaurant.address || "Sin dirección"} · ${restaurant.city || "Sin ciudad"}`);
     activation.textContent = isDemoRestaurant(restaurant)
-      ? `Demo activa hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${demoUsage.remainingOrders} pedidos disponibles`
-      : `Activado hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${buildRemainingAccessLabel(restaurant)}`;
+      ? translateRuntimeText(`Demo activa hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${demoUsage.remainingOrders} pedidos disponibles`)
+      : translateRuntimeText(`Activado hasta: ${formatAdminDate(restaurant.activatedUntil)} · ${buildRemainingAccessLabel(restaurant)}`);
     orders.textContent =
-      `Pedidos: ${restaurant.orderCount} · Activos: ${restaurant.activeOrderCount} · Entregados: ${restaurant.deliveredCount}`;
+      translateRuntimeText(`Pedidos: ${restaurant.orderCount} · Activos: ${restaurant.activeOrderCount} · Entregados: ${restaurant.deliveredCount}`);
     usage.textContent = isDemoRestaurant(restaurant)
       ? restaurant.orderCount
-        ? `Uso demo: ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos consumidos · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`
-        : `Uso demo: aún sin pedidos. Conviene guiar el primer flujo para que vea valor en menos de 10 minutos.`
+        ? translateRuntimeText(`Uso demo: ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos consumidos · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`)
+        : translateRuntimeText(`Uso demo: aún sin pedidos. Conviene guiar el primer flujo para que vea valor en menos de 10 minutos.`)
       : restaurant.orderCount
-        ? `Uso: ${restaurant.recent7dOrderCount} pedidos en 7 días · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`
-        : "Uso: todavía sin pedidos. Conviene activar el onboarding del local.";
+        ? translateRuntimeText(`Uso: ${restaurant.recent7dOrderCount} pedidos en 7 días · Último movimiento ${formatAdminDate(restaurant.lastOrderAt)}`)
+        : translateRuntimeText("Uso: todavía sin pedidos. Conviene activar el onboarding del local.");
     onboarding.textContent = isDemoRestaurant(restaurant)
-      ? `Onboarding demo: ${restaurant.orderCount ? "ya esta probando el flujo real y la IA adaptativa." : "pendiente del primer pedido para disparar el momento wow."}`
-      : `Onboarding: ${buildOnboardingSummary(restaurant)}`;
+      ? translateRuntimeText(`Onboarding demo: ${restaurant.orderCount ? "ya esta probando el flujo real y la IA adaptativa." : "pendiente del primer pedido para disparar el momento wow."}`)
+      : translateRuntimeText(`Onboarding: ${buildOnboardingSummary(restaurant)}`);
     notes.textContent = isDemoRestaurant(restaurant)
       ? restaurant.notes
-        ? `Notas demo: ${restaurant.notes}`
-        : "Notas demo: enfocada en enseñar pedidos, QR e IA adaptativa con limite comercial."
+        ? translateRuntimeText(`Notas demo: ${restaurant.notes}`)
+        : translateRuntimeText("Notas demo: enfocada en enseñar pedidos, QR e IA adaptativa con limite comercial.")
       : restaurant.notes
-        ? `Notas: ${restaurant.notes}`
-        : "Notas: sin observaciones";
-    notesSummaryLabel.textContent = "Contexto";
-    playbookLabel.textContent = "Siguiente paso";
+        ? translateRuntimeText(`Notas: ${restaurant.notes}`)
+        : translateRuntimeText("Notas: sin observaciones");
+    notesSummaryLabel.textContent = translateRuntimeText("Contexto");
+    playbookLabel.textContent = translateRuntimeText("Siguiente paso");
     playbookText.textContent = isDemoRestaurant(restaurant)
       ? demoUsage.usedOrders >= demoUsage.maxOrders
-        ? "Cerrar conversion al plan completo: ya probo valor y ha llegado al limite comercial."
+        ? translateRuntimeText("Cerrar conversion al plan completo: ya probo valor y ha llegado al limite comercial.")
         : demoUsage.usedOrders > 0
-          ? "Acompanarlo hasta completar un ciclo y cerrar upgrade antes de que termine la demo."
-          : "Lanzar primer pedido guiado para activar el momento wow en la primera sesion."
-      : buildRestaurantPlaybook(restaurant);
-    logoFieldLabel.textContent = "Logo del restaurante";
-    logoHint.textContent = "Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.";
-    accessLabel.textContent = "Acceso:";
-    accessValue.textContent = "Gestionado con enlace seguro";
+          ? translateRuntimeText("Acompanarlo hasta completar un ciclo y cerrar upgrade antes de que termine la demo.")
+          : translateRuntimeText("Lanzar primer pedido guiado para activar el momento wow en la primera sesion.")
+      : translateRuntimeText(buildRestaurantPlaybook(restaurant));
+    logoFieldLabel.textContent = translateRuntimeText("Logo del restaurante");
+    logoHint.textContent = translateRuntimeText("Sube un logo cuadrado o rectangular. Lo optimizaremos para restaurante y cliente.");
+    accessLabel.textContent = translateRuntimeText("Acceso:");
+    accessValue.textContent = translateRuntimeText("Gestionado con enlace seguro");
     priorityAction.hidden = !isDemoRestaurant(restaurant);
-    priorityActionLabel.textContent = "Acción prioritaria";
-    priorityActionTitle.textContent = "Activar plan comercial";
+    priorityActionLabel.textContent = translateRuntimeText("Acción prioritaria");
+    priorityActionTitle.textContent = translateRuntimeText("Activar plan comercial");
     priorityActionText.textContent =
       demoUsage.usedOrders >= demoUsage.maxOrders
-        ? "La cuenta ya alcanzó su límite actual. Conviene convertirla ahora para no frenar la operación."
-        : "Esta cuenta ya está en fase de conversión. Lleva la activación al frente para que no se pierda entre acciones secundarias.";
+        ? translateRuntimeText("La cuenta ya alcanzó su límite actual. Conviene convertirla ahora para no frenar la operación.")
+        : translateRuntimeText("Esta cuenta ya está en fase de conversión. Lleva la activación al frente para que no se pierda entre acciones secundarias.");
     link.className = "qr-link";
     link.href = "#";
-    link.textContent = "Abrir acceso restaurante";
+    link.textContent = translateRuntimeText("Abrir acceso restaurante");
     link.addEventListener("click", (event) => {
       event.preventDefault();
       window.open("./restaurant.html", "_blank", "noopener,noreferrer");
@@ -2035,10 +2096,10 @@ function renderRestaurantDirectory(restaurants) {
       try {
         const logoUrl = await optimizeRestaurantLogo(file);
         updateRestaurantAccount(restaurant.id, { logoUrl });
-        adminCreateFeedback.textContent = `Logo actualizado para ${restaurant.name}.`;
+        adminCreateFeedback.textContent = translateRuntimeText(`Logo actualizado para ${restaurant.name}.`);
         adminCreateFeedback.className = "form-feedback form-feedback--success";
         adminCreateFeedback.hidden = false;
-        showTurnoAlert(`Logo actualizado para ${restaurant.name}.`, "success");
+        showTurnoAlert(translateRuntimeText(`Logo actualizado para ${restaurant.name}.`), "success");
         renderAdminWorkspace();
       } catch (error) {
         console.error("No se pudo actualizar el logo del restaurante.", error);
@@ -2060,27 +2121,27 @@ function renderRestaurantDirectory(restaurants) {
     });
     templatesButton.type = "button";
     templatesButton.className = "comment-button";
-    templatesButton.textContent = "Plantillas";
+    templatesButton.textContent = translateRuntimeText("Plantillas");
     templatesButton.disabled = !restaurant.email;
     templatesButton.addEventListener("click", async () => {
       await openEmailTemplatesModal(restaurant);
     });
     activatePlan.type = "button";
     activatePlan.className = "launcher admin-card__priority-button";
-    activatePlan.textContent = "Activar plan";
+    activatePlan.textContent = translateRuntimeText("Activar plan");
     activatePlan.hidden = !isDemoRestaurant(restaurant);
     activatePlan.addEventListener("click", () => {
       openActivatePlanModal(restaurant);
     });
     renewPlan.type = "button";
     renewPlan.className = "comment-button";
-    renewPlan.textContent = "Renovar plan";
+    renewPlan.textContent = translateRuntimeText("Renovar plan");
     renewPlan.addEventListener("click", () => {
       openRenewPlanModal(restaurant);
     });
     remove.type = "button";
     remove.className = "comment-button admin-card__action-delete";
-    remove.textContent = "Eliminar";
+    remove.textContent = translateRuntimeText("Eliminar");
     remove.setAttribute("aria-label", `Eliminar restaurante ${restaurant.name}`);
     remove.addEventListener("click", () => {
       openDeleteModal(restaurant);

@@ -82,6 +82,19 @@ const IS_IOS_STANDALONE =
   IS_IOS_DEVICE &&
   (window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator?.standalone === true);
 const IS_IOS_CHROME = /CriOS/i.test(String(window.navigator?.userAgent || ""));
+const translateText = (value) =>
+  window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
+const translateKey = (key, fallback = "") =>
+  window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const formatKey = (key, params = {}, fallback = "") =>
+  window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const CLIENT_STATUS_KEY_BY_STATUS = {
+  received: "client.status.received",
+  preparing: "client.status.preparing",
+  ready: "client.status.ready",
+  delivered: "client.status.delivered",
+  cancelled: "client.dynamic.eta.cancelled",
+};
 
 const clientManifestLink = ensureClientManifestLink();
 
@@ -110,6 +123,9 @@ waitForDataReady().then(renderClient);
 onOrdersChanged(() => {
   waitForDataReady().then(renderClient);
 });
+window.addEventListener("turnolisto:language-change", () => {
+  renderClient();
+});
 window.setInterval(() => {
   if (document.visibilityState !== "visible") return;
   if (!String(window.__turnoDataBackendMode || "").startsWith("firebase")) return;
@@ -120,7 +136,7 @@ window.setInterval(() => {
 loadButton.addEventListener("click", () => {
   const nextId = orderInput.value.trim().toUpperCase();
   if (!getPublicOrderByPublicId(nextId)) {
-    orderInput.setCustomValidity("Ese QR no existe en la demo.");
+    orderInput.setCustomValidity(translateKey("client.dynamic.order.invalid", "Ese QR no existe en la demo."));
     orderInput.reportValidity();
     return;
   }
@@ -208,7 +224,7 @@ function renderClient() {
   renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = order.customerName;
-  statusPill.textContent = meta.label;
+  statusPill.textContent = translateText(meta.label);
   statusPill.style.background = meta.bg;
   statusPill.style.color = meta.color;
   progressFill.style.width = `${getProgressWidth(order.status)}%`;
@@ -221,13 +237,19 @@ function renderClient() {
   etaValue.textContent = shouldShowEta ? formatClientEta(order) : "--";
   qrImage.src = buildQrUrl(publicOrderId);
   qrValue.textContent = publicOrderId;
-  qrHint.textContent = order.status === "delivered" ? "Este QR ya no está activo." : "Enseña este QR si lo necesitas.";
+  qrHint.textContent =
+    order.status === "delivered"
+      ? translateKey("client.dynamic.qr.inactive.delivered", "Este QR ya no está activo.")
+      : translateKey("client.dynamic.qr.hint", "Enseña este QR si lo necesitas.");
   readyBanner.hidden = order.status !== "ready";
   feedbackCard.hidden = order.status !== "delivered";
   clientTicket.classList.toggle("ticket--ready", order.status === "ready");
   clientTicket.classList.toggle("ticket--delivered", order.status === "delivered");
   showQrButton.disabled = order.status === "delivered";
-  showQrButton.textContent = order.status === "delivered" ? "QR desactivado" : "Ver mi QR";
+  showQrButton.textContent =
+    order.status === "delivered"
+      ? translateKey("client.dynamic.qr.disabled", "QR desactivado")
+      : translateKey("client.dynamic.qr.show", "Ver mi QR");
   renderRating(order);
   renderCommentPrompt(order);
   renderAlertsBanner();
@@ -258,16 +280,19 @@ function maybeSendNotification(order) {
     return;
   }
 
-  new Notification("Tu pedido ya esta listo para recoger", {
+  new Notification(translateKey("client.dynamic.notification.ready.title", "Tu pedido ya esta listo para recoger"), {
     body: buildNotificationBody(order),
   });
 }
 
 function renderMissingOrder() {
-  ticketOrderId.textContent = "Pedido no disponible";
-  ticketCustomer.textContent = "Este seguimiento ya no está activo o fue archivado.";
+  ticketOrderId.textContent = translateKey("client.dynamic.order.unavailable.title", "Pedido no disponible");
+  ticketCustomer.textContent = translateKey(
+    "client.dynamic.order.unavailable.text",
+    "Este seguimiento ya no está activo o fue archivado.",
+  );
   renderClientBrand(null);
-  statusPill.textContent = "No disponible";
+  statusPill.textContent = translateKey("client.dynamic.status.unavailable", "No disponible");
   statusPill.style.background = "rgba(29, 26, 22, 0.08)";
   statusPill.style.color = "#6e6258";
   progressFill.style.width = "0%";
@@ -279,12 +304,12 @@ function renderMissingOrder() {
   etaValue.textContent = "--";
   qrImage.removeAttribute("src");
   qrValue.textContent = selectedOrderId;
-  qrHint.textContent = "Este QR ya no está disponible.";
+  qrHint.textContent = translateKey("client.dynamic.qr.unavailable", "Este QR ya no está disponible.");
   readyBanner.hidden = true;
   feedbackCard.hidden = true;
   clientTicket.classList.remove("ticket--ready");
   showQrButton.disabled = true;
-  showQrButton.textContent = "QR no disponible";
+  showQrButton.textContent = translateKey("client.dynamic.qr.unavailable.button", "QR no disponible");
   renderAlertsBanner();
   renderIosInstallBanner();
 }
@@ -416,31 +441,38 @@ function getProgressWidth(status) {
 
 function buildNotificationBody(order) {
   if (order.status === "ready") {
-    return `${order.orderNumber} ya está listo para recoger.`;
+    return formatKey("client.dynamic.notification.ready.body", { orderNumber: order.orderNumber }, `${order.orderNumber} ya está listo para recoger.`);
   }
 
   if (order.status === "delivered") {
-    return `${order.orderNumber} ya figura como entregado.`;
+    return formatKey("client.dynamic.notification.delivered.body", { orderNumber: order.orderNumber }, `${order.orderNumber} ya figura como entregado.`);
   }
 
   if (order.status === "cancelled") {
-    return `${order.orderNumber} ha sido cancelado por el restaurante.`;
+    return formatKey("client.dynamic.notification.cancelled.body", { orderNumber: order.orderNumber }, `${order.orderNumber} ha sido cancelado por el restaurante.`);
   }
 
-  return `${order.orderNumber} ahora está en estado ${statusMeta[order.status].label.toLowerCase()}.`;
+  return formatKey(
+    "client.dynamic.notification.status.body",
+    {
+      orderNumber: order.orderNumber,
+      status: translateText(statusMeta[order.status].label).toLowerCase(),
+    },
+    `${order.orderNumber} ahora está en estado ${statusMeta[order.status].label.toLowerCase()}.`,
+  );
 }
 
 function formatClientEta(order) {
   if (!order) return "--";
-  if (order.status === "ready") return "Listo ahora";
-  if (order.status === "delivered") return "Entregado";
-  if (order.status === "cancelled") return "Cancelado";
+  if (order.status === "ready") return translateKey("client.dynamic.eta.ready", "Listo ahora");
+  if (order.status === "delivered") return translateKey("client.dynamic.eta.delivered", "Entregado");
+  if (order.status === "cancelled") return translateKey("client.dynamic.eta.cancelled", "Cancelado");
 
   const remainingMinutes = getRemainingEstimatedMinutes(order);
-  if (remainingMinutes === null) return "Sin dato";
-  if (remainingMinutes <= 0) return "Con retraso";
-  if (remainingMinutes === 1) return "1 min";
-  return `${remainingMinutes} min`;
+  if (remainingMinutes === null) return translateKey("client.dynamic.eta.empty", "Sin dato");
+  if (remainingMinutes <= 0) return translateKey("client.dynamic.eta.late", "Con retraso");
+  if (remainingMinutes === 1) return translateKey("client.dynamic.eta.minute", "1 min");
+  return formatKey("client.dynamic.eta.minutes", { count: remainingMinutes }, `${remainingMinutes} min`);
 }
 
 function hasClientEta(order) {
@@ -533,8 +565,10 @@ async function handleEnableAlerts() {
     console.error("No se pudieron activar los avisos del pedido.", error);
     pushNotificationsEnabled = false;
     alertsDismissed = false;
-    alertsStatusOverride =
-      "No se pudieron activar las notificaciones en este dispositivo. El sonido local seguira disponible en esta pantalla.";
+    alertsStatusOverride = translateKey(
+      "client.dynamic.alerts.error.activation",
+      "No se pudieron activar las notificaciones en este dispositivo. El sonido local seguira disponible en esta pantalla.",
+    );
     alertsButtonLockedReason = "";
   } finally {
     pushNotificationBusy = false;
@@ -576,28 +610,47 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     alertsButtonLockedReason = "";
 
     if (result?.reason === "missing-vapid-key") {
-      alertsStatusOverride = "Falta configurar los avisos para que funcionen aunque uses otras apps en este dispositivo.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.missing_vapid",
+        "Falta configurar los avisos para que funcionen aunque uses otras apps en este dispositivo.",
+      );
     } else if (result?.reason === "permission-denied") {
-      alertsStatusOverride = "Has bloqueado las notificaciones del navegador. Activalas en los permisos del sitio.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.permission_denied",
+        "Has bloqueado las notificaciones del navegador. Activalas en los permisos del sitio.",
+      );
     } else if (result?.reason === "permission-dismissed") {
-      alertsStatusOverride = "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.permission_dismissed",
+        "No se activaron las notificaciones. Puedes volver a intentarlo cuando quieras.",
+      );
     } else if (result?.reason === "unsupported-ios-browser") {
-      alertsStatusOverride =
-        "TurnoListo sigue funcionando aqui. Si quieres avisos mientras usas otras apps, sigue los pasos de abajo en Safari.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.unsupported_ios",
+        "TurnoListo sigue funcionando aqui. Si quieres avisos mientras usas otras apps, sigue los pasos de abajo en Safari.",
+      );
       alertsButtonLockedReason = "unsupported-ios-browser";
     } else if (result?.reason === "unsupported") {
-      alertsStatusOverride =
-        "TurnoListo sigue funcionando aqui. Si quieres avisos mientras usas otras apps, sigue los pasos de abajo.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.unsupported",
+        "TurnoListo sigue funcionando aqui. Si quieres avisos mientras usas otras apps, sigue los pasos de abajo.",
+      );
       alertsButtonLockedReason = "unsupported";
     } else if (result?.reason === "service-worker-timeout" || result?.reason === "token-timeout") {
-      alertsStatusOverride =
-        "La activacion de avisos tardo demasiado en este dispositivo. Puedes seguir usando TurnoListo sin problema mientras dejes esta pantalla abierta.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.timeout",
+        "La activacion de avisos tardo demasiado en este dispositivo. Puedes seguir usando TurnoListo sin problema mientras dejes esta pantalla abierta.",
+      );
     } else if (result?.reason === "missing-token" && options.retryAfterGrant) {
-      alertsStatusOverride =
-        "Estamos terminando de activar las notificaciones en este navegador. Intenta de nuevo en unos segundos si no se completa.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.retry",
+        "Estamos terminando de activar las notificaciones en este navegador. Intenta de nuevo en unos segundos si no se completa.",
+      );
     } else {
-      alertsStatusOverride =
-        "No se pudo activar el aviso para cuando uses otras apps en este dispositivo. Aun asi, TurnoListo seguira funcionando en esta pantalla.";
+      alertsStatusOverride = translateKey(
+        "client.dynamic.alerts.error.generic",
+        "No se pudo activar el aviso para cuando uses otras apps en este dispositivo. Aun asi, TurnoListo seguira funcionando en esta pantalla.",
+      );
     }
     return { enabled: false, reason: result?.reason || "unknown" };
   }
@@ -625,8 +678,8 @@ function renderAlertsBanner() {
   alertsConfirmation.hidden = !(notificationsActive && !["delivered", "cancelled"].includes(currentOrder?.status || ""));
   alertsConfirmation.textContent =
     notificationsActive && !readyTonePrimed
-      ? "Tienes las notificaciones activadas. Toca una vez la pantalla para activar el sonido."
-      : "Tienes las notificaciones activadas.";
+      ? translateKey("client.dynamic.alerts.confirmation.sound", "Tienes las notificaciones activadas. Toca una vez la pantalla para activar el sonido.")
+      : translateKey("client.dynamic.alerts.confirmation.ready", "Tienes las notificaciones activadas.");
 
   if (alertsBanner.hidden) {
     enableAlertsButton.classList.remove("is-pending");
@@ -636,41 +689,44 @@ function renderAlertsBanner() {
 
   if (pushNotificationBusy) {
     enableAlertsButton.disabled = true;
-    enableAlertsButton.textContent = "Activando...";
+    enableAlertsButton.textContent = translateKey("client.dynamic.alerts.activating", "Activando...");
     enableAlertsButton.classList.add("is-pending");
     return;
   }
 
   if (alertsActive) {
-    alertsTitle.textContent = "Avisos activados.";
+    alertsTitle.textContent = translateKey("client.dynamic.alerts.enabled.title", "Avisos activados.");
     alertsStatus.textContent = alertLocked
-      ? "Este pedido ya quedó configurado para avisarte."
+      ? translateKey("client.dynamic.alerts.enabled.locked", "Este pedido ya quedó configurado para avisarte.")
       : getDefaultAlertsCopy({ pageWord: "pagina" });
-    enableAlertsButton.textContent = "Avisos activados";
+    enableAlertsButton.textContent = translateKey("client.dynamic.alerts.button.enabled", "Avisos activados");
     enableAlertsButton.disabled = true;
     enableAlertsButton.classList.remove("is-pending");
     enableAlertsButton.classList.add("is-success");
     return;
   }
 
-  alertsTitle.textContent = "Activa los avisos del pedido.";
+  alertsTitle.textContent = translateKey("client.alerts.title", "Activa los avisos del pedido.");
   if (alertsStatusOverride) {
     alertsStatus.textContent = alertsStatusOverride;
   } else if (Notification.permission === "denied") {
-    alertsStatus.textContent = "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.";
+    alertsStatus.textContent = translateKey(
+      "client.dynamic.alerts.permission_denied",
+      "Las notificaciones están bloqueadas en este navegador. Actívalas en los permisos del sitio.",
+    );
   } else {
     alertsStatus.textContent = getDefaultAlertsCopy({ pageWord: "app" });
   }
   if (alertsButtonLockedReason === "unsupported-ios-browser") {
-    alertsTitle.textContent = "Los avisos no estan disponibles aqui.";
-    enableAlertsButton.textContent = "Usa Safari y pantalla de inicio";
+    alertsTitle.textContent = translateKey("client.dynamic.alerts.unsupported.title", "Los avisos no estan disponibles aqui.");
+    enableAlertsButton.textContent = translateKey("client.dynamic.alerts.button.unsupported_ios", "Usa Safari y pantalla de inicio");
     enableAlertsButton.disabled = true;
   } else if (alertsButtonLockedReason === "unsupported") {
-    alertsTitle.textContent = "Los avisos no estan disponibles aqui.";
-    enableAlertsButton.textContent = "Avisos no disponibles aqui";
+    alertsTitle.textContent = translateKey("client.dynamic.alerts.unsupported.title", "Los avisos no estan disponibles aqui.");
+    enableAlertsButton.textContent = translateKey("client.dynamic.alerts.button.unsupported", "Avisos no disponibles aqui");
     enableAlertsButton.disabled = true;
   } else {
-    enableAlertsButton.textContent = "Activar avisos";
+    enableAlertsButton.textContent = translateKey("client.alerts.button", "Activar avisos");
     enableAlertsButton.disabled = alertLocked;
   }
   enableAlertsButton.classList.remove("is-pending");
@@ -678,14 +734,18 @@ function renderAlertsBanner() {
 }
 
 function getDefaultAlertsCopy(options = {}) {
-  const pageWord = options.pageWord === "pagina" ? "pagina" : "app";
-  const appReference = pageWord === "pagina" ? "la pagina abierta" : "la app abierta";
-
-  if (IS_IOS_DEVICE) {
-    return `Recibiras sonido si tienes ${appReference}, y notificacion si el movil esta bloqueado.`;
-  }
-
-  return `Recibiras sonido y vibracion si tienes ${appReference}, y notificacion si el movil esta bloqueado.`;
+  const pageWord = options.pageWord === "pagina" ? "page" : "app";
+  const deviceWord = IS_IOS_DEVICE ? "ios" : "other";
+  return translateKey(
+    `client.dynamic.alerts.default.${pageWord}.${deviceWord}`,
+    pageWord === "page"
+      ? IS_IOS_DEVICE
+        ? "Recibiras sonido si tienes la pagina abierta, y notificacion si el movil esta bloqueado."
+        : "Recibiras sonido y vibracion si tienes la pagina abierta, y notificacion si el movil esta bloqueado."
+      : IS_IOS_DEVICE
+        ? "Recibiras sonido si tienes la app abierta, y notificacion si el movil esta bloqueado."
+        : "Recibiras sonido y vibracion si tienes la app abierta, y notificacion si el movil esta bloqueado.",
+  );
 }
 
 function renderIosInstallBanner() {
@@ -701,40 +761,40 @@ function renderIosInstallBanner() {
   }
 
   const iosInstallMode = getIosInstallMode();
-  iosInstallTitle.textContent = "Mejora los avisos en tu iPhone.";
+  iosInstallTitle.textContent = translateKey("client.ios.title", "Mejora los avisos en tu iPhone.");
   iosInstallText.textContent =
     iosInstallMode === "chrome"
-      ? "Si quieres que TurnoListo te avise mientras usas otras apps, primero abre este pedido en Safari."
-      : "Si quieres que TurnoListo te avise mientras usas otras apps, anade este pedido a pantalla de inicio y abrelo desde ese icono.";
+      ? translateKey("client.dynamic.ios.text.chrome", "Si quieres que TurnoListo te avise mientras usas otras apps, primero abre este pedido en Safari.")
+      : translateKey("client.dynamic.ios.text.safari", "Si quieres que TurnoListo te avise mientras usas otras apps, anade este pedido a pantalla de inicio y abrelo desde ese icono.");
   iosInstallButton.textContent =
     iosInstallSteps.hidden
       ? iosInstallMode === "chrome"
-        ? "Abrir paso a paso en iPhone"
-        : "Como anadirlo a pantalla de inicio"
-      : "Ocultar pasos";
+        ? translateKey("client.dynamic.ios.button.chrome", "Abrir paso a paso en iPhone")
+        : translateKey("client.dynamic.ios.button.safari", "Como anadirlo a pantalla de inicio")
+      : translateKey("client.dynamic.ios.button.hide", "Ocultar pasos");
 
   if (copyLinkButton) {
     copyLinkButton.hidden = iosInstallMode !== "chrome";
   }
   if (iosStepCopy) {
     iosStepCopy.hidden = iosInstallMode !== "chrome";
-    iosStepCopy.textContent = "1. Copia el enlace de este pedido.";
+    iosStepCopy.textContent = translateKey("client.dynamic.ios.step.copy", "1. Copia el enlace de este pedido.");
   }
   if (iosStepSafari) {
     iosStepSafari.hidden = iosInstallMode !== "chrome";
-    iosStepSafari.textContent = "2. Abre Safari y pega el enlace.";
+    iosStepSafari.textContent = translateKey("client.dynamic.ios.step.safari", "2. Abre Safari y pega el enlace.");
   }
   if (iosStepShare) {
     iosStepShare.hidden = iosInstallMode === "chrome";
-    iosStepShare.textContent = '1. Toca Compartir.';
+    iosStepShare.textContent = translateKey("client.dynamic.ios.step.share", "1. Toca Compartir.");
   }
   if (iosStepInstall) {
     iosStepInstall.hidden = iosInstallMode === "chrome";
-    iosStepInstall.textContent = '2. Elige "Anadir a pantalla de inicio".';
+    iosStepInstall.textContent = translateKey("client.dynamic.ios.step.install", '2. Elige "Anadir a pantalla de inicio".');
   }
   if (iosStepOpen) {
     iosStepOpen.hidden = iosInstallMode === "chrome";
-    iosStepOpen.textContent = '3. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".';
+    iosStepOpen.textContent = translateKey("client.dynamic.ios.step.open", '3. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".');
   }
 }
 
@@ -755,9 +815,9 @@ async function handleCopyCurrentOrderLink() {
 
   try {
     await navigator.clipboard.writeText(linkToCopy);
-    showTurnoAlert("Enlace copiado. Ahora puedes pegarlo en Safari.", "success", { timeoutMs: 3200 });
+    showTurnoAlert(translateKey("client.dynamic.link.copied", "Enlace copiado. Ahora puedes pegarlo en Safari."), "success", { timeoutMs: 3200 });
   } catch {
-    showTurnoAlert("No se pudo copiar automaticamente. Copia la URL desde la barra del navegador.", "warning", {
+    showTurnoAlert(translateKey("client.dynamic.link.copy_failed", "No se pudo copiar automaticamente. Copia la URL desde la barra del navegador."), "warning", {
       timeoutMs: 4200,
     });
   }
@@ -897,10 +957,10 @@ function renderRating(order) {
   const displayedScore = pendingLowRatingScore || order.rating?.score || 0;
 
   ratingValue.textContent = order.rating
-    ? `Tu valoración: ${formatRating(order.rating.score)}`
+    ? formatKey("client.dynamic.rating.current", { rating: formatRating(order.rating.score) }, `Tu valoración: ${formatRating(order.rating.score)}`)
     : pendingLowRatingScore
-      ? `Valoración seleccionada: ${formatRating(pendingLowRatingScore)}`
-      : "Selecciona una puntuación del 1 al 5";
+      ? formatKey("client.dynamic.rating.selected", { rating: formatRating(pendingLowRatingScore) }, `Valoración seleccionada: ${formatRating(pendingLowRatingScore)}`)
+      : translateKey("client.dynamic.rating.prompt", "Selecciona una puntuación del 1 al 5");
 
   ratingActions.querySelectorAll("[data-score]").forEach((button) => {
     const score = Number(button.dataset.score);
@@ -921,10 +981,10 @@ function renderCommentPrompt(order) {
   commentInput.disabled = hasSubmittedComment;
   commentSaveButton.disabled = hasSubmittedComment || !pendingLowRatingScore || isSubmittingComment;
   commentSaveButton.textContent = hasSubmittedComment
-    ? "Comentario enviado"
+    ? translateKey("client.dynamic.comment.sent", "Comentario enviado")
     : isSubmittingComment
-      ? "Enviando..."
-      : "Enviar comentario";
+      ? translateKey("client.dynamic.comment.sending", "Enviando...")
+      : translateKey("client.dynamic.comment.button", "Enviar comentario");
   commentSaveButton.classList.toggle("is-success", hasSubmittedComment);
   commentSentMessage.hidden = !hasSubmittedComment;
 }
