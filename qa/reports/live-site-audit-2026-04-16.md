@@ -16,33 +16,48 @@ URL auditada: https://rhon1990.github.io/TurnoListo/admin.html
 
 ## Hallazgos principales en produccion
 
-### 1. La vista cliente publica servida por GitHub Pages esta desfasada
+### 1. Inspeccion de Chrome: `shared.js` lanza un `ReferenceError` al cargar la vista cliente
 
-Se detecto que `client.html` en produccion carga assets con cache-bust antiguo:
+Tras actualizar GitHub Pages y repetir la inspeccion en Chrome sobre `client.html`, la pagina publica sigue registrando un error de runtime:
 
-- `shared.js?v=20260408e`
-- `client.js?v=20260408e`
-- `firebase-bridge.js?v=20260408e`
-
-Mientras tanto `admin.html` y `restaurant.html` ya sirven:
-
-- `shared.js?v=20260416f`
-- `admin.js?v=20260416f`
-- `restaurant.js?v=20260416f`
+- `ReferenceError: getCountryByIso is not defined`
+- origen: `initializePhoneFieldHelpers()` en `shared.js`
 
 Impacto:
 
-- La pagina cliente publica en la URL real no expone el flujo moderno de tracking publico.
-- `window.__turnoDataBackendMode` llega vacio.
-- `refreshPublicTrackingFromBackend` no existe en la build servida al cliente.
-- El cliente puede quedarse en placeholders (`ticket "--"`, QR de ejemplo) aunque el pedido real exista.
+- La inicializacion compartida del frontend falla al cargar.
+- El error ensucia la consola y añade riesgo de comportamientos colaterales en cualquier vista que cargue `shared.js`.
+- Aunque el cliente todavia llega a pintar parte del tracking, la pagina arranca con una excepcion evitable.
+
+Estado:
+
+- Corregido en el repo manteniendo el contrato publico `getCountryByIso`, pero apuntandolo a la implementacion interna correcta.
+
+### 2. Faltan dos Firebase Functions publicas en produccion
+
+La inspeccion de red desde Chrome mostraba CORS, pero al contrastarlo contra el endpoint real y contra `firebase functions:list` se confirmo la causa exacta: los endpoints publicos no existen todavia en produccion.
+
+Endpoints ausentes:
+
+- `getPublicTrackingOrder`
+- `submitPublicTrackingRating`
+
+Endpoint equivalente que si existe:
+
+- `createRestaurantAccount`
+
+Impacto:
+
+- El cliente publico no puede refrescar el seguimiento desde Firebase Functions.
+- La consola del navegador lo muestra como error CORS, pero el preflight real devuelve `404 Page not found`.
+- La valoracion publica del pedido tampoco puede completarse en vivo.
 
 Conclusion:
 
-- Hay una incoherencia de despliegue/cache bust entre admin/restaurante y cliente.
-- El flujo end-to-end completo no puede validarse de forma fiable en la web publica hasta desplegar el cliente actualizado.
+- El bloqueo actual del tramo publico es de despliegue de Functions, no de cache del HTML.
+- Para cerrar el flujo completo hay que desplegar al menos esas dos callables.
 
-### 2. Sincronizacion multitab rota cuando una pestaña externa actualiza localStorage
+### 3. Sincronizacion multitab rota cuando una pestaña externa actualiza localStorage
 
 En el codigo actual del repo, las pestañas escuchaban `storage`, `focus`, `visibilitychange` y `BroadcastChannel`, pero al recibir el evento solo repintaban con la cache en memoria.
 
@@ -55,7 +70,7 @@ Estado:
 
 - Corregido en `shared.js` rehidratando la cache desde `localStorage` antes de volver a renderizar.
 
-### 3. UX mejorable en pedido invalido
+### 4. UX mejorable en pedido invalido
 
 Cuando el cliente introduce un codigo inexistente, el feedback dependia solo de `reportValidity()`.
 
@@ -85,25 +100,30 @@ Estado:
   - Inspector de estado local para comparar pedido privado y tracking publico.
 - `qa/inspect-client.mjs`
   - Inspector de la pagina cliente publica.
+- `qa/inspect-client-errors.mjs`
+  - Inspector de consola, runtime y fallos de red sobre la pagina cliente publica.
 - `qa/cleanup-live-restaurants.mjs`
   - Limpieza de restaurantes temporales de auditoria.
 
 ## Evidencia relevante de la auditoria
 
 - Se eliminaron 6 restaurantes temporales `QA Unicorn` creados durante la prueba en vivo.
+- La web publica ya sirve `client.html` con `shared.js?v=20260416g` y `client.js?v=20260416g`.
 - En almacenamiento compartido del navegador, el tracking del pedido auditado si llego a `preparing`.
-- La vista cliente publica de produccion no reflejo ese estado porque la build servida estaba desfasada.
+- La recarga publica del tracking falla porque `getPublicTrackingOrder` no esta desplegada en Firebase Functions.
 
 ## Riesgos de regresion a vigilar
 
 - Cualquier vista que dependa de sincronizacion cruzada entre pestañas (`admin`, `restaurant`, `client`) puede sufrir estados obsoletos si no se rehidrata cache al recibir eventos externos.
 - Si se actualiza `shared.js`, `client.js` o `firebase-bridge.js`, hay que cambiar el cache-bust en `client.html` y revisar coherencia con `admin.html` y `restaurant.html`.
+- Si se añaden nuevas Firebase Functions publicas y no se despliegan junto al frontend, el navegador las reportara como CORS aunque el problema real sea `404`.
 
 ## Siguiente accion recomendada
 
-1. Desplegar la web estatica actualizada para que `client.html` deje de servir assets desfasados.
-2. Repetir la auditoria visible sobre la URL publica ya desplegada.
-3. Verificar especificamente:
+1. Desplegar las Functions `getPublicTrackingOrder` y `submitPublicTrackingRating`.
+2. Dejar que GitHub Pages publique el fix de `shared.js`.
+3. Repetir la auditoria visible sobre la URL publica.
+4. Verificar especificamente:
    - carga real del pedido en cliente
    - paso `received -> preparing -> ready -> delivered`
    - sonido y vibracion al entrar en `ready`

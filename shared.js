@@ -413,7 +413,7 @@ function initializePhoneFieldHelpers() {
     const api = {
       countries: PHONE_COUNTRIES,
       defaultCountryIso: DEFAULT_PHONE_COUNTRY_ISO,
-      getCountryByIso,
+      getCountryByIso: getPhoneCountryByIso,
       getSelectedCountryIso: () => selectedCountryIso,
       setSelectedCountryIso: (iso) => {
         selectedCountryIso = getPhoneCountryByIso(iso).iso;
@@ -442,7 +442,7 @@ function initializePhoneFieldHelpers() {
   window.TurnoListoPhoneFields = {
     countries: PHONE_COUNTRIES,
     defaultCountryIso: DEFAULT_PHONE_COUNTRY_ISO,
-    getCountryByIso,
+    getCountryByIso: getPhoneCountryByIso,
     splitValue: splitPhoneValue,
     create: createPhoneFieldController,
   };
