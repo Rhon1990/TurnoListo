@@ -114,7 +114,13 @@
                 </div>
                 <label class="field field--wide">
                   <span>Foto de perfil</span>
-                  <input id="restaurantProfileLogoInput" type="file" accept="image/*" />
+                  <input id="restaurantProfileLogoInput" class="file-picker__input" type="file" accept="image/*" />
+                  <span class="file-picker">
+                    <span class="file-picker__button" data-i18n-key="profile.file.choose">Seleccionar imagen</span>
+                    <span class="file-picker__name" id="restaurantProfileLogoFilename" data-i18n-key="profile.file.empty">
+                      Ningún archivo seleccionado
+                    </span>
+                  </span>
                   <small class="field__hint">Usa una imagen limpia y reconocible para mantener consistencia en toda la operación.</small>
                 </label>
               </div>

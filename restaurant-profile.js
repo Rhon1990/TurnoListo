@@ -1,5 +1,6 @@
 const restaurantProfileForm = document.querySelector("#restaurantProfileForm");
 const restaurantProfileLogoInput = document.querySelector("#restaurantProfileLogoInput");
+const restaurantProfileLogoFilename = document.querySelector("#restaurantProfileLogoFilename");
 const restaurantProfileLogoPreview = document.querySelector("#restaurantProfileLogoPreview");
 const restaurantProfileLogoPreviewImage = document.querySelector("#restaurantProfileLogoPreviewImage");
 const restaurantProfileName = document.querySelector("#restaurantProfileName");
@@ -94,6 +95,26 @@ function initializeRestaurantProfilePage() {
   waitForDataReady().then(() => {
     initializeRestaurantProfileAuth();
   });
+}
+
+function resetRestaurantProfileLogoFilename() {
+  if (!restaurantProfileLogoFilename) return;
+  restaurantProfileLogoFilename.setAttribute("data-i18n-key", "profile.file.empty");
+  restaurantProfileLogoFilename.textContent = "Ningún archivo seleccionado";
+  if (window.TurnoListoI18n?.translateDocument) {
+    window.TurnoListoI18n.translateDocument(window.TurnoListoI18n.getLanguage?.());
+  }
+}
+
+function setRestaurantProfileLogoFilename(file) {
+  if (!restaurantProfileLogoFilename) return;
+  const safeName = String(file?.name || "").trim();
+  if (!safeName) {
+    resetRestaurantProfileLogoFilename();
+    return;
+  }
+  restaurantProfileLogoFilename.removeAttribute("data-i18n-key");
+  restaurantProfileLogoFilename.textContent = safeName;
 }
 
 function initializeRestaurantProfileAuth() {
@@ -231,6 +252,7 @@ function clearRestaurantProfileView() {
   if (restaurantProfileActivatedUntilCard) restaurantProfileActivatedUntilCard.textContent = EMPTY_STATUS_LABEL;
   applyRestaurantProfilePhoneValue("");
   syncRestaurantProfilePreview("");
+  resetRestaurantProfileLogoFilename();
   renderRestaurantAccount(null);
   renderRestaurantProfileSummary(null);
 }
@@ -251,6 +273,7 @@ async function handleRestaurantProfileLogoSelection(event) {
   const file = event.target.files?.[0] || null;
   if (!file) {
     selectedRestaurantProfileLogoUrl = "";
+    resetRestaurantProfileLogoFilename();
     const currentRestaurant = getCurrentRestaurantSession()
       ? getRestaurantById(getCurrentRestaurantSession().restaurantId)
       : null;
@@ -259,6 +282,7 @@ async function handleRestaurantProfileLogoSelection(event) {
   }
 
   try {
+    setRestaurantProfileLogoFilename(file);
     selectedRestaurantProfileLogoUrl = await optimizeAccountImage(file);
     syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl);
     const currentRestaurant = getCurrentRestaurantSession()
@@ -273,6 +297,7 @@ async function handleRestaurantProfileLogoSelection(event) {
       });
     }
   } catch (error) {
+    resetRestaurantProfileLogoFilename();
     showTurnoAlert(error instanceof Error ? error.message : "No se pudo preparar el logo del restaurante.", "error");
   }
 }
@@ -309,6 +334,10 @@ function handleRestaurantProfileSubmit(event) {
   }
 
   selectedRestaurantProfileLogoUrl = "";
+  if (restaurantProfileLogoInput) {
+    restaurantProfileLogoInput.value = "";
+  }
+  resetRestaurantProfileLogoFilename();
   restaurantProfileFeedback.textContent = "Perfil actualizado correctamente.";
   restaurantProfileFeedback.className = "form-feedback form-feedback--success";
   restaurantProfileFeedback.hidden = false;

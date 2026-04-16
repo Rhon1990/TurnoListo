@@ -1,5 +1,6 @@
 const adminProfileForm = document.querySelector("#adminProfileForm");
 const adminProfileAvatarInput = document.querySelector("#adminProfileAvatarInput");
+const adminProfileAvatarFilename = document.querySelector("#adminProfileAvatarFilename");
 const adminProfileAvatarPreview = document.querySelector("#adminProfileAvatarPreview");
 const adminProfileAvatarPreviewImage = document.querySelector("#adminProfileAvatarPreviewImage");
 const adminProfileDisplayName = document.querySelector("#adminProfileDisplayName");
@@ -102,6 +103,26 @@ function initializeAdminProfilePage() {
   });
 }
 
+function resetAdminProfileAvatarFilename() {
+  if (!adminProfileAvatarFilename) return;
+  adminProfileAvatarFilename.setAttribute("data-i18n-key", "profile.file.empty");
+  adminProfileAvatarFilename.textContent = "Ningún archivo seleccionado";
+  if (window.TurnoListoI18n?.translateDocument) {
+    window.TurnoListoI18n.translateDocument(window.TurnoListoI18n.getLanguage?.());
+  }
+}
+
+function setAdminProfileAvatarFilename(file) {
+  if (!adminProfileAvatarFilename) return;
+  const safeName = String(file?.name || "").trim();
+  if (!safeName) {
+    resetAdminProfileAvatarFilename();
+    return;
+  }
+  adminProfileAvatarFilename.removeAttribute("data-i18n-key");
+  adminProfileAvatarFilename.textContent = safeName;
+}
+
 function initializeAdminProfileAuth() {
   waitForFirebaseBackend().then((backend) => {
     if (!backend?.enabled || typeof backend.onAuthStateChanged !== "function") {
@@ -153,6 +174,7 @@ function renderAdminProfile(profile) {
   adminProfileCreatedAt.value = formatProfileDateTime(adminProfileSnapshot.createdAt);
   adminProfileUpdatedAt.value = formatProfileDateTime(adminProfileSnapshot.updatedAt);
   syncAdminAvatarPreview(selectedAdminAvatarUrl || adminProfileSnapshot.avatarUrl);
+  if (!selectedAdminAvatarUrl) resetAdminProfileAvatarFilename();
   renderAdminProfileSummary(profile);
 }
 
@@ -453,11 +475,13 @@ async function handleAdminAvatarSelection(event) {
   const file = event.target.files?.[0] || null;
   if (!file) {
     selectedAdminAvatarUrl = "";
+    resetAdminProfileAvatarFilename();
     syncAdminAvatarPreview(getCurrentUserProfile()?.avatarUrl || "");
     return;
   }
 
   try {
+    setAdminProfileAvatarFilename(file);
     selectedAdminAvatarUrl = await optimizeAccountImage(file);
     syncAdminAvatarPreview(selectedAdminAvatarUrl);
     renderAdminProfileSummary({
@@ -469,6 +493,7 @@ async function handleAdminAvatarSelection(event) {
     adminProfileFeedback.hidden = true;
     adminProfileFeedback.textContent = "";
   } catch (error) {
+    resetAdminProfileAvatarFilename();
     const message = error instanceof Error ? error.message : "No se pudo preparar la foto del administrador.";
     adminProfileFeedback.textContent = message;
     adminProfileFeedback.className = "form-feedback form-feedback--error";
@@ -499,6 +524,10 @@ async function handleAdminProfileSubmit(event) {
     const storedProfile = await loadCurrentUserProfileFromBackend();
     const nextProfile = buildAdminProfileViewModel(storedProfile, backend.getCurrentUser?.() || null);
     selectedAdminAvatarUrl = "";
+    if (adminProfileAvatarInput) {
+      adminProfileAvatarInput.value = "";
+    }
+    resetAdminProfileAvatarFilename();
     adminProfileFeedback.textContent = "Perfil administrador actualizado correctamente.";
     adminProfileFeedback.className = "form-feedback form-feedback--success";
     adminProfileFeedback.hidden = false;
@@ -534,6 +563,7 @@ function restoreAdminProfileSnapshot() {
   if (adminProfileAvatarInput) {
     adminProfileAvatarInput.value = "";
   }
+  resetAdminProfileAvatarFilename();
   adminProfileFeedback.hidden = true;
   adminProfileFeedback.textContent = "";
 }

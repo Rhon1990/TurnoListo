@@ -40,6 +40,8 @@
     "alert.warningTitle": "Revisa esto",
     "alert.errorTitle": "Algo ha fallado",
     "alert.unexpected": "Ha ocurrido un error inesperado.",
+    "profile.file.choose": "Seleccionar imagen",
+    "profile.file.empty": "Ningún archivo seleccionado",
 
     "landing.hero.title": "Dos códigos, un mismo pedido.",
     "landing.hero.text": "Una pantalla para el restaurante y otra para el cliente, conectadas por el mismo flujo.",
