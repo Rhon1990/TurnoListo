@@ -504,28 +504,36 @@ function renderRestaurantHeroSignals(stats, restaurant = null, allOrders = loadO
 
 function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrders()) {
   if (!restaurantSpotlightTitle || !restaurantSpotlightBody) return;
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
   if (isDemoRestaurant(restaurant)) {
     const demoUsage = getRestaurantDemoUsage(restaurant, allOrders);
     const confidenceLabel =
       stats.aiModelSampleSize >= 8 ? `IA ${stats.aiModelConfidenceLabel}` : "IA aprendiendo del local";
 
     if (demoUsage.remainingOrders <= 0) {
-      restaurantSpotlightTitle.textContent = "La demo ya demostro el valor";
+      restaurantSpotlightTitle.textContent = translateText("La demo ya demostro el valor");
       restaurantSpotlightBody.textContent =
-        "Ya has probado el flujo de pedidos, la lectura inteligente de la cola y el aprendizaje adaptativo del restaurante. Activa el plan completo para seguir operando sin limite y convertir esta prueba en rutina.";
+        translateText(
+          "Ya has probado el flujo de pedidos, la lectura inteligente de la cola y el aprendizaje adaptativo del restaurante. Activa el plan completo para seguir operando sin limite y convertir esta prueba en rutina.",
+        );
       restaurantSpotlightChipPrimary.textContent = `Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
-      restaurantSpotlightChipSecondary.textContent = "Activa el plan completo";
+      restaurantSpotlightChipSecondary.textContent = translateText("Activa el plan completo");
       return;
     }
 
     restaurantSpotlightTitle.textContent =
       demoUsage.usedOrders >= Math.max(2, demoUsage.maxOrders - 2)
-        ? "Estas a un paso de cerrar la demo"
-        : "Demo lista para impresionar al equipo";
+        ? translateText("Estas a un paso de cerrar la demo")
+        : translateText("Demo lista para impresionar al equipo");
     restaurantSpotlightBody.textContent =
       demoUsage.usedOrders >= Math.max(2, demoUsage.maxOrders - 2)
-        ? `Ya has consumido ${demoUsage.usedOrders} de ${demoUsage.maxOrders} pedidos. Aprovecha esta recta final para mostrar como TurnoListo reduce esperas, prioriza mejor y aprende del ritmo real del local.`
-        : `Puedes crear hasta ${demoUsage.maxOrders} pedidos de prueba con QR, priorizacion e inteligencia adaptativa. La demo esta pensada para que el restaurante vea valor desde el primer servicio y quiera escalar al plan real.`;
+        ? translateText(
+            `Ya has consumido ${demoUsage.usedOrders} de ${demoUsage.maxOrders} pedidos. Aprovecha esta recta final para mostrar como TurnoListo reduce esperas, prioriza mejor y aprende del ritmo real del local.`,
+          )
+        : translateText(
+            `Puedes crear hasta ${demoUsage.maxOrders} pedidos de prueba con QR, priorizacion e inteligencia adaptativa. La demo esta pensada para que el restaurante vea valor desde el primer servicio y quiera escalar al plan real.`,
+          );
     restaurantSpotlightChipPrimary.textContent = `Demo ${demoUsage.usedOrders}/${demoUsage.maxOrders}`;
     restaurantSpotlightChipSecondary.textContent = confidenceLabel;
     return;
@@ -543,8 +551,10 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
     restaurantSpotlightTitle.textContent = `Prioriza ${stats.aiFocusOrder.orderNumber} ahora`;
     restaurantSpotlightBody.textContent =
       stats.aiFocusOrder.aiRiskLevel === "high"
-        ? "La IA detecta que este pedido puede deteriorar la experiencia o romper la promesa de tiempo si no entra primero en foco."
-        : "Es el pedido con mayor retorno operativo inmediato segun carga actual, riesgo y aprendizaje historico del local.";
+        ? translateText(
+            "La IA detecta que este pedido puede deteriorar la experiencia o romper la promesa de tiempo si no entra primero en foco.",
+          )
+        : translateText("Es el pedido con mayor retorno operativo inmediato segun carga actual, riesgo y aprendizaje historico del local.");
     restaurantSpotlightChipPrimary.textContent = formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel);
     restaurantSpotlightChipSecondary.textContent = formatAiEta(stats.aiFocusOrder);
     return;
@@ -552,11 +562,17 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
 
   if (stats.activeNow > 0) {
     restaurantSpotlightTitle.textContent =
-      stats.aiModelSampleSize >= 8 ? "La IA ya se esta adaptando a este local" : "La operacion mantiene buen pulso";
+      stats.aiModelSampleSize >= 8
+        ? translateText("La IA ya se esta adaptando a este local")
+        : translateText("La operacion mantiene buen pulso");
     restaurantSpotlightBody.textContent =
       stats.aiModelSampleSize >= 8
-        ? `El modelo ya aprende de ${stats.aiModelSampleSize} cierres reales y ahora ajusta ETAs, riesgo y prioridades segun el comportamiento de este restaurante.`
-        : "No hay pedidos en riesgo alto ahora mismo. Puedes usar esta vista para mantener ritmo y anticiparte antes del siguiente pico de demanda.";
+        ? translateText(
+            `El modelo ya aprende de ${stats.aiModelSampleSize} cierres reales y ahora ajusta ETAs, riesgo y prioridades segun el comportamiento de este restaurante.`,
+          )
+        : translateText(
+            "No hay pedidos en riesgo alto ahora mismo. Puedes usar esta vista para mantener ritmo y anticiparte antes del siguiente pico de demanda.",
+          );
     restaurantSpotlightChipPrimary.textContent =
       stats.aiModelSampleSize >= 8 ? `IA ${stats.aiModelConfidenceLabel}` : `Activos ${stats.activeNow}`;
     restaurantSpotlightChipSecondary.textContent =
@@ -564,11 +580,11 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
     return;
   }
 
-  restaurantSpotlightTitle.textContent = "Listo para recibir más pedidos";
+  restaurantSpotlightTitle.textContent = translateText("Listo para entrenar con nuevos pedidos");
   restaurantSpotlightBody.textContent =
-    "La operacion esta despejada. Cuando entren nuevos pedidos, TurnoListo mostrara aqui la siguiente mejor accion para el equipo y seguira aprendiendo del servicio.";
-  restaurantSpotlightChipPrimary.textContent = "Operacion estable";
-  restaurantSpotlightChipSecondary.textContent = "Listo para escalar";
+    translateText("Cuando entren nuevos pedidos, TurnoListo seguirá afinando tiempos y prioridades con el comportamiento real del local.");
+  restaurantSpotlightChipPrimary.textContent = translateText("Operacion estable");
+  restaurantSpotlightChipSecondary.textContent = translateText("Listo para escalar");
 }
 
 function renderRestaurantCreateHints(restaurant, allOrders = loadOrders()) {
@@ -589,6 +605,8 @@ function renderRestaurantCreateHints(restaurant, allOrders = loadOrders()) {
 
 function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   if (!restaurantPlaybook || !restaurantPlaybookList) return;
+  const translateText = (value) =>
+    window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
 
   const restaurantId = String(restaurant?.id || "");
   const restaurantOrders = allOrders.filter((order) => String(order.restaurantId || "") === restaurantId);
@@ -609,13 +627,13 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   }
 
   if (restaurantPlaybookEyebrow) {
-    restaurantPlaybookEyebrow.textContent = isDemo ? "Recorrido demo" : "Playbook operativo";
+    restaurantPlaybookEyebrow.textContent = translateText(isDemo ? "Recorrido demo" : "Playbook operativo");
   }
 
   if (restaurantPlaybookTitle) {
     restaurantPlaybookTitle.textContent = isDemo
-      ? "Cómo enseñar valor en menos de 10 minutos"
-      : "Cómo activar más valor en el flujo diario";
+      ? translateText("Cómo enseñar valor en menos de 10 minutos")
+      : translateText("Cómo activar más valor en el flujo diario");
   }
 
   const steps = isDemo
@@ -691,11 +709,11 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
 
     const status = document.createElement("strong");
     status.className = "playbook-step__status";
-    status.textContent = step.done ? "Completado" : "Pendiente";
+    status.textContent = translateText(step.done ? "Completado" : "Pendiente");
 
     const text = document.createElement("span");
     text.className = "playbook-step__text";
-    text.textContent = step.text;
+    text.textContent = translateText(step.text);
 
     content.append(status, text);
     item.append(icon, content);
