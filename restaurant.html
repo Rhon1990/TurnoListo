@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Panel restaurante de TurnoListo para gestionar pedidos, optimizar tiempos y ofrecer seguimiento por QR al cliente."
+    />
     <title>TurnoListo | Restaurante</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +17,7 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260415g" />
   </head>
-  <body>
+  <body data-private-role="restaurant">
     <div class="app-shell" id="restaurantLoginView" hidden>
       <main class="grid grid--single">
         <section class="panel glass-card auth-panel">
@@ -71,12 +75,12 @@
               <form class="quick-form auth-form" id="restaurantLoginForm">
                 <label class="field">
                   <span data-i18n-key="restaurant.login.email">Correo de acceso</span>
-                  <input id="restaurantLoginUsername" name="username" type="email" placeholder="correo@restaurante.com" required />
+                  <input id="restaurantLoginUsername" name="username" type="email" placeholder="correo@restaurante.com" autocomplete="username" required />
                 </label>
                 <label class="field">
                   <span data-i18n-key="restaurant.login.password">Contraseña</span>
                   <div class="password-field">
-                    <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" data-i18n-placeholder-key="restaurant.login.password" required />
+                    <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" data-i18n-placeholder-key="restaurant.login.password" autocomplete="current-password" required />
                     <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña" data-i18n-aria-label-key="restaurant.login.showPassword">
                       <span class="material-symbols-rounded" data-icon="visibility" aria-hidden="true"></span>
                     </button>
@@ -636,9 +640,6 @@
       </div>
     </div>
 
-    <script>
-      window.TURNO_LISTO_PRIVATE_ROLE = "restaurant";
-    </script>
     <script src="./i18n.js?v=20260416b"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>

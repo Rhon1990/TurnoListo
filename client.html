@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Sigue tu pedido en TurnoListo en tiempo real, activa avisos y consulta tu QR seguro de recogida."
+    />
     <title>TurnoListo | Cliente</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -138,7 +142,7 @@
               </button>
             </div>
             <div class="scan-box__row scan-box__row--compact">
-              <input id="clientOrderInput" type="text" placeholder="Ej. TL-ANA2048Q2Z9" />
+              <input id="clientOrderInput" type="text" placeholder="Ej. TL-ANA2048Q2Z9" autocapitalize="characters" spellcheck="false" />
               <button id="clientLoadButton" type="button">Abrir</button>
             </div>
             <p class="scan-box__hint" data-i18n-key="client.tools.hint">Escribe el código seguro del pedido solo si quieres consultar uno distinto.</p>

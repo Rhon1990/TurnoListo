@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Panel administrador de TurnoListo para activar restaurantes, revisar señales de negocio y operar la expansión del producto."
+    />
     <title>TurnoListo | Administrador</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +17,7 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260416d" />
   </head>
-  <body>
+  <body data-private-role="admin">
     <div class="app-shell" id="adminLoginView">
       <main class="grid grid--single">
         <section class="panel glass-card auth-panel">
@@ -70,12 +74,12 @@
               <form class="quick-form auth-form" id="adminLoginForm">
                 <label class="field">
                   <span data-i18n-key="admin.login.email">Correo administrador</span>
-                  <input name="username" type="email" placeholder="admin@turnolisto.com" required />
+                  <input name="username" type="email" placeholder="admin@turnolisto.com" autocomplete="username" required />
                 </label>
                 <label class="field">
                   <span data-i18n-key="admin.login.password">Contraseña</span>
                   <div class="password-field">
-                    <input id="adminLoginPassword" name="password" type="password" placeholder="Contraseña" data-i18n-placeholder-key="admin.login.password" required />
+                    <input id="adminLoginPassword" name="password" type="password" placeholder="Contraseña" data-i18n-placeholder-key="admin.login.password" autocomplete="current-password" required />
                     <button class="password-toggle password-toggle--field" id="adminLoginTogglePassword" type="button" aria-label="Mostrar contraseña" data-i18n-aria-label-key="admin.login.showPassword">
                       <span class="material-symbols-rounded" data-icon="visibility" aria-hidden="true"></span>
                     </button>
@@ -739,9 +743,6 @@
       </div>
     </div>
 
-    <script>
-      window.TURNO_LISTO_PRIVATE_ROLE = "admin";
-    </script>
     <script src="./i18n.js?v=20260416d"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>

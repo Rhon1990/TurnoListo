@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Contacta con TurnoListo para soporte, alianzas comerciales o conversaciones de inversión sobre la plataforma."
+    />
     <title>TurnoListo | Contáctenos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -94,15 +98,15 @@
           <form class="quick-form contact-form" id="contactForm">
             <label class="field">
               <span>Nombre completo</span>
-              <input id="contactName" name="name" type="text" placeholder="Tu nombre" required />
+              <input id="contactName" name="name" type="text" placeholder="Tu nombre" autocomplete="name" required />
             </label>
             <label class="field">
               <span>Empresa o fondo</span>
-              <input id="contactCompany" name="company" type="text" placeholder="Nombre de tu empresa" />
+              <input id="contactCompany" name="company" type="text" placeholder="Nombre de tu empresa" autocomplete="organization" />
             </label>
             <label class="field field--wide">
               <span>Correo de contacto</span>
-              <input id="contactEmail" name="email" type="email" placeholder="correo@empresa.com" required />
+              <input id="contactEmail" name="email" type="email" placeholder="correo@empresa.com" autocomplete="email" required />
             </label>
             <div class="field field--phone field--wide">
               <span>Número móvil</span>
@@ -221,16 +225,24 @@
               </div>
             </div>
             <div class="contact-map__frame">
+              <a
+                class="contact-item__link"
+                href="https://www.google.com/maps/search/?api=1&query=Calle+Vilatan+19,+Ituero+y+Lama,+Segovia"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Abrir ubicación en Google Maps
+              </a>
               <iframe
                 class="contact-map__embed"
                 title="Mapa de TurnoListo"
                 src="https://maps.google.com/maps?q=Calle%20vilatan%2019%2C%20Ituero%20y%20Lama%2C%20Segovia%2C%20Spain&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
+                referrerpolicy="strict-origin-when-cross-origin"
               ></iframe>
             </div>
             <p class="hero__hint">
-              Si quieres, también puedo añadir un enlace directo para abrir esta ubicación en Google Maps o Waze.
+              Puedes abrir la ubicación directamente en Google Maps o consultar el mapa embebido desde esta misma página.
             </p>
           </section>
         </div>

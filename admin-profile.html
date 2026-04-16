@@ -13,7 +13,7 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css?v=20260416c" />
   </head>
-  <body>
+  <body data-private-role="admin">
     <div class="app-shell contact-page">
       <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
         <div class="workspace-topbar__inner">
@@ -192,11 +192,11 @@
             <form class="quick-form admin-create-form" id="adminCreateAdminForm">
               <label class="field">
                 <span>Nombre</span>
-                <input name="displayName" type="text" required />
+                <input name="displayName" type="text" autocomplete="name" required />
               </label>
               <label class="field">
                 <span>Correo</span>
-                <input name="email" type="email" required />
+                <input name="email" type="email" autocomplete="email" required />
               </label>
               <div class="field field--phone field--wide">
                 <span>Número móvil</span>
@@ -272,9 +272,6 @@
         </div>
       </main>
     </div>
-    <script>
-      window.TURNO_LISTO_PRIVATE_ROLE = "admin";
-    </script>
     <script src="./i18n.js?v=20260416c"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>

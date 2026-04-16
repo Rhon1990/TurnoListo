@@ -8,11 +8,11 @@ La demo está separada en tres páginas:
 
 ## Cómo probarla
 
-1. Abre [admin.html](/Users/rdelgpad/Documents/personal/ideas/admin.html).
+1. Abre [admin.html](/Users/rdelgpad/Documents/personal/TurnoListo/admin.html).
 2. Entra como administrador con `admin` / `admin123`.
 3. Crea un restaurante o usa el restaurante demo `demo` / `demo123`.
-4. Abre [restaurant.html](/Users/rdelgpad/Documents/personal/ideas/restaurant.html) e inicia sesión con ese acceso.
-5. Abre [client.html](/Users/rdelgpad/Documents/personal/ideas/client.html).
+4. Abre [restaurant.html](/Users/rdelgpad/Documents/personal/TurnoListo/restaurant.html) e inicia sesión con ese acceso.
+5. Abre [client.html](/Users/rdelgpad/Documents/personal/TurnoListo/client.html).
 6. En restaurante crea un pedido nuevo o edita uno existente.
 7. En cliente escribe `TL-ANA2048Q2Z9`, `TL-LUIS2049R7MX`, `TL-MARTA2050K4P` o `TL-PABLO2051N8W`, o abre `client.html?order=TL-ANA2048Q2Z9`.
 
@@ -27,22 +27,13 @@ Si configuras Firebase, `admin.html`, `restaurant.html` y `client.html` comparte
 1. Crea un proyecto en Firebase y habilita `Cloud Firestore`.
 2. En la configuración web del proyecto copia las credenciales en [firebase-config.js](/Users/rdelgpad/Documents/personal/TurnoListo/firebase-config.js).
 3. Cambia `enabled: false` por `enabled: true`.
-4. Crea dos colecciones en Firestore o deja que la app las cree al arrancar:
+4. Despliega las reglas de [firestore.rules](/Users/rdelgpad/Documents/personal/TurnoListo/firestore.rules). No uses reglas abiertas en entornos reales.
+5. Crea las colecciones necesarias en Firestore o deja que la app las cree al arrancar:
    `orders`
    `restaurants`
-5. Usa reglas de prueba durante el arranque del proyecto. Por ejemplo:
-
-```text
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
-```
-
+   `tracking`
+   `users`
+   `contactInquiries`
 6. Abre `admin.html`, `restaurant.html` y `client.html` con esa configuración y comprueba que los cambios viajan entre navegador y móvil.
 
 La integración de Firebase usa el SDK web por CDN y sincroniza los pedidos y restaurantes en tiempo real con Firestore.
@@ -77,7 +68,7 @@ npm install
 
 ```bash
 cd ..
-firebase deploy --only functions
+firebase deploy --only functions,firestore:rules,hosting
 ```
 
 ### Requisitos
@@ -85,6 +76,7 @@ firebase deploy --only functions
 - el admin debe existir en `Authentication`
 - `users/{adminUid}` debe tener `role: "admin"`
 - `rhon1990.github.io` debe estar en `Authentication > Configuracion > Dominios autorizados`
+- si publicas Hosting, revisa también los headers y CSP definidos en [firebase.json](/Users/rdelgpad/Documents/personal/TurnoListo/firebase.json)
 
 Si la funcion no esta desplegada, `admin.html` mostrara un error indicando que la automatizacion no esta disponible.
 

@@ -602,7 +602,7 @@ function updateDataBackendMode() {
 }
 
 function getRequiredPrivateRole() {
-  return String(window.TURNO_LISTO_PRIVATE_ROLE || "").trim();
+  return String(window.TURNO_LISTO_PRIVATE_ROLE || document.body?.dataset?.privateRole || "").trim();
 }
 
 function getPrivateCollectionFilters(collectionName, profile = currentUserProfile) {
