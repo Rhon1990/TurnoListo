@@ -16,6 +16,7 @@ const etaValue = document.querySelector("#clientEtaValue");
 const etaStat = document.querySelector("#clientEtaStat");
 const clientBrand = document.querySelector("#clientBrand");
 const clientBrandLogo = document.querySelector("#clientBrandLogo");
+const clientBrandLogoWrap = clientBrandLogo?.parentElement || null;
 const clientBrandName = document.querySelector("#clientBrandName");
 const qrImage = document.querySelector("#clientQrImage");
 const qrValue = document.querySelector("#clientQrValue");
@@ -376,11 +377,16 @@ function renderClientBrand(restaurant) {
   const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
   clientBrand.hidden = !logoUrl && !restaurantName;
+  if (clientBrandLogoWrap) {
+    clientBrandLogoWrap.hidden = !logoUrl;
+  }
+  clientBrandLogo.hidden = !logoUrl;
 
   if (!logoUrl) {
     clientBrandLogo.removeAttribute("src");
   } else {
     clientBrandLogo.src = logoUrl;
+    clientBrandLogo.alt = restaurantName ? `Logo de ${restaurantName}` : "Logo del restaurante";
   }
 
   clientBrandName.textContent = restaurantName;

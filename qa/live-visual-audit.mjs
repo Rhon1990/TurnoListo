@@ -16,6 +16,8 @@ const BASE_URL = process.env.TURNOLISTO_BASE_URL || "https://rhon1990.github.io/
 const ADMIN_URL = `${BASE_URL}/admin.html`;
 const RESTAURANT_URL = `${BASE_URL}/restaurant.html`;
 const REPORT_PATH = process.env.TURNOLISTO_REPORT_PATH || "/tmp/turnolisto-live-audit-report.json";
+const SKIP_CLEANUP = String(process.env.TURNOLISTO_SKIP_CLEANUP || "").trim().toLowerCase() === "true";
+const KEEP_PAGES_OPEN = String(process.env.TURNOLISTO_KEEP_PAGES_OPEN || "").trim().toLowerCase() === "true";
 
 if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
   throw new Error("Missing TURNOLISTO_ADMIN_EMAIL or TURNOLISTO_ADMIN_PASSWORD.");
@@ -35,6 +37,8 @@ const report = {
   restaurantName,
   restaurantEmail,
   restaurantPassword,
+  skipCleanup: SKIP_CLEANUP,
+  keepPagesOpen: KEEP_PAGES_OPEN,
   observations: [],
 };
 
@@ -717,7 +721,9 @@ async function main() {
     await submitClientFeedback(clientPage);
     await cancelSecondOrder(restaurantPage);
     await exerciseRestaurantDashboardAndHistory(restaurantPage);
-    await cleanupRestaurant(adminPage);
+    if (!SKIP_CLEANUP) {
+      await cleanupRestaurant(adminPage);
+    }
 
     report.finishedAt = new Date().toISOString();
     report.status = "completed";
@@ -728,26 +734,28 @@ async function main() {
     throw error;
   } finally {
     await writeFile(REPORT_PATH, JSON.stringify(report, null, 2), "utf8");
-    for (const page of allPages) {
-      try {
-        await page.close();
-      } catch {}
-    }
+    if (!KEEP_PAGES_OPEN) {
+      for (const page of allPages) {
+        try {
+          await page.close();
+        } catch {}
+      }
 
-    const targets = await listTargets(DEBUG_BASE_URL);
-    const transientTargets = targets.filter((target) => {
-      const url = String(target.url || "");
-      return target.type === "page" && (
-        url.includes("/TurnoListo/client.html") ||
-        url.includes("/TurnoListo/restaurant.html") ||
-        url.includes("mode=resetPassword")
-      );
-    });
+      const targets = await listTargets(DEBUG_BASE_URL);
+      const transientTargets = targets.filter((target) => {
+        const url = String(target.url || "");
+        return target.type === "page" && (
+          url.includes("/TurnoListo/client.html") ||
+          url.includes("/TurnoListo/restaurant.html") ||
+          url.includes("mode=resetPassword")
+        );
+      });
 
-    for (const target of transientTargets) {
-      try {
-        await closeTarget(target.id, DEBUG_BASE_URL);
-      } catch {}
+      for (const target of transientTargets) {
+        try {
+          await closeTarget(target.id, DEBUG_BASE_URL);
+        } catch {}
+      }
     }
   }
 }

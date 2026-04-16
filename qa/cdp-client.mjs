@@ -122,6 +122,42 @@ export class CdpPage {
     await this.send("Page.bringToFront");
   }
 
+  async setViewport(options = {}) {
+    const width = Math.max(320, Math.round(Number(options.width || 1280)));
+    const height = Math.max(480, Math.round(Number(options.height || 900)));
+    const deviceScaleFactor = Number.isFinite(options.deviceScaleFactor)
+      ? Number(options.deviceScaleFactor)
+      : 1;
+    const mobile = Boolean(options.mobile);
+
+    await this.send("Emulation.setDeviceMetricsOverride", {
+      width,
+      height,
+      deviceScaleFactor,
+      mobile,
+      screenWidth: width,
+      screenHeight: height,
+      positionX: 0,
+      positionY: 0,
+      dontSetVisibleSize: false,
+      screenOrientation: mobile
+        ? { angle: 0, type: "portraitPrimary" }
+        : { angle: 0, type: "landscapePrimary" },
+    });
+    await this.send("Emulation.setTouchEmulationEnabled", {
+      enabled: mobile,
+      maxTouchPoints: mobile ? 5 : 1,
+    });
+  }
+
+  async resetViewport() {
+    await this.send("Emulation.clearDeviceMetricsOverride");
+    await this.send("Emulation.setTouchEmulationEnabled", {
+      enabled: false,
+      maxTouchPoints: 1,
+    });
+  }
+
   async waitForLoad(timeoutMs = 30000) {
     let resolved = false;
     return new Promise((resolve, reject) => {
