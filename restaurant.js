@@ -75,6 +75,7 @@ const restaurantProfilePhoneCountryName = document.querySelector("#restaurantPro
 const restaurantProfilePhoneCountrySearch = document.querySelector("#restaurantProfilePhoneCountrySearch");
 const restaurantProfilePhoneCountryList = document.querySelector("#restaurantProfilePhoneCountryList");
 const restaurantProfilePhoneLocal = document.querySelector("#restaurantProfilePhoneLocal");
+const restaurantProfilePhoneHint = document.querySelector("#restaurantProfilePhoneHint");
 const restaurantProfilePhoneError = document.querySelector("#restaurantProfilePhoneError");
 const restaurantProfileCity = document.querySelector("#restaurantProfileCity");
 const restaurantProfileAddress = document.querySelector("#restaurantProfileAddress");
@@ -175,29 +176,28 @@ let selectedRestaurantProfilePhoneCountryIso = "ES";
 const EMPTY_DATA_LABEL = "Sin datos cargados";
 const EMPTY_STATUS_LABEL = "No disponible";
 const EMPTY_AVATAR_LABEL = "?";
-const PHONE_COUNTRIES = [
-  { iso: "ES", flag: "🇪🇸", name: "España", dialCode: "+34", placeholder: "600 000 000", minDigits: 9, maxDigits: 9 },
-  { iso: "PT", flag: "🇵🇹", name: "Portugal", dialCode: "+351", placeholder: "912 345 678", minDigits: 9, maxDigits: 9 },
-  { iso: "FR", flag: "🇫🇷", name: "Francia", dialCode: "+33", placeholder: "6 12 34 56 78", minDigits: 9, maxDigits: 9 },
-  { iso: "IT", flag: "🇮🇹", name: "Italia", dialCode: "+39", placeholder: "312 345 6789", minDigits: 9, maxDigits: 10 },
-  { iso: "DE", flag: "🇩🇪", name: "Alemania", dialCode: "+49", placeholder: "1512 3456789", minDigits: 10, maxDigits: 11 },
-  { iso: "GB", flag: "🇬🇧", name: "Reino Unido", dialCode: "+44", placeholder: "7400 123456", minDigits: 10, maxDigits: 10 },
-  { iso: "IE", flag: "🇮🇪", name: "Irlanda", dialCode: "+353", placeholder: "85 123 4567", minDigits: 9, maxDigits: 9 },
-  { iso: "NL", flag: "🇳🇱", name: "Países Bajos", dialCode: "+31", placeholder: "6 12345678", minDigits: 9, maxDigits: 9 },
-  { iso: "BE", flag: "🇧🇪", name: "Bélgica", dialCode: "+32", placeholder: "470 12 34 56", minDigits: 9, maxDigits: 9 },
-  { iso: "CH", flag: "🇨🇭", name: "Suiza", dialCode: "+41", placeholder: "78 123 45 67", minDigits: 9, maxDigits: 9 },
-  { iso: "AT", flag: "🇦🇹", name: "Austria", dialCode: "+43", placeholder: "664 1234567", minDigits: 10, maxDigits: 11 },
-  { iso: "US", flag: "🇺🇸", name: "Estados Unidos", dialCode: "+1", placeholder: "(201) 555 0123", minDigits: 10, maxDigits: 10 },
-  { iso: "MX", flag: "🇲🇽", name: "México", dialCode: "+52", placeholder: "55 1234 5678", minDigits: 10, maxDigits: 10 },
-  { iso: "AR", flag: "🇦🇷", name: "Argentina", dialCode: "+54", placeholder: "11 2345 6789", minDigits: 10, maxDigits: 10 },
-  { iso: "CL", flag: "🇨🇱", name: "Chile", dialCode: "+56", placeholder: "9 6123 4567", minDigits: 9, maxDigits: 9 },
-  { iso: "CO", flag: "🇨🇴", name: "Colombia", dialCode: "+57", placeholder: "320 123 4567", minDigits: 10, maxDigits: 10 },
-  { iso: "PE", flag: "🇵🇪", name: "Perú", dialCode: "+51", placeholder: "912 345 678", minDigits: 9, maxDigits: 9 },
-  { iso: "EC", flag: "🇪🇨", name: "Ecuador", dialCode: "+593", placeholder: "99 123 4567", minDigits: 9, maxDigits: 9 },
-  { iso: "UY", flag: "🇺🇾", name: "Uruguay", dialCode: "+598", placeholder: "94 123 456", minDigits: 8, maxDigits: 9 },
-  { iso: "BR", flag: "🇧🇷", name: "Brasil", dialCode: "+55", placeholder: "11 91234 5678", minDigits: 11, maxDigits: 11 },
-];
-const DEFAULT_PHONE_COUNTRY_ISO = "ES";
+const PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
+const DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
+const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
+  elements: {
+    field: restaurantProfilePhoneField,
+    countryTrigger: restaurantProfilePhoneCountryTrigger,
+    countryPanel: restaurantProfilePhoneCountryPanel,
+    countryFlag: restaurantProfilePhoneCountryFlag,
+    countryDial: restaurantProfilePhoneCountryDial,
+    countryName: restaurantProfilePhoneCountryName,
+    countrySearch: restaurantProfilePhoneCountrySearch,
+    countryList: restaurantProfilePhoneCountryList,
+    localInput: restaurantProfilePhoneLocal,
+    hiddenInput: restaurantProfilePhone,
+    hintElement: restaurantProfilePhoneHint,
+    errorElement: restaurantProfilePhoneError,
+  },
+  translateText: translateRuntimeText,
+  translateKey: translateRuntimeKey,
+  formatKey: formatRuntimeKey,
+  isRequired: () => false,
+});
 
 initializeRestaurantFirebaseAuth();
 waitForDataReady().then(bootRestaurantPage);
@@ -251,6 +251,9 @@ window.addEventListener("click", handleRestaurantAccountOutsideClick);
 window.addEventListener("click", handleRestaurantProfilePhoneOutsideClick);
 window.addEventListener("keydown", handleRestaurantProfilePhoneKeydown);
 window.addEventListener("turnolisto:language-change", () => {
+  renderRestaurantProfilePhoneCountryState();
+  renderRestaurantProfilePhoneCountryList();
+  validateRestaurantProfilePhoneNumber({ report: shouldReportPhoneValidation(restaurantProfilePhoneLocal, restaurantProfilePhoneError) });
   if (getCurrentRestaurantSession()) {
     renderRestaurant();
     refreshOpenRestaurantModals();
@@ -1031,189 +1034,62 @@ function handleRestaurantProfileSubmit(event) {
 }
 
 function getRestaurantProfilePhoneCountryByIso(iso) {
-  return PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+  return restaurantProfilePhoneController?.getCountryByIso(iso) || PHONE_COUNTRIES.find((country) => country.iso === iso) || PHONE_COUNTRIES[0];
+}
+
+function shouldReportPhoneValidation(input, errorElement) {
+  return Boolean(String(input?.value || "").trim()) || Boolean(errorElement && !errorElement.hidden);
+}
+
+function buildPhoneHintMessage(country) {
+  const countryName = translateRuntimeText(country.name);
+  return country.minDigits === country.maxDigits
+    ? formatRuntimeKey(
+      "contact.dynamic.phone.hint.fixed",
+      { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
+      `Selecciona ${countryName} (${country.dialCode}) y escribe un número local de ${country.minDigits} dígitos sin añadir el prefijo.`,
+    )
+    : formatRuntimeKey(
+      "contact.dynamic.phone.hint.range",
+      { country: countryName, minDigits: country.minDigits, maxDigits: country.maxDigits, dialCode: country.dialCode },
+      `Selecciona ${countryName} (${country.dialCode}) y escribe un número local de entre ${country.minDigits} y ${country.maxDigits} dígitos sin añadir el prefijo.`,
+    );
 }
 
 function setRestaurantProfilePhoneError(message = "") {
-  const safeMessage = String(message || "").trim();
-  if (restaurantProfilePhoneError) {
-    restaurantProfilePhoneError.textContent = safeMessage;
-    restaurantProfilePhoneError.hidden = !safeMessage;
-  }
-  restaurantProfilePhoneField?.classList.toggle("has-error", Boolean(safeMessage));
-  restaurantProfilePhoneLocal?.setCustomValidity(safeMessage);
+  return restaurantProfilePhoneController?.setError(message);
 }
 
 function renderRestaurantProfilePhoneCountryState() {
-  const country = getRestaurantProfilePhoneCountryByIso(selectedRestaurantProfilePhoneCountryIso);
-  if (restaurantProfilePhoneCountryFlag) restaurantProfilePhoneCountryFlag.textContent = country.flag;
-  if (restaurantProfilePhoneCountryDial) restaurantProfilePhoneCountryDial.textContent = country.dialCode;
-  if (restaurantProfilePhoneCountryName) restaurantProfilePhoneCountryName.textContent = translateRuntimeText(country.name);
-  if (restaurantProfilePhoneLocal && !restaurantProfilePhoneLocal.value.trim()) {
-    restaurantProfilePhoneLocal.placeholder = country.placeholder;
-  }
+  return restaurantProfilePhoneController?.renderState();
 }
 
 function buildRestaurantProfilePhoneNumber() {
-  const country = getRestaurantProfilePhoneCountryByIso(selectedRestaurantProfilePhoneCountryIso);
-  const localValue = String(restaurantProfilePhoneLocal?.value || "")
-    .replace(/[^\d\s()-]/g, "")
-    .trim();
-
-  if (!localValue) {
-    if (restaurantProfilePhone) restaurantProfilePhone.value = "";
-    return "";
-  }
-
-  const digitsOnly = localValue.replace(/\D/g, "");
-  const dialDigits = country.dialCode.replace(/\D/g, "");
-  const normalizedLocal =
-    digitsOnly.startsWith(dialDigits) && localValue.replace(/\s+/g, "").startsWith(dialDigits)
-      ? digitsOnly.slice(dialDigits.length)
-      : localValue;
-  const fullPhone = `${country.dialCode} ${String(normalizedLocal).trim()}`.trim();
-  if (restaurantProfilePhone) restaurantProfilePhone.value = fullPhone;
-  return fullPhone;
+  return restaurantProfilePhoneController?.buildPhoneNumber() || "";
 }
 
 function syncRestaurantProfilePhoneHiddenValue() {
-  if (restaurantProfilePhoneLocal?.value.trim()) {
-    setRestaurantProfilePhoneError("");
-  }
-  return buildRestaurantProfilePhoneNumber();
+  return restaurantProfilePhoneController?.syncHiddenValue() || "";
 }
 
 function validateRestaurantProfilePhoneNumber(options = {}) {
-  const country = getRestaurantProfilePhoneCountryByIso(selectedRestaurantProfilePhoneCountryIso);
-  const rawValue = String(restaurantProfilePhoneLocal?.value || "").trim();
-  const digitsOnly = rawValue.replace(/\D/g, "");
-  const dialDigits = country.dialCode.replace(/\D/g, "");
-  let localDigits = digitsOnly;
-
-  if (!rawValue) {
-    setRestaurantProfilePhoneError("");
-    if (restaurantProfilePhone) restaurantProfilePhone.value = "";
-    return { valid: true, phone: "", message: "" };
-  }
-
-  if (localDigits.startsWith(dialDigits)) {
-    localDigits = localDigits.slice(dialDigits.length);
-  }
-
-  if (localDigits.length < country.minDigits || localDigits.length > country.maxDigits) {
-    const countryName = translateRuntimeText(country.name);
-    const message =
-      country.minDigits === country.maxDigits
-        ? formatRuntimeKey(
-          "contact.dynamic.phone.invalid.fixed",
-          { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
-          `El móvil de ${countryName} debe tener ${country.minDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
-        )
-        : formatRuntimeKey(
-          "contact.dynamic.phone.invalid.range",
-          {
-            country: countryName,
-            minDigits: country.minDigits,
-            maxDigits: country.maxDigits,
-            dialCode: country.dialCode,
-          },
-          `El móvil de ${countryName} debe tener entre ${country.minDigits} y ${country.maxDigits} dígitos sin contar el prefijo ${country.dialCode}.`,
-        );
-    if (options.report) setRestaurantProfilePhoneError(message);
-    return { valid: false, message };
-  }
-
-  const formattedPhone = `${country.dialCode} ${localDigits}`.trim();
-  if (restaurantProfilePhone) restaurantProfilePhone.value = formattedPhone;
-  setRestaurantProfilePhoneError("");
-  return { valid: true, phone: formattedPhone, message: "" };
+  return restaurantProfilePhoneController?.validate(options) || { valid: true, phone: "", message: "" };
 }
 
 function renderRestaurantProfilePhoneCountryList() {
-  if (!restaurantProfilePhoneCountryList) return;
-  const query = String(restaurantProfilePhoneCountrySearch?.value || "").trim().toLowerCase();
-  restaurantProfilePhoneCountryList.innerHTML = "";
-
-  const filteredCountries = PHONE_COUNTRIES.filter((country) => {
-    const localizedCountryName = translateRuntimeText(country.name).toLowerCase();
-    if (!query) return true;
-    return (
-      country.name.toLowerCase().includes(query) ||
-      localizedCountryName.includes(query) ||
-      country.dialCode.toLowerCase().includes(query) ||
-      country.iso.toLowerCase().includes(query)
-    );
-  });
-
-  if (!filteredCountries.length) {
-    const emptyState = document.createElement("p");
-    emptyState.className = "phone-country-list__empty";
-    emptyState.textContent = translateRuntimeKey("contact.dynamic.phone.empty_search", "No encontramos ningún país con esa búsqueda.");
-    restaurantProfilePhoneCountryList.append(emptyState);
-    return;
-  }
-
-  filteredCountries.forEach((country) => {
-    const option = document.createElement("button");
-    option.type = "button";
-    option.className = "phone-country-option";
-    option.setAttribute("role", "option");
-    option.setAttribute("aria-selected", String(country.iso === selectedRestaurantProfilePhoneCountryIso));
-    if (country.iso === selectedRestaurantProfilePhoneCountryIso) option.classList.add("is-active");
-    option.addEventListener("click", () => {
-      selectedRestaurantProfilePhoneCountryIso = country.iso;
-      renderRestaurantProfilePhoneCountryState();
-      syncRestaurantProfilePhoneHiddenValue();
-      validateRestaurantProfilePhoneNumber({ report: Boolean(restaurantProfilePhoneLocal?.value.trim()) });
-      closeRestaurantProfilePhoneCountryPanel();
-    });
-
-    const flag = document.createElement("span");
-    flag.className = "phone-country-option__flag";
-    flag.textContent = country.flag;
-
-    const meta = document.createElement("span");
-    meta.className = "phone-country-option__meta";
-
-    const name = document.createElement("span");
-    name.className = "phone-country-option__name";
-    name.textContent = translateRuntimeText(country.name);
-
-    const dial = document.createElement("span");
-    dial.className = "phone-country-option__dial";
-    dial.textContent = `${country.dialCode} · ${country.iso}`;
-
-    meta.append(name, dial);
-    option.append(flag, meta);
-    restaurantProfilePhoneCountryList.append(option);
-  });
+  return restaurantProfilePhoneController?.renderList();
 }
 
 function openRestaurantProfilePhoneCountryPanel() {
-  if (!restaurantProfilePhoneCountryPanel || !restaurantProfilePhoneCountryTrigger) return;
-  restaurantProfilePhoneCountryPanel.hidden = false;
-  restaurantProfilePhoneField?.classList.add("is-open");
-  restaurantProfilePhoneCountryTrigger.setAttribute("aria-expanded", "true");
-  renderRestaurantProfilePhoneCountryList();
-  window.requestAnimationFrame(() => {
-    restaurantProfilePhoneCountrySearch?.focus();
-    restaurantProfilePhoneCountrySearch?.select();
-  });
+  return restaurantProfilePhoneController?.openPanel();
 }
 
 function closeRestaurantProfilePhoneCountryPanel() {
-  if (!restaurantProfilePhoneCountryPanel || !restaurantProfilePhoneCountryTrigger) return;
-  restaurantProfilePhoneCountryPanel.hidden = true;
-  restaurantProfilePhoneField?.classList.remove("is-open");
-  restaurantProfilePhoneCountryTrigger.setAttribute("aria-expanded", "false");
+  return restaurantProfilePhoneController?.closePanel();
 }
 
 function toggleRestaurantProfilePhoneCountryPanel() {
-  if (restaurantProfilePhoneCountryPanel?.hidden) {
-    openRestaurantProfilePhoneCountryPanel();
-    return;
-  }
-  closeRestaurantProfilePhoneCountryPanel();
+  return restaurantProfilePhoneController?.togglePanel();
 }
 
 function handleRestaurantProfilePhoneOutsideClick(event) {
@@ -1229,49 +1105,15 @@ function handleRestaurantProfilePhoneKeydown(event) {
 }
 
 function initializeRestaurantProfilePhoneField() {
-  if (!restaurantProfilePhoneField) return;
-  selectedRestaurantProfilePhoneCountryIso = DEFAULT_PHONE_COUNTRY_ISO;
-  if (restaurantProfilePhoneCountrySearch) restaurantProfilePhoneCountrySearch.value = "";
-  if (restaurantProfilePhoneLocal) {
-    restaurantProfilePhoneLocal.value = "";
-    restaurantProfilePhoneLocal.setCustomValidity("");
-  }
-  if (restaurantProfilePhone) restaurantProfilePhone.value = "";
-  setRestaurantProfilePhoneError("");
-  renderRestaurantProfilePhoneCountryState();
-  renderRestaurantProfilePhoneCountryList();
-  closeRestaurantProfilePhoneCountryPanel();
+  return restaurantProfilePhoneController?.reset();
 }
 
 function splitRestaurantProfilePhoneValue(value) {
-  const normalized = String(value || "").trim();
-  if (!normalized) {
-    return { iso: DEFAULT_PHONE_COUNTRY_ISO, local: "" };
-  }
-
-  const matchedCountry = PHONE_COUNTRIES
-    .slice()
-    .sort((left, right) => right.dialCode.length - left.dialCode.length)
-    .find((country) => normalized.startsWith(country.dialCode));
-
-  if (!matchedCountry) {
-    return { iso: DEFAULT_PHONE_COUNTRY_ISO, local: normalized.replace(/^\+/, "").trim() };
-  }
-
-  return {
-    iso: matchedCountry.iso,
-    local: normalized.slice(matchedCountry.dialCode.length).trim(),
-  };
+  return restaurantProfilePhoneController?.splitValue(value) || { iso: DEFAULT_PHONE_COUNTRY_ISO, local: "" };
 }
 
 function applyRestaurantProfilePhoneValue(value) {
-  if (!restaurantProfilePhoneLocal || !restaurantProfilePhone) return;
-  const parsed = splitRestaurantProfilePhoneValue(value);
-  selectedRestaurantProfilePhoneCountryIso = parsed.iso;
-  renderRestaurantProfilePhoneCountryState();
-  restaurantProfilePhoneLocal.value = parsed.local;
-  syncRestaurantProfilePhoneHiddenValue();
-  validateRestaurantProfilePhoneNumber({ report: false });
+  return restaurantProfilePhoneController?.setValue(value);
 }
 
 async function optimizeAccountImage(file) {
