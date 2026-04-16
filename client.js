@@ -49,6 +49,22 @@ const feedbackComment = document.querySelector("#clientFeedbackComment");
 const commentInput = document.querySelector("#clientCommentInput");
 const commentSaveButton = document.querySelector("#clientCommentSave");
 const commentSentMessage = document.querySelector("#clientCommentSentMessage");
+const dynamicTranslatedElements = [
+  statusPill,
+  alertsTitle,
+  alertsStatus,
+  alertsConfirmation,
+  iosInstallTitle,
+  iosInstallText,
+  iosInstallButton,
+  copyLinkButton,
+  iosStepCopy,
+  iosStepSafari,
+  iosStepShare,
+  iosStepInstall,
+  iosStepOpen,
+  commentSaveButton,
+].filter(Boolean);
 
 let selectedOrderId = initialOrderId;
 let orderInputDirty = false;
@@ -100,15 +116,8 @@ function translateBuiltInOrderText(value) {
   return normalized;
 }
 
-const CLIENT_STATUS_KEY_BY_STATUS = {
-  received: "client.status.received",
-  preparing: "client.status.preparing",
-  ready: "client.status.ready",
-  delivered: "client.status.delivered",
-  cancelled: "client.dynamic.eta.cancelled",
-};
-
 const clientManifestLink = ensureClientManifestLink();
+detachDynamicTranslationKeys();
 
 readyToneEnabled = window.localStorage.getItem(SOUND_ENABLED_STORAGE_KEY) === "true";
 pushNotificationsEnabled = window.localStorage.getItem(PUSH_ENABLED_STORAGE_KEY) === "true";
@@ -239,13 +248,7 @@ function renderClient() {
   renderClientBrand(publicRestaurantBrand);
   ticketOrderId.textContent = order.orderNumber;
   ticketCustomer.textContent = translateBuiltInOrderText(order.customerName);
-  const statusTranslationKey = CLIENT_STATUS_KEY_BY_STATUS[order.status] || "";
-  if (statusTranslationKey) {
-    statusPill.dataset.i18nKey = statusTranslationKey;
-  } else {
-    statusPill.removeAttribute("data-i18n-key");
-  }
-  statusPill.textContent = translateKey(statusTranslationKey, meta.label);
+  statusPill.textContent = translateText(meta.label);
   statusPill.style.background = meta.bg;
   statusPill.style.color = meta.color;
   progressFill.style.width = `${getProgressWidth(order.status)}%`;
@@ -347,7 +350,6 @@ function renderMissingOrder() {
     "Este seguimiento ya no está activo o fue archivado.",
   );
   renderClientBrand(null);
-  statusPill.dataset.i18nKey = "client.dynamic.status.unavailable";
   statusPill.textContent = translateKey("client.dynamic.status.unavailable", "No disponible");
   statusPill.style.background = "rgba(29, 26, 22, 0.08)";
   statusPill.style.color = "#6e6258";
@@ -417,6 +419,12 @@ function rememberClientOrder(orderId) {
   const normalizedOrderId = normalizePublicTrackingToken(orderId || "");
   if (!normalizedOrderId) return;
   window.localStorage.setItem(LAST_CLIENT_ORDER_STORAGE_KEY, normalizedOrderId);
+}
+
+function detachDynamicTranslationKeys() {
+  dynamicTranslatedElements.forEach((element) => {
+    element.removeAttribute("data-i18n-key");
+  });
 }
 
 function ensureClientManifestLink() {

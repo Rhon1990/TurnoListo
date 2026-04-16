@@ -53,7 +53,7 @@
                 <h3 id="clientOrderNumber">--</h3>
                 <p class="ticket__label" id="clientCustomer"></p>
               </div>
-              <span class="status-pill" id="clientStatus" data-i18n-key="client.status.received">Recibido</span>
+              <span class="status-pill" id="clientStatus">Recibido</span>
             </div>
 
             <div class="progress">
@@ -74,34 +74,34 @@
             </div>
 
             <div class="callout callout--alerts" id="clientAlertsBanner">
-              <strong id="clientAlertsTitle" data-i18n-key="client.alerts.title">Activa los avisos del pedido.</strong>
-              <span id="clientAlertsStatus" data-i18n-key="client.alerts.default">Recibiras sonido si tienes la app abierta, y notificacion si el movil esta bloqueado.</span>
+              <strong id="clientAlertsTitle">Activa los avisos del pedido.</strong>
+              <span id="clientAlertsStatus">Recibiras sonido si tienes la app abierta, y notificacion si el movil esta bloqueado.</span>
               <button class="button-secondary ghost-button--full" id="clientEnableAlertsButton" type="button">
                 <span data-i18n-key="client.alerts.button">Activar avisos</span>
               </button>
             </div>
 
             <div class="callout callout--ios-install" id="clientIosInstallBanner" hidden>
-              <strong id="clientIosInstallTitle" data-i18n-key="client.ios.title">Mejora los avisos en tu iPhone.</strong>
-              <span id="clientIosInstallText" data-i18n-key="client.ios.text">
+              <strong id="clientIosInstallTitle">Mejora los avisos en tu iPhone.</strong>
+              <span id="clientIosInstallText">
                 Para que TurnoListo pueda avisarte mejor, abre este pedido en Safari, anadelo a pantalla de inicio y activalo desde ese icono.
               </span>
-              <button class="button-secondary ghost-button--full" id="clientIosInstallButton" type="button" data-i18n-key="client.ios.button">
+              <button class="button-secondary ghost-button--full" id="clientIosInstallButton" type="button">
                 Como activarlo en iPhone
               </button>
               <div class="client-ios-install-steps" id="clientIosInstallSteps" hidden>
-                <button class="button-secondary button-secondary--primary ghost-button--full" id="clientCopyLinkButton" type="button" data-i18n-key="client.ios.copyLink">
+                <button class="button-secondary button-secondary--primary ghost-button--full" id="clientCopyLinkButton" type="button">
                   Copiar enlace de este pedido
                 </button>
-                <p id="clientIosStepCopy" data-i18n-key="client.ios.step.copy">1. Copia el enlace de este pedido.</p>
-                <p id="clientIosStepSafari" data-i18n-key="client.ios.step.safari">2. Abre Safari y pega el enlace.</p>
-                <p id="clientIosStepShare" data-i18n-key="client.ios.step.share">3. Toca Compartir.</p>
-                <p id="clientIosStepInstall" data-i18n-key="client.ios.step.install">4. Elige "Anadir a pantalla de inicio".</p>
-                <p id="clientIosStepOpen" data-i18n-key="client.ios.step.open">5. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".</p>
+                <p id="clientIosStepCopy">1. Copia el enlace de este pedido.</p>
+                <p id="clientIosStepSafari">2. Abre Safari y pega el enlace.</p>
+                <p id="clientIosStepShare">3. Toca Compartir.</p>
+                <p id="clientIosStepInstall">4. Elige "Anadir a pantalla de inicio".</p>
+                <p id="clientIosStepOpen">5. Abre TurnoListo desde el nuevo icono y toca "Activar avisos".</p>
               </div>
             </div>
 
-            <p class="client-alerts-confirmation" id="clientAlertsConfirmation" hidden data-i18n-key="client.alerts.confirmation">
+            <p class="client-alerts-confirmation" id="clientAlertsConfirmation" hidden>
               Tienes las notificaciones activadas.
             </p>
 
@@ -121,7 +121,7 @@
                   <span data-i18n-key="client.feedback.improve">¿Qué podemos mejorar?</span>
                   <input id="clientCommentInput" type="text" maxlength="160" placeholder="Escribe un comentario corto" data-i18n-placeholder-key="client.feedback.placeholder" />
                 </label>
-                <button type="button" class="button-secondary ghost-button--full" id="clientCommentSave" data-i18n-key="client.feedback.send">Enviar comentario</button>
+                <button type="button" class="button-secondary ghost-button--full" id="clientCommentSave">Enviar comentario</button>
                 <p class="feedback-card__value" id="clientCommentSentMessage" hidden data-i18n-key="client.feedback.sent">
                   Gracias por sus comentarios.
                 </p>
@@ -174,6 +174,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260409f"></script>
     <script src="./shared.js?v=20260416h"></script>
-    <script src="./client.js?v=20260416i"></script>
+    <script src="./client.js?v=20260416j"></script>
   </body>
 </html>
