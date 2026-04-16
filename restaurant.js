@@ -1836,7 +1836,17 @@ function buildAiRiskHint(label, level) {
 function getOrderByAnyId(orderId) {
   const normalized = String(orderId || "").trim();
   if (!normalized) return null;
-  return loadOrders().find((order) => String(order.id || "").trim() === normalized) || null;
+  const allOrders = loadOrders();
+  const rawOrder = allOrders.find((order) => String(order.id || "").trim() === normalized) || null;
+  if (!rawOrder) return null;
+
+  const restaurantOrders = allOrders.filter(
+    (order) => !order.archivedAt && String(order.restaurantId || "") === String(rawOrder.restaurantId || ""),
+  );
+  const enrichedOrder = enrichOrdersWithIntelligence(restaurantOrders, { allOrders }).find(
+    (order) => String(order.id || "").trim() === normalized,
+  );
+  return enrichedOrder || rawOrder;
 }
 
 function refreshOpenRestaurantModals() {
