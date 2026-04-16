@@ -3386,13 +3386,8 @@ button:hover,
   margin-top: 0.15rem;
 }
 
-.admin-card__logo-field input[type="file"] {
+.admin-card__logo-field .file-picker {
   width: 100%;
-  min-height: 54px;
-  padding: 0.7rem 0.8rem;
-  border-radius: 18px;
-  background: rgba(255, 253, 248, 0.92);
-  border: 1px solid rgba(29, 26, 22, 0.08);
 }
 
 .admin-card__logo-preview {

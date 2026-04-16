@@ -1914,6 +1914,9 @@ function renderRestaurantDirectory(restaurants) {
     const secondaryActions = document.createElement("div");
     const link = document.createElement("a");
     const logoInput = document.createElement("input");
+    const logoPicker = document.createElement("span");
+    const logoPickerButton = document.createElement("span");
+    const logoPickerName = document.createElement("span");
     const templatesButton = document.createElement("button");
     const activatePlan = document.createElement("button");
     const renewPlan = document.createElement("button");
@@ -1953,6 +1956,9 @@ function renderRestaurantDirectory(restaurants) {
     accountStack.className = "admin-card__account-stack";
     logoField.className = "field field--wide admin-card__logo-field";
     logoHint.className = "field__hint";
+    logoPicker.className = "file-picker";
+    logoPickerButton.className = "file-picker__button";
+    logoPickerName.className = "file-picker__name";
     logoPreview.className = "logo-upload-preview admin-card__logo-preview";
     notesSummary.className = "admin-card__notes";
     notesSummaryLabel.className = "admin-card__notes-label";
@@ -2011,12 +2017,20 @@ function renderRestaurantDirectory(restaurants) {
       window.open("./restaurant.html", "_blank", "noopener,noreferrer");
     });
     logoInput.type = "file";
+    logoInput.className = "file-picker__input";
     logoInput.accept = "image/*";
+    logoPickerButton.setAttribute("data-i18n-key", "profile.file.choose");
+    logoPickerButton.textContent = "Seleccionar imagen";
+    logoPickerName.setAttribute("data-i18n-key", "profile.file.empty");
+    logoPickerName.textContent = "Ningún archivo seleccionado";
+    logoPicker.append(logoPickerButton, logoPickerName);
     logoInput.addEventListener("change", async () => {
       const file = logoInput.files?.[0] || null;
       if (!file) return;
 
       logoInput.disabled = true;
+      logoPickerName.removeAttribute("data-i18n-key");
+      logoPickerName.textContent = file.name;
 
       try {
         const logoUrl = await optimizeRestaurantLogo(file);
@@ -2037,6 +2051,11 @@ function renderRestaurantDirectory(restaurants) {
       } finally {
         logoInput.value = "";
         logoInput.disabled = false;
+        logoPickerName.setAttribute("data-i18n-key", "profile.file.empty");
+        logoPickerName.textContent = "Ningún archivo seleccionado";
+        if (window.TurnoListoI18n?.translateDocument) {
+          window.TurnoListoI18n.translateDocument(window.TurnoListoI18n.getLanguage?.());
+        }
       }
     });
     templatesButton.type = "button";
@@ -2082,7 +2101,7 @@ function renderRestaurantDirectory(restaurants) {
     brandText.append(title, meta);
     brand.append(brandLogoWrap, brandText);
     meta.append(status, health, demoBadge);
-    logoField.append(logoFieldLabel, logoInput, logoHint);
+    logoField.append(logoFieldLabel, logoInput, logoPicker, logoHint);
     accessWrap.append(accessLabel, accessValue);
     primaryActions.append(link, templatesButton, renewPlan);
     secondaryActions.append(remove);
