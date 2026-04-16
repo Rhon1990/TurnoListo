@@ -167,24 +167,6 @@ function normalizeAppUrl(value) {
   }
 }
 
-function normalizeWebUrl(value, errorMessage) {
-  const url = trimValue(value);
-  if (!url) return "";
-
-  try {
-    const parsed = new URL(url);
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      throw new Error("invalid-protocol");
-    }
-    if (parsed.toString().length > 600) {
-      throw new Error("too-long");
-    }
-    return parsed.toString();
-  } catch {
-    throw new HttpsError("invalid-argument", errorMessage);
-  }
-}
-
 function clampNumber(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -352,38 +334,57 @@ function sanitizePublicTrackingRecord(record) {
   };
 }
 
-async function findTrackingRecordByPublicId(publicId) {
-  const rawPublicId = trimValue(publicId);
+function buildClientPath(publicId) {
+  const normalizedPublicId = assertValidPublicTrackingLookupId(publicId);
+  return `/client.html?order=${encodeURIComponent(normalizedPublicId)}`;
+}
+
+async function findTrackingRecordByPublicId(publicId, options = {}) {
   const normalizedPublicId = normalizePublicTrackingLookupId(publicId);
-  if (!rawPublicId && !normalizedPublicId) {
+  if (!normalizedPublicId) {
     return null;
   }
 
   const trackingCollection = firestore.collection("tracking");
-  const docIdsToTry = [...new Set([rawPublicId, normalizedPublicId].filter(Boolean))];
-
-  for (const docId of docIdsToTry) {
-    const snapshot = await trackingCollection.doc(docId).get();
-    if (snapshot.exists) {
-      return {
-        id: snapshot.id,
-        data: snapshot.data() || {},
-      };
-    }
+  const allowLegacyIdFallback = options.allowLegacyIdFallback !== false;
+  const tokenSnapshot = await trackingCollection.where("publicTrackingToken", "==", normalizedPublicId).limit(1).get();
+  if (!tokenSnapshot.empty) {
+    const docSnapshot = tokenSnapshot.docs[0];
+    return {
+      id: docSnapshot.id,
+      data: docSnapshot.data() || {},
+    };
   }
 
-  const queries = [
-    { field: "publicTrackingToken", value: normalizedPublicId },
-    { field: "sourceOrderId", value: normalizedPublicId },
-  ].filter((entry) => entry.value);
+  if (!allowLegacyIdFallback) {
+    return null;
+  }
 
-  for (const entry of queries) {
-    const snapshot = await trackingCollection.where(entry.field, "==", entry.value).limit(1).get();
-    if (!snapshot.empty) {
+  const legacyLookups = [
+    trackingCollection.doc(normalizedPublicId).get(),
+    trackingCollection.where("sourceOrderId", "==", normalizedPublicId).limit(1).get(),
+  ];
+
+  for (const lookup of legacyLookups) {
+    const snapshot = await lookup;
+    if (!snapshot) continue;
+
+    if ("exists" in snapshot && snapshot.exists) {
+      const snapshotData = snapshot.data() || {};
+      if (normalizePublicTrackingLookupId(snapshotData.publicTrackingToken)) continue;
+      return {
+        id: snapshot.id,
+        data: snapshotData,
+      };
+    }
+
+    if ("empty" in snapshot && !snapshot.empty) {
       const docSnapshot = snapshot.docs[0];
+      const snapshotData = docSnapshot.data() || {};
+      if (normalizePublicTrackingLookupId(snapshotData.publicTrackingToken)) continue;
       return {
         id: docSnapshot.id,
-        data: docSnapshot.data() || {},
+        data: snapshotData,
       };
     }
   }
@@ -761,6 +762,7 @@ exports.submitPublicTrackingRating = onCall(async (request) => {
 exports.submitContactInquiry = onCall(async (request) => {
   const data = request.data || {};
   const name = trimValue(data.name);
+  const website = trimValue(data.website);
   const company = trimValue(data.company);
   const email = normalizeEmail(data.email);
   const phone = trimValue(data.phone);
@@ -771,6 +773,10 @@ exports.submitContactInquiry = onCall(async (request) => {
 
   if (!name || name.length < 2) {
     throw new HttpsError("invalid-argument", "El nombre es obligatorio.");
+  }
+
+  if (website) {
+    throw new HttpsError("invalid-argument", "La solicitud no es valida.");
   }
 
   assertMaxLength(name, 120, "El nombre es demasiado largo.");
@@ -824,9 +830,9 @@ exports.registerClientPushSubscription = onCall(async (request) => {
   const orderId = trimValue(data.orderId);
   const requestedPublicId = trimValue(data.orderPublicId)
     ? assertValidPublicTrackingLookupId(data.orderPublicId)
-    : "";
+    : null;
 
-  if (!token || !orderId) {
+  if (!token || !orderId || !requestedPublicId) {
     throw new HttpsError("invalid-argument", "Faltan el token push o el pedido a notificar.");
   }
 
@@ -836,21 +842,27 @@ exports.registerClientPushSubscription = onCall(async (request) => {
   }
 
   const order = orderSnapshot.data() || {};
-  const clientUrl = normalizeWebUrl(data.clientUrl, "La URL publica del pedido no es valida.");
-  const expectedPublicIds = new Set(
-    [
-      normalizePublicTrackingLookupId(order.publicTrackingToken),
-      normalizePublicTrackingLookupId(order.sourceOrderId),
-      normalizePublicTrackingLookupId(orderId),
-    ].filter(Boolean),
-  );
+  const securePublicId = normalizePublicTrackingLookupId(order.publicTrackingToken);
+  if (securePublicId) {
+    if (requestedPublicId !== securePublicId) {
+      throw new HttpsError("invalid-argument", "El identificador publico del pedido no coincide con el pedido indicado.");
+    }
+  } else {
+    const expectedLegacyIds = new Set(
+      [
+        normalizePublicTrackingLookupId(order.sourceOrderId),
+        normalizePublicTrackingLookupId(orderId),
+      ].filter(Boolean),
+    );
 
-  if (requestedPublicId && !expectedPublicIds.has(requestedPublicId)) {
-    throw new HttpsError("invalid-argument", "El identificador publico del pedido no coincide con el pedido indicado.");
+    if (!expectedLegacyIds.has(requestedPublicId)) {
+      throw new HttpsError("invalid-argument", "El identificador publico del pedido no coincide con el pedido indicado.");
+    }
   }
 
-  const orderPublicId = requestedPublicId || expectedPublicIds.values().next().value || orderId;
+  const orderPublicId = securePublicId || requestedPublicId;
   const orderNumber = trimValue(data.orderNumber) || trimValue(order.orderNumber) || orderPublicId;
+  const clientPath = buildClientPath(orderPublicId);
   const subscriptionId = hashToken(token);
   const nowIso = new Date().toISOString();
 
@@ -859,7 +871,7 @@ exports.registerClientPushSubscription = onCall(async (request) => {
     orderId,
     orderPublicId,
     orderNumber,
-    clientUrl,
+    clientPath,
     updatedAt: nowIso,
     createdAt: nowIso,
   }, { merge: true });
@@ -905,24 +917,30 @@ exports.notifyClientOrderReady = onDocumentUpdated("orders/{orderId}", async (ev
   const body = `${after.orderNumber || after.sourceOrderId || "Tu pedido"} ya puede recogerse en ${formatPickupPointForPush(after.pickupPoint)}.`;
   const messages = subscriptions
     .filter((subscription) => trimValue(subscription.token))
-    .map((subscription) => ({
-      token: subscription.token,
-      data: {
-        title: "Tu pedido ya está listo para recoger",
-        body,
-        orderId: event.params.orderId,
-        orderPublicId: trimValue(after.sourceOrderId) || event.params.orderId,
-        link: trimValue(subscription.clientUrl),
-      },
-      webpush: {
-        headers: {
-          Urgency: "high",
+    .map((subscription) => {
+      const orderPublicId =
+        trimValue(subscription.orderPublicId) ||
+        normalizePublicTrackingLookupId(after.publicTrackingToken) ||
+        normalizePublicTrackingLookupId(after.sourceOrderId) ||
+        event.params.orderId;
+      const clientPath = trimValue(subscription.clientPath) || buildClientPath(orderPublicId);
+
+      return {
+        token: subscription.token,
+        data: {
+          title: "Tu pedido ya está listo para recoger",
+          body,
+          orderId: event.params.orderId,
+          orderPublicId,
+          link: clientPath,
         },
-        fcmOptions: {
-          link: trimValue(subscription.clientUrl) || undefined,
+        webpush: {
+          headers: {
+            Urgency: "high",
+          },
         },
-      },
-    }));
+      };
+    });
 
   if (!messages.length) {
     return null;

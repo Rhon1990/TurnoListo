@@ -643,7 +643,6 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
       orderId: currentOrder.id,
       orderPublicId: currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id,
       orderNumber: currentOrder.orderNumber,
-      clientUrl: buildClientUrl(currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id),
     });
   } catch (error) {
     console.error("Fallo al registrar las notificaciones push del cliente.", error);

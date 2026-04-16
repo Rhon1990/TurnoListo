@@ -27,7 +27,16 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 self.addEventListener("notificationclick", (event) => {
-  const targetUrl = event.notification?.data?.link || self.location.origin;
+  const rawTarget = event.notification?.data?.link || "/";
+  let targetUrl = self.location.origin;
+
+  try {
+    const parsed = new URL(rawTarget, self.location.origin);
+    targetUrl = parsed.origin === self.location.origin ? parsed.toString() : self.location.origin;
+  } catch {
+    targetUrl = self.location.origin;
+  }
+
   event.notification.close();
 
   event.waitUntil(

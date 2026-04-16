@@ -2,6 +2,7 @@ const contactForm = document.querySelector("#contactForm");
 const contactFeedback = document.querySelector("#contactFormFeedback");
 const contactSubmitButton = document.querySelector("#contactSubmitButton");
 const contactName = document.querySelector("#contactName");
+const contactWebsite = document.querySelector("#contactWebsite");
 const contactCompany = document.querySelector("#contactCompany");
 const contactEmail = document.querySelector("#contactEmail");
 const contactPhone = document.querySelector("#contactPhone");
@@ -102,6 +103,7 @@ async function handleContactSubmit(event) {
   const formData = new FormData(contactForm);
   const payload = {
     name: String(formData.get("name") || "").trim(),
+    website: String(formData.get("website") || "").trim(),
     company: String(formData.get("company") || "").trim(),
     email: String(formData.get("email") || "").trim(),
     phone: String(formData.get("phone") || "").trim(),
@@ -110,6 +112,18 @@ async function handleContactSubmit(event) {
     sourcePage: window.location.pathname.split("/").pop() || "contact.html",
     referrer: document.referrer || "",
   };
+
+  if (payload.website) {
+    setContactFeedback(
+      translateKey(
+        "contact.dynamic.feedback.failed",
+        "No se pudo registrar tu solicitud ahora mismo. Inténtalo de nuevo en unos minutos.",
+      ),
+      "error",
+    );
+    contactSubmitButton.disabled = false;
+    return;
+  }
 
   if (payload.message.length < 5) {
     setContactFeedback(
@@ -249,6 +263,7 @@ function applyContactPrefillSnapshot() {
   if (!contactPrefillSnapshot) return;
 
   setInputValueIfEmpty(contactName, contactPrefillSnapshot.name);
+  if (contactWebsite) contactWebsite.value = "";
   setInputValueIfEmpty(contactCompany, contactPrefillSnapshot.company);
   setInputValueIfEmpty(contactEmail, contactPrefillSnapshot.email);
   setContactPhoneValueIfEmpty(contactPrefillSnapshot.phone);
