@@ -1818,6 +1818,18 @@ function translateBuiltInOrderText(value) {
   return normalized;
 }
 
+function buildAiRiskHint(label, level) {
+  const translatedLabel = String(label || "").trim();
+  const explanation =
+    level === "high"
+      ? translateRuntimeText("este pedido necesita atencion inmediata porque esta bloqueado, retrasado o claramente comprometido.")
+      : level === "medium"
+        ? translateRuntimeText("el pedido aun esta bajo control, pero ya muestra señales reales de tension o espera anomala.")
+        : translateRuntimeText("el pedido sigue una secuencia temporal consistente con la operativa actual del local.");
+
+  return `${translatedLabel}: ${explanation}`;
+}
+
 function buildOrderCard(order, isArchived) {
   const card = document.createElement("article");
   const compactButton = document.createElement("button");
@@ -1902,15 +1914,10 @@ function buildOrderCard(order, isArchived) {
   });
   intelligenceLabel.dataset.termHint =
     translateRuntimeText("Capa de inteligencia operativa que estima tiempos, detecta riesgo y ayuda a priorizar pedidos en tiempo real.");
-  intelligenceBadge.dataset.termHint =
-    order.aiRiskLevel === "high"
-      ? translateRuntimeText(`${intelligenceBadge.textContent}: este pedido necesita atencion inmediata porque esta bloqueado, retrasado o claramente comprometido.`)
-      : order.aiRiskLevel === "medium"
-        ? translateRuntimeText(`${intelligenceBadge.textContent}: el pedido aun esta bajo control, pero ya muestra señales reales de tension o espera anomala.`)
-        : translateRuntimeText(`${intelligenceBadge.textContent}: el pedido sigue una secuencia temporal consistente con la operativa actual del local.`);
+  intelligenceBadge.dataset.termHint = buildAiRiskHint(intelligenceBadge.textContent, order.aiRiskLevel);
   intelligenceEta.dataset.termHint =
     buildAiEtaHint(order, intelligenceEta.textContent) +
-    (order.aiBottleneckLabel ? translateRuntimeText(` Cuello principal detectado: ${order.aiBottleneckLabel}.`) : "");
+    (order.aiBottleneckLabel ? ` ${translateRuntimeText("Cuello principal detectado:")} ${translateRuntimeText(order.aiBottleneckLabel)}.` : "");
   intelligenceLabel.setAttribute("title", intelligenceLabel.dataset.termHint);
   intelligenceLabel.setAttribute("aria-label", intelligenceLabel.dataset.termHint);
   intelligenceBadge.setAttribute("title", intelligenceBadge.dataset.termHint);
@@ -2128,21 +2135,19 @@ function formatAiEta(order) {
 
 function buildAiEtaHint(order, visibleLabel) {
   if (order.status === "ready") {
-    return translateRuntimeText(`${visibleLabel}: el pedido ya esta listo para recoger, asi que la prioridad pasa a ser evitar esperas innecesarias en recogida.`);
+    return `${visibleLabel}: ${translateRuntimeText("el pedido ya esta listo para recoger, asi que la prioridad pasa a ser evitar esperas innecesarias en recogida.")}`;
   }
 
   const eta = Number(order.aiEtaMinutes || 0);
   if (!Number.isFinite(eta) || eta <= 0) {
-    return translateRuntimeText(`${visibleLabel}: TurnoListo todavia no tiene una estimacion fiable para este pedido.`);
+    return `${visibleLabel}: ${translateRuntimeText("TurnoListo todavia no tiene una estimacion fiable para este pedido.")}`;
   }
 
   const modelSuffix =
     Number(order.aiModelSampleSize || 0) >= 8
-      ? translateRuntimeText(` Ya incorpora ${order.aiModelSampleSize} cierres reales de este restaurante.`)
+      ? ` ${translateRuntimeText(`Ya incorpora ${order.aiModelSampleSize} cierres reales de este restaurante.`)}`
       : "";
-  return translateRuntimeText(
-    `${visibleLabel}: TurnoListo estima este tiempo restante segun la carga actual, el historico del local y los atascos detectados por etapa.${modelSuffix}`,
-  );
+  return `${visibleLabel}: ${translateRuntimeText("TurnoListo estima este tiempo restante segun la carga actual, el historico del local y los atascos detectados por etapa.")}${modelSuffix}`;
 }
 
 function buildEtaHintElement(order) {
@@ -2302,7 +2307,7 @@ function closeCommentModal() {
 function openAiModal(order, triggerButton = null) {
   lastAiTriggerButton = triggerButton;
   aiTitle.textContent = `${order.orderNumber} · ${order.customerName}`;
-  aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? translateRuntimeText(`Cuello: ${order.aiBottleneckLabel}`) : ""]
+  aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `${translateRuntimeText("Cuello:")} ${translateRuntimeText(order.aiBottleneckLabel)}` : ""]
     .filter(Boolean)
     .join(" · ");
   aiBody.textContent = [order.aiReason, "", order.aiRecommendation]
