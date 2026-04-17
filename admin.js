@@ -1079,15 +1079,25 @@ function renderAdminAccount() {
   const displayName = String(profile.displayName || profile.email || "").trim();
   const title = String(profile.title || "").trim();
   const avatarUrl = String(profile.avatarUrl || "").trim();
+  const accountName = displayName || translateRuntimeText("Sin datos cargados");
+  const accountMeta = displayName
+    ? (title ? translateRuntimeText(`${title} · Acceso verificado`) : translateRuntimeText("Acceso verificado"))
+    : translateRuntimeText("Cuenta no cargada");
 
   if (adminAccountName) {
-    adminAccountName.textContent = displayName || translateRuntimeText("Sin datos cargados");
+    if (setDynamicRuntimeText) {
+      setDynamicRuntimeText(adminAccountName, accountName);
+    } else {
+      adminAccountName.textContent = accountName;
+    }
   }
 
   if (adminAccountMeta) {
-  adminAccountMeta.textContent = displayName
-    ? (title ? translateRuntimeText(`${title} · Acceso verificado`) : translateRuntimeText("Acceso verificado"))
-    : translateRuntimeText("Cuenta no cargada");
+    if (setDynamicRuntimeText) {
+      setDynamicRuntimeText(adminAccountMeta, accountMeta);
+    } else {
+      adminAccountMeta.textContent = accountMeta;
+    }
   }
 
   if (adminAccountAvatarFallback) {

@@ -116,6 +116,7 @@ const translateRuntimeKey = (key, fallback = "") =>
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
+const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
 const restaurantDashboardPeriod = document.querySelector("#restaurantDashboardPeriod");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
@@ -840,12 +841,21 @@ function renderRestaurantAccount(restaurant) {
   const logoUrl = String(restaurant?.logoUrl || "").trim();
   const hasRestaurantData = Boolean(restaurantName);
   const demoUsage = hasRestaurantData ? getRestaurantDemoUsage(restaurant) : null;
-  restaurantAccountName.textContent = restaurantName || translateRuntimeText(EMPTY_DATA_LABEL);
-  restaurantAccountMeta.textContent = hasRestaurantData
+  const accountName = restaurantName || translateRuntimeText(EMPTY_DATA_LABEL);
+  const accountMeta = hasRestaurantData
     ? isDemoRestaurant(restaurant)
       ? translateRuntimeText(`Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados`)
       : translateRuntimeText("Acceso verificado")
     : translateRuntimeText("Cuenta no cargada");
+
+  if (setDynamicRuntimeText) {
+    setDynamicRuntimeText(restaurantAccountName, accountName);
+    setDynamicRuntimeText(restaurantAccountMeta, accountMeta);
+  } else {
+    restaurantAccountName.textContent = accountName;
+    restaurantAccountMeta.textContent = accountMeta;
+  }
+
   restaurantAccountAvatarFallback.textContent = restaurantName.charAt(0).toUpperCase() || EMPTY_AVATAR_LABEL;
 
   if (logoUrl) {
