@@ -19,6 +19,7 @@
     ".auth-brand__name",
     ".hero-brand__name",
   ].join(", ");
+  const DYNAMIC_TEXT_ATTRIBUTE = "data-i18n-dynamic-text";
 
   const KEY_TRANSLATION_SOURCES = {
     "brand.tagline": "Tecnología que Agiliza tu Restaurante",
@@ -2417,6 +2418,7 @@
     if (!(element instanceof Element)) return;
     const normalizedValue = value === null || value === undefined ? "" : String(value);
     element.textContent = normalizedValue;
+    element.setAttribute(DYNAMIC_TEXT_ATTRIBUTE, "true");
     element.childNodes.forEach((node) => {
       if (node.nodeType === Node.TEXT_NODE) {
         textNodeOrigins.set(node, normalizedValue);
@@ -2438,7 +2440,7 @@
     if (!(element instanceof Element)) return;
 
     const textKey = element.getAttribute("data-i18n-key");
-    if (textKey) {
+    if (textKey && element.getAttribute(DYNAMIC_TEXT_ATTRIBUTE) !== "true") {
       const translated = translateKey(textKey, language, element.textContent);
       if (translated) element.textContent = translated;
     }
