@@ -4355,7 +4355,9 @@ button:hover,
 }
 
 .playbook-step--done .playbook-step__icon {
-  color: #1f7a4d;
+  background: linear-gradient(180deg, #34c759 0%, #1f9d47 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(31, 157, 71, 0.22);
 }
 
 .playbook-step__content {
@@ -4369,6 +4371,10 @@ button:hover,
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
+}
+
+.playbook-step--done .playbook-step__status {
+  color: #1f7a4d;
 }
 
 .playbook-step__text {
