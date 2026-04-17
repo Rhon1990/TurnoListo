@@ -4352,10 +4352,26 @@ button:hover,
   flex-shrink: 0;
   pointer-events: none;
   user-select: none;
+  position: relative;
 }
 
 .playbook-step:not(.playbook-step--done) .playbook-step__icon {
+  background: rgba(200, 74, 58, 0.12);
+  box-shadow: inset 0 0 0 2px rgba(200, 74, 58, 0.58);
   color: #c84a3a;
+}
+
+.playbook-step:not(.playbook-step--done) .playbook-step__icon::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  position: absolute;
+}
+
+.playbook-step:not(.playbook-step--done) .playbook-step__icon::before {
+  opacity: 0;
 }
 
 .playbook-step--done .playbook-step__icon {
