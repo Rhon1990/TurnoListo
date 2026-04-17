@@ -215,10 +215,17 @@ function initializePhoneFieldHelpers() {
     let selectedCountryIso = String(options.defaultCountryIso || DEFAULT_PHONE_COUNTRY_ISO).trim() || DEFAULT_PHONE_COUNTRY_ISO;
     let initialized = false;
     let panelAnchorNode = null;
+    const panelHost = field?.closest(".panel, .auth-entry, .admin-card, .order-card, .ticket, .scan-box, .callout, .qr-modal__card");
 
     function syncBodyPanelState() {
       const hasOpenPhonePanel = Boolean(document.querySelector(".phone-country-panel:not([hidden])"));
       document.body.classList.toggle("turnolisto-phone-panel-open", hasOpenPhonePanel);
+    }
+
+    function syncPanelHostState() {
+      if (!panelHost) return;
+      const hasOpenPanelInHost = Boolean(panelHost.querySelector(".phone-country-panel:not([hidden])"));
+      panelHost.classList.toggle("turnolisto-phone-panel-host", hasOpenPanelInHost);
     }
 
     function shouldUseViewportPanel() {
@@ -460,6 +467,7 @@ function initializePhoneFieldHelpers() {
       field?.classList.add("is-open");
       countryTrigger.setAttribute("aria-expanded", "true");
       syncBodyPanelState();
+      syncPanelHostState();
       renderList();
       window.requestAnimationFrame(() => {
         countrySearch?.focus();
@@ -474,6 +482,7 @@ function initializePhoneFieldHelpers() {
       countryTrigger.setAttribute("aria-expanded", "false");
       syncBodyPanelState();
       restorePanelToField();
+      syncPanelHostState();
     }
 
     function togglePanel() {
