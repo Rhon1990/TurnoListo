@@ -2335,8 +2335,11 @@ button:hover,
 .file-picker {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.8rem;
   min-height: 54px;
+  width: 100%;
+  max-width: 100%;
   padding: 0.7rem 0.85rem;
   border-radius: 18px;
   border: 1px solid rgba(29, 26, 22, 0.08);
@@ -2358,6 +2361,7 @@ button:hover,
   align-items: center;
   justify-content: center;
   min-height: 40px;
+  max-width: 100%;
   padding: 0.7rem 0.95rem;
   border-radius: 14px;
   background: rgba(29, 26, 22, 0.07);
@@ -2367,7 +2371,9 @@ button:hover,
 }
 
 .file-picker__name {
+  flex: 1 1 220px;
   min-width: 0;
+  max-width: 100%;
   color: rgba(110, 98, 88, 0.96);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5038,6 +5044,28 @@ button:hover,
   .logo-upload-preview {
     width: 108px;
     height: 108px;
+  }
+
+  .file-picker {
+    gap: 0.65rem;
+    padding: 0.7rem;
+  }
+
+  .file-picker__button,
+  .file-picker__name {
+    width: 100%;
+  }
+
+  .file-picker__button {
+    justify-content: center;
+  }
+
+  .file-picker__name {
+    flex-basis: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.35;
   }
 }
 
