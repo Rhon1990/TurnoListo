@@ -2425,7 +2425,10 @@
   }
 
   function shouldTranslateValueAttribute(element) {
-    if (element.tagName === "OPTION") return true;
+    // The visible label of <option> nodes should be translated, but their
+    // internal value must remain stable so business logic keeps matching the
+    // original plan/status identifiers after a language switch.
+    if (element.tagName === "OPTION") return false;
     if (element.tagName !== "INPUT") return false;
     const type = String(element.type || "").toLowerCase();
     return element.readOnly || element.disabled || ["button", "submit", "reset"].includes(type);
