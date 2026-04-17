@@ -324,13 +324,15 @@ adminProfileAvatarInput?.addEventListener("change", handleAdminAvatarSelection);
 adminCreateAdminForm?.addEventListener("submit", handleCreateAdminAccount);
 window.addEventListener("click", handleAdminAccountOutsideClick);
 window.addEventListener("turnolisto:language-change", () => {
-  adminRestaurantPhoneController?.refreshLanguage();
-  adminCreateAdminPhoneController?.refreshLanguage();
-  syncActivationDaysWithPlan();
-  if (isAdminAuthenticated()) {
-    renderAdminWorkspace();
-    void refreshOpenAdminModals();
-  }
+  window.requestAnimationFrame(() => {
+    adminRestaurantPhoneController?.refreshLanguage();
+    adminCreateAdminPhoneController?.refreshLanguage();
+    syncActivationDaysWithPlan();
+    if (isAdminAuthenticated()) {
+      renderAdminWorkspace();
+      void refreshOpenAdminModals();
+    }
+  });
 });
 window.addEventListener("hashchange", () => {
   syncAdminSectionFromHash();

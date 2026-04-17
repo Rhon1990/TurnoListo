@@ -239,11 +239,13 @@ restaurantHistoryQuickFilters.forEach((button) => {
 });
 window.addEventListener("click", handleRestaurantAccountOutsideClick);
 window.addEventListener("turnolisto:language-change", () => {
-  restaurantProfilePhoneController?.refreshLanguage();
-  if (getCurrentRestaurantSession()) {
-    renderRestaurant();
-    refreshOpenRestaurantModals();
-  }
+  window.requestAnimationFrame(() => {
+    restaurantProfilePhoneController?.refreshLanguage();
+    if (getCurrentRestaurantSession()) {
+      renderRestaurant();
+      refreshOpenRestaurantModals();
+    }
+  });
 });
 initializeRestaurantProfilePhoneField();
 [
