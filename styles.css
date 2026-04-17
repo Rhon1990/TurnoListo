@@ -4858,6 +4858,7 @@ button:hover,
     margin-left: 0;
     flex: 0 0 52px;
     display: block;
+    position: static;
   }
 
   .account-menu__trigger {
@@ -4873,9 +4874,10 @@ button:hover,
     position: absolute;
     top: calc(100% + 0.65rem);
     right: 0;
-    left: auto;
+    left: 0;
     margin-top: 0.65rem;
-    width: min(320px, calc(100vw - 1.5rem));
+    width: auto;
+    max-width: none;
     max-height: min(420px, calc(100vh - 6.5rem));
   }
 
