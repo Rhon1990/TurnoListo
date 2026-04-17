@@ -96,33 +96,8 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
-const setDynamicRuntimeAttribute = (element, attributeName, value) => {
-  if (!element || !attributeName) return;
-  if (window.TurnoListoI18n?.setDynamicAttribute) {
-    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, value);
-    return;
-  }
-  const normalizedValue = value === null || value === undefined ? "" : String(value);
-  if (attributeName === "value" && "value" in element) {
-    element.value = normalizedValue;
-    element.setAttribute("value", normalizedValue);
-    return;
-  }
-  if (attributeName === "placeholder" && "placeholder" in element) {
-    element.placeholder = normalizedValue;
-    element.setAttribute("placeholder", normalizedValue);
-    return;
-  }
-  element.setAttribute(attributeName, normalizedValue);
-};
-const setDynamicRuntimeText = (element, value) => {
-  if (!element) return;
-  if (window.TurnoListoI18n?.setDynamicText) {
-    window.TurnoListoI18n.setDynamicText(element, value);
-    return;
-  }
-  element.textContent = value === null || value === undefined ? "" : String(value);
-};
+const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
+const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
 const adminActivatePlanBackdrop = document.querySelector("#adminActivatePlanBackdrop");
 const adminActivatePlanClose = document.querySelector("#adminActivatePlanClose");
 const adminActivatePlanBack = document.querySelector("#adminActivatePlanBack");

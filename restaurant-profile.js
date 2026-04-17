@@ -52,25 +52,7 @@ const translateKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
-const setDynamicRuntimeAttribute = (element, attributeName, value) => {
-  if (!element || !attributeName) return;
-  if (window.TurnoListoI18n?.setDynamicAttribute) {
-    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, value);
-    return;
-  }
-  const normalizedValue = value === null || value === undefined ? "" : String(value);
-  if (attributeName === "value" && "value" in element) {
-    element.value = normalizedValue;
-    element.setAttribute("value", normalizedValue);
-    return;
-  }
-  if (attributeName === "placeholder" && "placeholder" in element) {
-    element.placeholder = normalizedValue;
-    element.setAttribute("placeholder", normalizedValue);
-    return;
-  }
-  element.setAttribute(attributeName, normalizedValue);
-};
+const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: restaurantProfilePhoneField,

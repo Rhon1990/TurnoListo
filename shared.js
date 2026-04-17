@@ -134,6 +134,17 @@ function setDynamicI18nAttribute(element, attributeName, value) {
   element.setAttribute(attributeName, normalizedValue);
 }
 
+function setDynamicI18nText(element, value) {
+  if (!(element instanceof Element)) return;
+  const normalizedValue = value === null || value === undefined ? "" : String(value);
+  if (window.TurnoListoI18n?.setDynamicText) {
+    window.TurnoListoI18n.setDynamicText(element, normalizedValue);
+    return;
+  }
+
+  element.textContent = normalizedValue;
+}
+
 function getPlanDefinition(planName, fallbackName = "Mensual") {
   const normalizedPlanName = String(planName || "").trim();
   if (PLAN_CATALOG_BY_NAME[normalizedPlanName]) return PLAN_CATALOG_BY_NAME[normalizedPlanName];
@@ -211,11 +222,7 @@ function initializePhoneFieldHelpers() {
     function setError(message = "") {
       const safeMessage = String(message || "").trim();
       if (errorElement) {
-        if (window.TurnoListoI18n?.setDynamicText) {
-          window.TurnoListoI18n.setDynamicText(errorElement, safeMessage);
-        } else {
-          errorElement.textContent = safeMessage;
-        }
+        setDynamicI18nText(errorElement, safeMessage);
         errorElement.hidden = !safeMessage;
       }
       if (hintElement) {
@@ -248,20 +255,12 @@ function initializePhoneFieldHelpers() {
       if (countryDial) countryDial.textContent = country.dialCode;
       if (countryName) {
         const translatedName = translateText(country.name, translateTextFn);
-        if (window.TurnoListoI18n?.setDynamicText) {
-          window.TurnoListoI18n.setDynamicText(countryName, translatedName);
-        } else {
-          countryName.textContent = translatedName;
-        }
+        setDynamicI18nText(countryName, translatedName);
       }
       if (localInput) setDynamicI18nAttribute(localInput, "placeholder", country.placeholder);
       if (hintElement) {
         const hintMessage = buildHintMessage(country);
-        if (window.TurnoListoI18n?.setDynamicText) {
-          window.TurnoListoI18n.setDynamicText(hintElement, hintMessage);
-        } else {
-          hintElement.textContent = hintMessage;
-        }
+        setDynamicI18nText(hintElement, hintMessage);
       }
     }
 
@@ -544,6 +543,11 @@ function initializePhoneFieldHelpers() {
     getCountryByIso: getPhoneCountryByIso,
     splitValue: splitPhoneValue,
     create: createPhoneFieldController,
+  };
+
+  window.TurnoListoDom = {
+    setDynamicAttribute: setDynamicI18nAttribute,
+    setDynamicText: setDynamicI18nText,
   };
 
   window.TurnoListoPlans = {
