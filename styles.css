@@ -1733,6 +1733,12 @@ button:hover,
     0 0 0 4px rgba(180, 35, 24, 0.08);
 }
 
+.field--phone .field__hint,
+.field--phone .field__error {
+  width: 100%;
+  max-width: none;
+}
+
 .phone-field__country,
 .phone-field__number {
   min-width: 0;
@@ -2439,6 +2445,12 @@ button:hover,
   margin-top: 0.05rem;
   line-height: 1.45;
   max-width: 32ch;
+}
+
+.admin-profile-form .field--phone .field__hint,
+.admin-profile-form .field--phone .field__error {
+  width: 100%;
+  max-width: none;
 }
 
 .admin-profile-form .quick-form__actions {
