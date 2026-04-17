@@ -160,6 +160,7 @@ let pendingCancelOrderLabel = "";
 let activeSection = "orders";
 let lastRenderedRestaurantId = "";
 let lastDashboardStats = null;
+let restaurantAuthRequestToken = 0;
 let restaurantDisplayMode = window.localStorage.getItem("turnolisto-restaurant-display-mode") || "standard";
 let activeRestaurantDashboardPeriod = normalizeDashboardPeriod(
   window.localStorage.getItem("turnolisto-restaurant-dashboard-period") || "day",
@@ -199,7 +200,7 @@ const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
 });
 
 initializeRestaurantFirebaseAuth();
-waitForDataReady().then(bootRestaurantPage);
+bootRestaurantPage();
 window.setInterval(() => {
   if (getCurrentRestaurantSession()) {
     waitForDataReady().then(renderRestaurant);
@@ -339,41 +340,68 @@ function initializeRestaurantFirebaseAuth() {
     if (!backend?.enabled || typeof backend.onAuthStateChanged !== "function") return;
 
     backend.onAuthStateChanged(async (user) => {
+      const requestToken = ++restaurantAuthRequestToken;
       if (!user?.email) {
+        if (requestToken !== restaurantAuthRequestToken) return;
         clearCurrentUserProfile();
         clearCurrentRestaurantSession();
         syncRestaurantAccess();
         return;
       }
 
-      await reconnectDataStoreToFirebase();
-      const profile = await loadCurrentUserProfileFromBackend();
-      const restaurant =
-        profile?.role === "restaurant" && profile.restaurantId ? getRestaurantById(profile.restaurantId) : null;
+      try {
+        const profile = await loadCurrentUserProfileFromBackend();
+        if (requestToken !== restaurantAuthRequestToken) return;
 
-      if (!restaurant || !isRestaurantAccessActive(restaurant)) {
-        clearCurrentRestaurantSession();
-        restaurantLoginFeedback.textContent =
-          profile?.role && profile.role !== "restaurant"
-            ? translateRuntimeText("Esta ventana ha heredado una sesion que no es de restaurante. Inicia sesion aqui con la cuenta del local.")
-            : translateRuntimeText("Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.");
+        const cachedRestaurant =
+          profile?.role === "restaurant" && profile.restaurantId ? getRestaurantById(profile.restaurantId) : null;
+
+        if (cachedRestaurant && isRestaurantAccessActive(cachedRestaurant)) {
+          setCurrentRestaurantSession(cachedRestaurant);
+          restaurantLoginFeedback.hidden = true;
+          restaurantLoginFeedback.textContent = "";
+          syncRestaurantAccess();
+          renderRestaurant();
+        }
+
+        void reconnectDataStoreToFirebase().then((result) => {
+          if (requestToken !== restaurantAuthRequestToken) return;
+          const nextProfile = result?.profile || getCurrentUserProfile() || profile;
+          const restaurant =
+            nextProfile?.role === "restaurant" && nextProfile.restaurantId ? getRestaurantById(nextProfile.restaurantId) : null;
+
+          if (!restaurant || !isRestaurantAccessActive(restaurant)) {
+            clearCurrentRestaurantSession();
+            restaurantLoginFeedback.textContent =
+              nextProfile?.role && nextProfile.role !== "restaurant"
+                ? translateRuntimeText("Esta ventana ha heredado una sesion que no es de restaurante. Inicia sesion aqui con la cuenta del local.")
+                : translateRuntimeText("Tu cuenta no tiene un perfil valido en users/{uid} o el restaurante asignado no esta activo.");
+            restaurantLoginFeedback.className = "form-feedback form-feedback--error";
+            restaurantLoginFeedback.hidden = false;
+            showTurnoAlert(
+              nextProfile?.role && nextProfile.role !== "restaurant"
+                ? translateRuntimeText("Esta ventana necesita una sesion propia del restaurante y no cerrara la sesion del admin.")
+                : translateRuntimeText("Tu cuenta no tiene acceso valido al restaurante asignado."),
+              "error",
+            );
+            syncRestaurantAccess();
+            return;
+          }
+
+          setCurrentRestaurantSession(restaurant);
+          restaurantLoginFeedback.hidden = true;
+          restaurantLoginFeedback.textContent = "";
+          syncRestaurantAccess();
+          renderRestaurant();
+        });
+      } catch (error) {
+        if (requestToken !== restaurantAuthRequestToken) return;
+        console.error("No se pudo restaurar la sesion del restaurante.", error);
+        restaurantLoginFeedback.textContent = translateRuntimeText("No se pudo restaurar la sesión del restaurante. Inténtalo de nuevo.");
         restaurantLoginFeedback.className = "form-feedback form-feedback--error";
         restaurantLoginFeedback.hidden = false;
-        showTurnoAlert(
-          profile?.role && profile.role !== "restaurant"
-            ? translateRuntimeText("Esta ventana necesita una sesion propia del restaurante y no cerrara la sesion del admin.")
-            : translateRuntimeText("Tu cuenta no tiene acceso valido al restaurante asignado."),
-          "error",
-        );
         syncRestaurantAccess();
-        return;
       }
-
-      setCurrentRestaurantSession(restaurant);
-      restaurantLoginFeedback.hidden = true;
-      restaurantLoginFeedback.textContent = "";
-      syncRestaurantAccess();
-      renderRestaurant();
     });
   });
 }
@@ -893,7 +921,7 @@ async function handleRestaurantLogin(event) {
   }
 
   try {
-    await backend.signIn(username, password, { persistence: "session" });
+    await backend.signIn(username, password, { persistence: "local" });
     restaurantLoginForm.reset();
     restaurantLoginUsername.focus();
   } catch (error) {

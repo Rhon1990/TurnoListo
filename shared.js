@@ -818,7 +818,7 @@ async function connectPrivateDataStoreToFirebase() {
       origin: window.location.origin,
       protocol: window.location.protocol,
     });
-    return { mode: dataBackendMode };
+    return { mode: dataBackendMode, profile: currentUserProfile };
   }
 
   if (!backend.isAuthenticated()) {
@@ -830,7 +830,7 @@ async function connectPrivateDataStoreToFirebase() {
     }
     updateDataBackendMode();
     console.info("Firebase disponible, pendiente de autenticacion para acceder a Firestore.");
-    return { mode: dataBackendMode, reason: "auth-required" };
+    return { mode: dataBackendMode, reason: "auth-required", profile: currentUserProfile };
   }
 
   firebaseBackend = backend;
@@ -854,7 +854,13 @@ async function connectPrivateDataStoreToFirebase() {
         requiredRole,
         currentRole: currentUserProfile?.role || null,
       });
-      return { mode: dataBackendMode, reason: "role-mismatch", requiredRole, currentRole: currentUserProfile?.role || null };
+      return {
+        mode: dataBackendMode,
+        reason: "role-mismatch",
+        requiredRole,
+        currentRole: currentUserProfile?.role || null,
+        profile: currentUserProfile,
+      };
     }
 
     const [remoteOrders, remoteRestaurants, remoteTracking] = await Promise.all([
@@ -911,7 +917,7 @@ async function connectPrivateDataStoreToFirebase() {
     updateDataBackendMode();
   }
 
-  return { mode: dataBackendMode };
+  return { mode: dataBackendMode, profile: currentUserProfile };
 }
 
 async function waitForFirebaseBackend() {
@@ -1385,8 +1391,34 @@ async function loadCurrentUserProfileFromBackend() {
     return null;
   }
 
-  currentUserProfile = await backend.getDocument(FIREBASE_USERS_COLLECTION, user.uid);
-  return currentUserProfile;
+  const maxAttempts = 3;
+  let attempt = 0;
+  let lastError = null;
+
+  while (attempt < maxAttempts) {
+    try {
+      const profile = await backend.getDocument(FIREBASE_USERS_COLLECTION, user.uid);
+      if (profile || attempt === maxAttempts - 1) {
+        currentUserProfile = profile;
+        return currentUserProfile;
+      }
+    } catch (error) {
+      lastError = error;
+      if (attempt === maxAttempts - 1) {
+        throw error;
+      }
+    }
+
+    attempt += 1;
+    await new Promise((resolve) => window.setTimeout(resolve, 250));
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  currentUserProfile = null;
+  return null;
 }
 
 function getCurrentUserProfile() {

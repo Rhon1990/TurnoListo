@@ -187,6 +187,7 @@ let adminTermTooltipTimer = 0;
 let adminContactInquiries = [];
 let adminMessagesUnsubscribe = null;
 let adminUsers = [];
+let adminAuthRequestToken = 0;
 let activeAdminDashboardPeriod = normalizeDashboardPeriod(
   window.localStorage.getItem("turnolisto-admin-dashboard-period") || "day",
 );
@@ -247,7 +248,7 @@ const adminCreateAdminPhoneController = window.TurnoListoPhoneFields?.create({
 });
 
 initializeAdminFirebaseAuth();
-waitForDataReady().then(bootAdminPage);
+bootAdminPage();
 onOrdersChanged(() => {
   waitForDataReady().then(renderAdminWorkspace);
 });
@@ -786,31 +787,62 @@ function initializeAdminFirebaseAuth() {
     if (!backend?.enabled || typeof backend.onAuthStateChanged !== "function") return;
 
     backend.onAuthStateChanged(async (user) => {
+      const requestToken = ++adminAuthRequestToken;
       if (!user?.uid) {
+        if (requestToken !== adminAuthRequestToken) return;
         clearCurrentUserProfile();
         syncAdminAccess();
         return;
       }
 
-      await reconnectDataStoreToFirebase();
-      const profile = await loadCurrentUserProfileFromBackend();
+      try {
+        const profile = await loadCurrentUserProfileFromBackend();
+        if (requestToken !== adminAuthRequestToken) return;
 
-      if (profile?.role !== "admin") {
+        if (!profile || profile.role !== "admin") {
+          clearCurrentUserProfile();
+          adminLoginFeedback.textContent = !profile
+            ? translateRuntimeText("No se encontró el perfil admin en users/{uid}.")
+            : translateRuntimeText("La cuenta autenticada no tiene role=admin en users/{uid}.");
+          adminLoginFeedback.className = "form-feedback form-feedback--error";
+          adminLoginFeedback.hidden = false;
+          showTurnoAlert(
+            !profile
+              ? translateRuntimeText("No se pudo restaurar el perfil administrador autenticado.")
+              : translateRuntimeText("La cuenta autenticada no tiene permisos de administrador."),
+            "error",
+          );
+          await backend.signOut();
+          return;
+        }
+
+        adminLoginFeedback.hidden = true;
+        adminLoginFeedback.textContent = "";
+        syncAdminAccess();
+        renderAdminWorkspace();
+
+        void reconnectDataStoreToFirebase().then(async (result) => {
+          if (requestToken !== adminAuthRequestToken) return;
+          if (result?.reason === "role-mismatch" && result?.currentRole && result.currentRole !== "admin") {
+            clearCurrentUserProfile();
+            syncAdminAccess();
+            await backend.signOut();
+            return;
+          }
+          initializeAdminInbox();
+          await refreshAdminUsers();
+          syncAdminAccess();
+          renderAdminWorkspace();
+        });
+      } catch (error) {
+        if (requestToken !== adminAuthRequestToken) return;
         clearCurrentUserProfile();
-        adminLoginFeedback.textContent = translateRuntimeText("La cuenta autenticada no tiene role=admin en users/{uid}.");
+        console.error("No se pudo restaurar la sesion del administrador.", error);
+        adminLoginFeedback.textContent = translateRuntimeText("No se pudo restaurar la sesión del administrador. Inténtalo de nuevo.");
         adminLoginFeedback.className = "form-feedback form-feedback--error";
         adminLoginFeedback.hidden = false;
-        showTurnoAlert(translateRuntimeText("La cuenta autenticada no tiene permisos de administrador."), "error");
-        await backend.signOut();
-        return;
+        syncAdminAccess();
       }
-
-      adminLoginFeedback.hidden = true;
-      adminLoginFeedback.textContent = "";
-      initializeAdminInbox();
-      refreshAdminUsers();
-      syncAdminAccess();
-      renderAdminWorkspace();
     });
   });
 }
