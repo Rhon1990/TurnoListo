@@ -148,10 +148,57 @@
                   <input id="adminProfileEmail" name="email" type="email" readonly />
                   <small class="field__hint">Se usa para iniciar sesión y no se modifica desde esta pantalla.</small>
                 </label>
-                <label class="field">
-                  <span>Teléfono</span>
-                  <input id="adminProfilePhone" name="phone" type="text" placeholder="+34 ..." />
-                </label>
+                <div class="field field--phone">
+                  <span>Número móvil</span>
+                  <div class="phone-field" id="adminProfilePhoneField">
+                    <input id="adminProfilePhone" name="phone" type="hidden" value="" />
+                    <div class="phone-field__country">
+                      <button
+                        class="phone-country-trigger"
+                        id="adminProfilePhoneCountryTrigger"
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="adminProfilePhoneCountryPanel"
+                      >
+                        <span class="phone-country-trigger__flag" id="adminProfilePhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                        <span class="phone-country-trigger__meta">
+                          <span class="phone-country-trigger__dial" id="adminProfilePhoneCountryDial">+34</span>
+                          <span class="phone-country-trigger__name" id="adminProfilePhoneCountryName">España</span>
+                        </span>
+                        <span class="phone-country-trigger__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+                      </button>
+                      <div class="phone-country-panel glass-card" id="adminProfilePhoneCountryPanel" hidden>
+                        <label class="phone-country-search">
+                          <span class="phone-country-search__icon material-symbols-rounded" data-icon="search" aria-hidden="true"></span>
+                          <input
+                            id="adminProfilePhoneCountrySearch"
+                            type="search"
+                            placeholder="Buscar país o indicativo"
+                            autocomplete="off"
+                          />
+                        </label>
+                        <div
+                          class="phone-country-list"
+                          id="adminProfilePhoneCountryList"
+                          role="listbox"
+                          aria-label="Lista de países para móvil de perfil administrador"
+                        ></div>
+                      </div>
+                    </div>
+                    <label class="phone-field__number" for="adminProfilePhoneLocal">
+                      <input
+                        id="adminProfilePhoneLocal"
+                        type="tel"
+                        inputmode="tel"
+                        placeholder="600 000 000"
+                        autocomplete="tel-national"
+                      />
+                    </label>
+                  </div>
+                  <small class="field__hint" id="adminProfilePhoneHint">Selecciona el país y escribe tu número local sin añadir el prefijo.</small>
+                  <p class="field__error" id="adminProfilePhoneError" hidden></p>
+                </div>
               </div>
             </div>
 
@@ -276,6 +323,6 @@
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260416l"></script>
     <script src="./shared.js?v=20260417h"></script>
-    <script src="./admin-profile.js?v=20260417a"></script>
+    <script src="./admin-profile.js?v=20260417b"></script>
   </body>
 </html>

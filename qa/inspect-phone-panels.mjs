@@ -326,6 +326,11 @@ async function runPrivateScenarios() {
 
       await navigatePage(adminSession.page, ADMIN_PROFILE_URL);
       results.push(await captureScenario(adminSession.page, {
+        key: "admin-profile-account",
+        selector: "#adminProfilePhoneCountryTrigger",
+        panelSelector: "#adminProfilePhoneCountryPanel",
+      }));
+      results.push(await captureScenario(adminSession.page, {
         key: "admin-profile",
         selector: "#adminCreateAdminPhoneCountryTrigger",
         panelSelector: "#adminCreateAdminPhoneCountryPanel",

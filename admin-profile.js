@@ -6,6 +6,17 @@ const adminProfileAvatarPreviewImage = document.querySelector("#adminProfileAvat
 const adminProfileDisplayName = document.querySelector("#adminProfileDisplayName");
 const adminProfileEmail = document.querySelector("#adminProfileEmail");
 const adminProfilePhone = document.querySelector("#adminProfilePhone");
+const adminProfilePhoneField = document.querySelector("#adminProfilePhoneField");
+const adminProfilePhoneCountryTrigger = document.querySelector("#adminProfilePhoneCountryTrigger");
+const adminProfilePhoneCountryPanel = document.querySelector("#adminProfilePhoneCountryPanel");
+const adminProfilePhoneCountryFlag = document.querySelector("#adminProfilePhoneCountryFlag");
+const adminProfilePhoneCountryDial = document.querySelector("#adminProfilePhoneCountryDial");
+const adminProfilePhoneCountryName = document.querySelector("#adminProfilePhoneCountryName");
+const adminProfilePhoneCountrySearch = document.querySelector("#adminProfilePhoneCountrySearch");
+const adminProfilePhoneCountryList = document.querySelector("#adminProfilePhoneCountryList");
+const adminProfilePhoneLocal = document.querySelector("#adminProfilePhoneLocal");
+const adminProfilePhoneHint = document.querySelector("#adminProfilePhoneHint");
+const adminProfilePhoneError = document.querySelector("#adminProfilePhoneError");
 const adminProfileTitle = document.querySelector("#adminProfileTitle");
 const adminProfileCreatedAt = document.querySelector("#adminProfileCreatedAt");
 const adminProfileUpdatedAt = document.querySelector("#adminProfileUpdatedAt");
@@ -44,9 +55,7 @@ let selectedAdminAvatarUrl = "";
 let adminUsers = [];
 let adminMessagesUnsubscribe = null;
 let adminProfileSnapshot = null;
-const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
 const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
-let selectedCreateAdminPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
 const translateText = (value) =>
   window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
 const translateKey = (key, fallback = "") =>
@@ -54,6 +63,26 @@ const translateKey = (key, fallback = "") =>
 const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
+const adminProfilePhoneController = window.TurnoListoPhoneFields?.create({
+  elements: {
+    field: adminProfilePhoneField,
+    countryTrigger: adminProfilePhoneCountryTrigger,
+    countryPanel: adminProfilePhoneCountryPanel,
+    countryFlag: adminProfilePhoneCountryFlag,
+    countryDial: adminProfilePhoneCountryDial,
+    countryName: adminProfilePhoneCountryName,
+    countrySearch: adminProfilePhoneCountrySearch,
+    countryList: adminProfilePhoneCountryList,
+    localInput: adminProfilePhoneLocal,
+    hiddenInput: adminProfilePhone,
+    hintElement: adminProfilePhoneHint,
+    errorElement: adminProfilePhoneError,
+  },
+  translateText,
+  translateKey,
+  formatKey,
+  isRequired: () => false,
+});
 const createAdminPhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: adminCreateAdminPhoneField,
@@ -92,9 +121,11 @@ function initializeAdminProfilePage() {
   });
   window.addEventListener("click", handleAdminAccountOutsideClick);
   window.addEventListener("turnolisto:language-change", () => {
+    adminProfilePhoneController?.refreshLanguage();
     createAdminPhoneController?.refreshLanguage();
   });
   waitForDataReady().then(() => {
+    initializeAdminProfilePhoneField();
     initializeCreateAdminPhoneField();
     initializeAdminProfileAuth();
   });
@@ -166,7 +197,7 @@ function renderAdminProfile(profile) {
   };
   adminProfileDisplayName.value = adminProfileSnapshot.displayName;
   setDynamicRuntimeAttribute(adminProfileEmail, "value", adminProfileSnapshot.email);
-  adminProfilePhone.value = adminProfileSnapshot.phone;
+  applyAdminProfilePhoneValue(adminProfileSnapshot.phone);
   adminProfileTitle.value = adminProfileSnapshot.title;
   setDynamicRuntimeAttribute(adminProfileCreatedAt, "value", formatProfileDateTime(adminProfileSnapshot.createdAt));
   setDynamicRuntimeAttribute(adminProfileUpdatedAt, "value", formatProfileDateTime(adminProfileSnapshot.updatedAt));
@@ -175,63 +206,20 @@ function renderAdminProfile(profile) {
   renderAdminProfileSummary(profile);
 }
 
-function getPhoneCountryByIso(iso) {
-  return createAdminPhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
+function initializeAdminProfilePhoneField() {
+  return adminProfilePhoneController?.initialize();
 }
 
-function setCreateAdminPhoneError(message = "") {
-  return createAdminPhoneController?.setError(message);
+function applyAdminProfilePhoneValue(value) {
+  return adminProfilePhoneController?.setValue(value);
 }
 
-function renderCreateAdminPhoneCountryState() {
-  return createAdminPhoneController?.renderState();
-}
-
-function buildCreateAdminPhoneNumber() {
-  return createAdminPhoneController?.buildPhoneNumber() || "";
-}
-
-function syncCreateAdminPhoneHiddenValue() {
-  return createAdminPhoneController?.syncHiddenValue() || "";
+function validateAdminProfilePhoneNumber(options = {}) {
+  return adminProfilePhoneController?.validate(options) || { valid: true, phone: "", message: "" };
 }
 
 function validateCreateAdminPhoneNumber(options = {}) {
   return createAdminPhoneController?.validate(options) || { valid: true, phone: "", message: "" };
-}
-
-function renderCreateAdminPhoneCountryList() {
-  return createAdminPhoneController?.renderList();
-}
-
-function openCreateAdminPhoneCountryPanel() {
-  if (!adminCreateAdminPhoneCountryPanel || !adminCreateAdminPhoneCountryTrigger) return;
-  adminCreateAdminPhoneCountryPanel.hidden = false;
-  adminCreateAdminPhoneField?.classList.add("is-open");
-  adminCreateAdminPhoneCountryTrigger.setAttribute("aria-expanded", "true");
-  renderCreateAdminPhoneCountryList();
-  window.requestAnimationFrame(() => {
-    adminCreateAdminPhoneCountrySearch?.focus();
-    adminCreateAdminPhoneCountrySearch?.select();
-  });
-}
-
-function closeCreateAdminPhoneCountryPanel() {
-  if (!adminCreateAdminPhoneCountryPanel || !adminCreateAdminPhoneCountryTrigger) return;
-  adminCreateAdminPhoneCountryPanel.hidden = true;
-  adminCreateAdminPhoneField?.classList.remove("is-open");
-  adminCreateAdminPhoneCountryTrigger.setAttribute("aria-expanded", "false");
-}
-
-function toggleCreateAdminPhoneCountryPanel() {
-  return createAdminPhoneController?.togglePanel();
-}
-
-function handleCreateAdminPhoneOutsideClick(event) {
-  return createAdminPhoneController?.handleOutsideClick(event);
-}
-
-function handleCreateAdminPhoneKeydown(event) {
-  return createAdminPhoneController?.handleKeydown(event);
 }
 
 function resetCreateAdminPhoneField() {
@@ -364,11 +352,17 @@ async function handleAdminProfileSubmit(event) {
   }
 
   try {
+    const phoneValidation = validateAdminProfilePhoneNumber({ report: true });
+    if (!phoneValidation.valid) {
+      adminProfilePhoneLocal?.focus();
+      showTurnoAlert(phoneValidation.message, "error");
+      return;
+    }
     const submitButton = adminProfileForm?.querySelector('button[type="submit"]');
     if (submitButton) submitButton.disabled = true;
     await backend.updateCurrentAdminProfile({
       displayName: adminProfileDisplayName?.value || "",
-      phone: adminProfilePhone?.value || "",
+      phone: phoneValidation.phone,
       title: adminProfileTitle?.value || "",
       avatarUrl: selectedAdminAvatarUrl || getCurrentUserProfile()?.avatarUrl || "",
     });
@@ -405,7 +399,7 @@ function restoreAdminProfileSnapshot() {
   selectedAdminAvatarUrl = "";
   adminProfileDisplayName.value = adminProfileSnapshot.displayName;
   setDynamicRuntimeAttribute(adminProfileEmail, "value", adminProfileSnapshot.email);
-  adminProfilePhone.value = adminProfileSnapshot.phone;
+  applyAdminProfilePhoneValue(adminProfileSnapshot.phone);
   adminProfileTitle.value = adminProfileSnapshot.title;
   setDynamicRuntimeAttribute(adminProfileCreatedAt, "value", formatProfileDateTime(adminProfileSnapshot.createdAt));
   setDynamicRuntimeAttribute(adminProfileUpdatedAt, "value", formatProfileDateTime(adminProfileSnapshot.updatedAt));
