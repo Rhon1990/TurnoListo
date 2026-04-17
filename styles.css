@@ -4354,6 +4354,10 @@ button:hover,
   user-select: none;
 }
 
+.playbook-step:not(.playbook-step--done) .playbook-step__icon {
+  color: #c84a3a;
+}
+
 .playbook-step--done .playbook-step__icon {
   background: linear-gradient(180deg, #34c759 0%, #1f9d47 100%);
   color: #ffffff;
@@ -4375,6 +4379,10 @@ button:hover,
 
 .playbook-step--done .playbook-step__status {
   color: #1f7a4d;
+}
+
+.playbook-step:not(.playbook-step--done) .playbook-step__status {
+  color: #b34832;
 }
 
 .playbook-step__text {
