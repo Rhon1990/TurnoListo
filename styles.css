@@ -4589,7 +4589,7 @@ button:hover,
   .workspace-actions {
     width: 100%;
     gap: 0.6rem;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
   }
@@ -4805,8 +4805,8 @@ button:hover,
     width: 100%;
     flex-direction: row;
     align-items: center;
-    gap: 0.55rem;
-    justify-content: space-between;
+    gap: 0.7rem;
+    justify-content: center;
     flex-wrap: nowrap;
   }
 
