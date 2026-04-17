@@ -52,6 +52,25 @@ const translateKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setDynamicRuntimeAttribute = (element, attributeName, value) => {
+  if (!element || !attributeName) return;
+  if (window.TurnoListoI18n?.setDynamicAttribute) {
+    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, value);
+    return;
+  }
+  const normalizedValue = value === null || value === undefined ? "" : String(value);
+  if (attributeName === "value" && "value" in element) {
+    element.value = normalizedValue;
+    element.setAttribute("value", normalizedValue);
+    return;
+  }
+  if (attributeName === "placeholder" && "placeholder" in element) {
+    element.placeholder = normalizedValue;
+    element.setAttribute("placeholder", normalizedValue);
+    return;
+  }
+  element.setAttribute(attributeName, normalizedValue);
+};
 const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: restaurantProfilePhoneField,
@@ -155,21 +174,25 @@ function renderRestaurantProfile(restaurant) {
   renderRestaurantAccount(restaurant);
   restaurantProfileName.value = restaurant.name || "";
   restaurantProfileOwnerName.value = restaurant.ownerName || "";
-  restaurantProfileEmail.value = restaurant.email || "";
+  setDynamicRuntimeAttribute(restaurantProfileEmail, "value", restaurant.email || "");
   applyRestaurantProfilePhoneValue(restaurant.phone || "");
   restaurantProfileCity.value = restaurant.city || "";
   restaurantProfileAddress.value = restaurant.address || "";
   restaurantProfileNotes.value = restaurant.notes || "";
   const planName = restaurant.planName || EMPTY_STATUS_LABEL;
   const activatedUntil = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : EMPTY_STATUS_LABEL;
-  restaurantProfilePlanName.value = planName;
-  restaurantProfileActivatedUntil.value = activatedUntil;
+  setDynamicRuntimeAttribute(restaurantProfilePlanName, "value", planName);
+  setDynamicRuntimeAttribute(restaurantProfileActivatedUntil, "value", activatedUntil);
   if (restaurantProfilePlanNameCard) restaurantProfilePlanNameCard.textContent = planName;
   if (restaurantProfileActivatedUntilCard) restaurantProfileActivatedUntilCard.textContent = activatedUntil;
   if (restaurantProfileStatus) {
-    restaurantProfileStatus.value = isDemoRestaurant(restaurant)
-      ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos`
-      : "Acceso verificado";
+    setDynamicRuntimeAttribute(
+      restaurantProfileStatus,
+      "value",
+      isDemoRestaurant(restaurant)
+        ? `Demo activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos`
+        : "Acceso verificado",
+    );
   }
   syncRestaurantProfilePreview(selectedRestaurantProfileLogoUrl || restaurant.logoUrl || "");
   renderRestaurantProfileSummary(restaurant);
@@ -237,13 +260,13 @@ function formatProfileDate(value) {
 function clearRestaurantProfileView() {
   restaurantProfileName.value = "";
   restaurantProfileOwnerName.value = "";
-  restaurantProfileEmail.value = "";
+  setDynamicRuntimeAttribute(restaurantProfileEmail, "value", "");
   restaurantProfileCity.value = "";
   restaurantProfileAddress.value = "";
   restaurantProfileNotes.value = "";
-  restaurantProfilePlanName.value = EMPTY_STATUS_LABEL;
-  restaurantProfileActivatedUntil.value = EMPTY_STATUS_LABEL;
-  if (restaurantProfileStatus) restaurantProfileStatus.value = EMPTY_STATUS_LABEL;
+  setDynamicRuntimeAttribute(restaurantProfilePlanName, "value", EMPTY_STATUS_LABEL);
+  setDynamicRuntimeAttribute(restaurantProfileActivatedUntil, "value", EMPTY_STATUS_LABEL);
+  if (restaurantProfileStatus) setDynamicRuntimeAttribute(restaurantProfileStatus, "value", EMPTY_STATUS_LABEL);
   if (restaurantProfilePlanNameCard) restaurantProfilePlanNameCard.textContent = EMPTY_STATUS_LABEL;
   if (restaurantProfileActivatedUntilCard) restaurantProfileActivatedUntilCard.textContent = EMPTY_STATUS_LABEL;
   applyRestaurantProfilePhoneValue("");

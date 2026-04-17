@@ -12,6 +12,48 @@ const FIREBASE_USERS_COLLECTION = "users";
 const DEMO_PLAN_NAME = "Demo";
 const DEMO_DEFAULT_DAYS = 7;
 const DEMO_DEFAULT_MAX_ORDERS = 8;
+const PLAN_CATALOG = Object.freeze([
+  {
+    name: DEMO_PLAN_NAME,
+    activationDays: DEMO_DEFAULT_DAYS,
+    renewable: false,
+    salesHint: "Demo comercial guiada con 7 días y 8 pedidos para enseñar valor real sin fricción.",
+  },
+  {
+    name: "Quincenal",
+    activationDays: 15,
+    renewable: true,
+    salesHint: "Quince días de acceso para campañas, aperturas o pruebas operativas cortas.",
+  },
+  {
+    name: "Mensual",
+    activationDays: 30,
+    renewable: true,
+    salesHint: "Treinta días de acceso para la operación mensual estándar del local.",
+  },
+  {
+    name: "Trimestral",
+    activationDays: 90,
+    renewable: true,
+    salesHint: "Noventa días de acceso para consolidar adopción y medir recurrencia.",
+  },
+  {
+    name: "Semestral",
+    activationDays: 180,
+    renewable: true,
+    salesHint: "Ciento ochenta días de acceso para operaciones estables con visión semestral.",
+  },
+  {
+    name: "Anual",
+    activationDays: 365,
+    renewable: true,
+    salesHint: "Trescientos sesenta y cinco días de acceso para cuentas consolidadas y previsibles.",
+  },
+]);
+const PLAN_CATALOG_BY_NAME = Object.freeze(
+  Object.fromEntries(PLAN_CATALOG.map((plan) => [plan.name, Object.freeze({ ...plan })])),
+);
+const PLAN_RENEWABLE_NAMES = Object.freeze(PLAN_CATALOG.filter((plan) => plan.renewable).map((plan) => plan.name));
 const PHONE_COUNTRIES = [
   { iso: "ES", flag: "🇪🇸", name: "España", dialCode: "+34", placeholder: "600 000 000", minDigits: 9, maxDigits: 9 },
   { iso: "PT", flag: "🇵🇹", name: "Portugal", dialCode: "+351", placeholder: "912 345 678", minDigits: 9, maxDigits: 9 },
@@ -68,6 +110,39 @@ const dataReadyPromise = initializeDataStore();
 
 initializeTurnoAlerts();
 initializePhoneFieldHelpers();
+
+function setDynamicI18nAttribute(element, attributeName, value) {
+  if (!(element instanceof Element) || !attributeName) return;
+  const normalizedValue = value === null || value === undefined ? "" : String(value);
+  if (window.TurnoListoI18n?.setDynamicAttribute) {
+    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, normalizedValue);
+    return;
+  }
+
+  if (attributeName === "value" && "value" in element) {
+    element.value = normalizedValue;
+    element.setAttribute("value", normalizedValue);
+    return;
+  }
+
+  if (attributeName === "placeholder" && "placeholder" in element) {
+    element.placeholder = normalizedValue;
+    element.setAttribute("placeholder", normalizedValue);
+    return;
+  }
+
+  element.setAttribute(attributeName, normalizedValue);
+}
+
+function getPlanDefinition(planName, fallbackName = "Mensual") {
+  const normalizedPlanName = String(planName || "").trim();
+  if (PLAN_CATALOG_BY_NAME[normalizedPlanName]) return PLAN_CATALOG_BY_NAME[normalizedPlanName];
+  return PLAN_CATALOG_BY_NAME[fallbackName] || PLAN_CATALOG[0];
+}
+
+function getPlanActivationDays(planName, fallbackName = "Mensual") {
+  return getPlanDefinition(planName, fallbackName).activationDays;
+}
 
 function readOrdersFromLocalStorage() {
   const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -136,8 +211,15 @@ function initializePhoneFieldHelpers() {
     function setError(message = "") {
       const safeMessage = String(message || "").trim();
       if (errorElement) {
-        errorElement.textContent = safeMessage;
+        if (window.TurnoListoI18n?.setDynamicText) {
+          window.TurnoListoI18n.setDynamicText(errorElement, safeMessage);
+        } else {
+          errorElement.textContent = safeMessage;
+        }
         errorElement.hidden = !safeMessage;
+      }
+      if (hintElement) {
+        hintElement.hidden = Boolean(safeMessage);
       }
       field?.classList.toggle("has-error", Boolean(safeMessage));
       localInput?.setCustomValidity(safeMessage);
@@ -164,9 +246,23 @@ function initializePhoneFieldHelpers() {
       const country = getPhoneCountryByIso(selectedCountryIso);
       if (countryFlag) countryFlag.textContent = country.flag;
       if (countryDial) countryDial.textContent = country.dialCode;
-      if (countryName) countryName.textContent = translateText(country.name, translateTextFn);
-      if (localInput) localInput.placeholder = country.placeholder;
-      if (hintElement) hintElement.textContent = buildHintMessage(country);
+      if (countryName) {
+        const translatedName = translateText(country.name, translateTextFn);
+        if (window.TurnoListoI18n?.setDynamicText) {
+          window.TurnoListoI18n.setDynamicText(countryName, translatedName);
+        } else {
+          countryName.textContent = translatedName;
+        }
+      }
+      if (localInput) setDynamicI18nAttribute(localInput, "placeholder", country.placeholder);
+      if (hintElement) {
+        const hintMessage = buildHintMessage(country);
+        if (window.TurnoListoI18n?.setDynamicText) {
+          window.TurnoListoI18n.setDynamicText(hintElement, hintMessage);
+        } else {
+          hintElement.textContent = hintMessage;
+        }
+      }
     }
 
     function buildPhoneNumber() {
@@ -448,6 +544,13 @@ function initializePhoneFieldHelpers() {
     getCountryByIso: getPhoneCountryByIso,
     splitValue: splitPhoneValue,
     create: createPhoneFieldController,
+  };
+
+  window.TurnoListoPlans = {
+    catalog: PLAN_CATALOG,
+    renewablePlanNames: PLAN_RENEWABLE_NAMES,
+    getDefinition: getPlanDefinition,
+    getActivationDays: getPlanActivationDays,
   };
 }
 

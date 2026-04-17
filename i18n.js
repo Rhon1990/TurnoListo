@@ -841,6 +841,12 @@
       "Nuevo restaurante": "New restaurant",
       "Nombre del restaurante": "Restaurant name",
       "Correo electrónico": "Email address",
+      "Demo comercial guiada con 7 días y 8 pedidos para enseñar valor real sin fricción.": "Guided commercial demo with 7 days and 8 orders to show real value without friction.",
+      "Quince días de acceso para campañas, aperturas o pruebas operativas cortas.": "Fifteen days of access for campaigns, openings, or short operational trials.",
+      "Treinta días de acceso para la operación mensual estándar del local.": "Thirty days of access for the venue's standard monthly operation.",
+      "Noventa días de acceso para consolidar adopción y medir recurrencia.": "Ninety days of access to consolidate adoption and measure repeat usage.",
+      "Ciento ochenta días de acceso para operaciones estables con visión semestral.": "One hundred and eighty days of access for stable operations with a semiannual horizon.",
+      "Trescientos sesenta y cinco días de acceso para cuentas consolidadas y previsibles.": "Three hundred and sixty-five days of access for consolidated, predictable accounts.",
       "Selecciona el país del móvil y escribe el número local sin preocuparte por el prefijo.": "Select the phone country and enter the local number without worrying about the prefix.",
       "Elige Demo para una prueba comercial guiada con límites pensados para cerrar la venta.": "Choose Demo for a guided commercial trial with limits designed to close the sale.",
       "El correo electrónico será el usuario de acceso y la contraseña se genera automáticamente al crear el restaurante.": "The email address will be the access username and the password is generated automatically when the restaurant is created.",
@@ -1754,6 +1760,12 @@
       "Nuevo restaurante": "Nouveau restaurant",
       "Nombre del restaurante": "Nom du restaurant",
       "Correo electrónico": "Adresse e-mail",
+      "Demo comercial guiada con 7 días y 8 pedidos para enseñar valor real sin fricción.": "Démo commerciale guidée avec 7 jours et 8 commandes pour montrer une vraie valeur sans friction.",
+      "Quince días de acceso para campañas, aperturas o pruebas operativas cortas.": "Quinze jours d'accès pour des campagnes, ouvertures ou essais opérationnels courts.",
+      "Treinta días de acceso para la operación mensual estándar del local.": "Trente jours d'accès pour l'exploitation mensuelle standard de l'établissement.",
+      "Noventa días de acceso para consolidar adopción y medir recurrencia.": "Quatre-vingt-dix jours d'accès pour consolider l'adoption et mesurer la récurrence.",
+      "Ciento ochenta días de acceso para operaciones estables con visión semestral.": "Cent quatre-vingts jours d'accès pour des opérations stables avec une vision semestrielle.",
+      "Trescientos sesenta y cinco días de acceso para cuentas consolidadas y previsibles.": "Trois cent soixante-cinq jours d'accès pour des comptes consolidés et prévisibles.",
       "Elige Demo para una prueba comercial guiada con límites pensados para cerrar la venta.": "Choisissez Démo pour un essai commercial guidé avec des limites pensées pour conclure la vente.",
       "El correo electrónico será el usuario de acceso y la contraseña se genera automáticamente al crear el restaurante.": "L'adresse e-mail sera l'identifiant d'accès et le mot de passe sera généré automatiquement lors de la création du restaurant.",
       "Crear acceso": "Créer l'accès",
@@ -2383,6 +2395,35 @@
     return element.getAttribute(originAttribute);
   }
 
+  function setDynamicAttribute(element, attributeName, value) {
+    if (!(element instanceof Element) || !attributeName) return;
+    const normalizedValue = value === null || value === undefined ? "" : String(value);
+    const originAttribute = `data-i18n-orig-${attributeName}`;
+
+    if (attributeName === "value" && "value" in element) {
+      element.value = normalizedValue;
+      element.setAttribute("value", normalizedValue);
+    } else if (attributeName === "placeholder" && "placeholder" in element) {
+      element.placeholder = normalizedValue;
+      element.setAttribute("placeholder", normalizedValue);
+    } else {
+      element.setAttribute(attributeName, normalizedValue);
+    }
+
+    element.setAttribute(originAttribute, normalizedValue);
+  }
+
+  function setDynamicText(element, value) {
+    if (!(element instanceof Element)) return;
+    const normalizedValue = value === null || value === undefined ? "" : String(value);
+    element.textContent = normalizedValue;
+    element.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        textNodeOrigins.set(node, normalizedValue);
+      }
+    });
+  }
+
   function shouldTranslateValueAttribute(element) {
     if (element.tagName === "OPTION") return true;
     if (element.tagName !== "INPUT") return false;
@@ -2581,6 +2622,8 @@
     setLanguage: setCurrentLanguage,
     translateKey,
     formatKey,
+    setDynamicAttribute,
+    setDynamicText,
     translateText(value, language = getCurrentLanguage()) {
       return translateCoreText(value, language);
     },

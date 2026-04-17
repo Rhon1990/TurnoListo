@@ -53,6 +53,25 @@ const translateKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setDynamicRuntimeAttribute = (element, attributeName, value) => {
+  if (!element || !attributeName) return;
+  if (window.TurnoListoI18n?.setDynamicAttribute) {
+    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, value);
+    return;
+  }
+  const normalizedValue = value === null || value === undefined ? "" : String(value);
+  if (attributeName === "value" && "value" in element) {
+    element.value = normalizedValue;
+    element.setAttribute("value", normalizedValue);
+    return;
+  }
+  if (attributeName === "placeholder" && "placeholder" in element) {
+    element.placeholder = normalizedValue;
+    element.setAttribute("placeholder", normalizedValue);
+    return;
+  }
+  element.setAttribute(attributeName, normalizedValue);
+};
 const createAdminPhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: adminCreateAdminPhoneField,
@@ -164,11 +183,11 @@ function renderAdminProfile(profile) {
     updatedAt: profile.updatedAt || "",
   };
   adminProfileDisplayName.value = adminProfileSnapshot.displayName;
-  adminProfileEmail.value = adminProfileSnapshot.email;
+  setDynamicRuntimeAttribute(adminProfileEmail, "value", adminProfileSnapshot.email);
   adminProfilePhone.value = adminProfileSnapshot.phone;
   adminProfileTitle.value = adminProfileSnapshot.title;
-  adminProfileCreatedAt.value = formatProfileDateTime(adminProfileSnapshot.createdAt);
-  adminProfileUpdatedAt.value = formatProfileDateTime(adminProfileSnapshot.updatedAt);
+  setDynamicRuntimeAttribute(adminProfileCreatedAt, "value", formatProfileDateTime(adminProfileSnapshot.createdAt));
+  setDynamicRuntimeAttribute(adminProfileUpdatedAt, "value", formatProfileDateTime(adminProfileSnapshot.updatedAt));
   syncAdminAvatarPreview(selectedAdminAvatarUrl || adminProfileSnapshot.avatarUrl);
   if (!selectedAdminAvatarUrl) resetAdminProfileAvatarFilename();
   renderAdminProfileSummary(profile);
@@ -403,11 +422,11 @@ function restoreAdminProfileSnapshot() {
   if (!adminProfileSnapshot) return;
   selectedAdminAvatarUrl = "";
   adminProfileDisplayName.value = adminProfileSnapshot.displayName;
-  adminProfileEmail.value = adminProfileSnapshot.email;
+  setDynamicRuntimeAttribute(adminProfileEmail, "value", adminProfileSnapshot.email);
   adminProfilePhone.value = adminProfileSnapshot.phone;
   adminProfileTitle.value = adminProfileSnapshot.title;
-  adminProfileCreatedAt.value = formatProfileDateTime(adminProfileSnapshot.createdAt);
-  adminProfileUpdatedAt.value = formatProfileDateTime(adminProfileSnapshot.updatedAt);
+  setDynamicRuntimeAttribute(adminProfileCreatedAt, "value", formatProfileDateTime(adminProfileSnapshot.createdAt));
+  setDynamicRuntimeAttribute(adminProfileUpdatedAt, "value", formatProfileDateTime(adminProfileSnapshot.updatedAt));
   syncAdminAvatarPreview(adminProfileSnapshot.avatarUrl);
   renderAdminProfileSummary(adminProfileSnapshot);
   if (adminProfileAvatarInput) {

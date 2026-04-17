@@ -13,6 +13,7 @@ const adminRestaurantLogoPreview = document.querySelector("#adminRestaurantLogoP
 const adminRestaurantLogoPreviewImage = document.querySelector("#adminRestaurantLogoPreviewImage");
 const adminPlanSelect = document.querySelector("#adminPlanSelect");
 const adminActivationDays = document.querySelector("#adminActivationDays");
+const adminPlanHint = document.querySelector("#adminPlanHint");
 const adminCreateRestaurantName = adminCreateRestaurantForm.querySelector('[name="name"]');
 const adminCreateRestaurantOwner = adminCreateRestaurantForm.querySelector('[name="ownerName"]');
 const adminCreateRestaurantPhone = document.querySelector("#adminRestaurantPhoneFull");
@@ -95,6 +96,33 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setDynamicRuntimeAttribute = (element, attributeName, value) => {
+  if (!element || !attributeName) return;
+  if (window.TurnoListoI18n?.setDynamicAttribute) {
+    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, value);
+    return;
+  }
+  const normalizedValue = value === null || value === undefined ? "" : String(value);
+  if (attributeName === "value" && "value" in element) {
+    element.value = normalizedValue;
+    element.setAttribute("value", normalizedValue);
+    return;
+  }
+  if (attributeName === "placeholder" && "placeholder" in element) {
+    element.placeholder = normalizedValue;
+    element.setAttribute("placeholder", normalizedValue);
+    return;
+  }
+  element.setAttribute(attributeName, normalizedValue);
+};
+const setDynamicRuntimeText = (element, value) => {
+  if (!element) return;
+  if (window.TurnoListoI18n?.setDynamicText) {
+    window.TurnoListoI18n.setDynamicText(element, value);
+    return;
+  }
+  element.textContent = value === null || value === undefined ? "" : String(value);
+};
 const adminActivatePlanBackdrop = document.querySelector("#adminActivatePlanBackdrop");
 const adminActivatePlanClose = document.querySelector("#adminActivatePlanClose");
 const adminActivatePlanBack = document.querySelector("#adminActivatePlanBack");
@@ -187,21 +215,21 @@ let adminUsers = [];
 let activeAdminDashboardPeriod = normalizeDashboardPeriod(
   window.localStorage.getItem("turnolisto-admin-dashboard-period") || "day",
 );
-const PLAN_DURATIONS = {
-  Demo: 7,
-  Quincenal: 15,
-  Mensual: 30,
-  Trimestral: 90,
-  Semestral: 180,
-  Anual: 365,
-};
-const RENEWABLE_PLAN_NAMES = ["Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"];
+const SHARED_PLAN_CATALOG = window.TurnoListoPlans?.catalog || [];
+const PLAN_DURATIONS = Object.freeze(
+  SHARED_PLAN_CATALOG.length
+    ? Object.fromEntries(SHARED_PLAN_CATALOG.map((plan) => [plan.name, plan.activationDays]))
+    : {
+      Demo: 7,
+      Quincenal: 15,
+      Mensual: 30,
+      Trimestral: 90,
+      Semestral: 180,
+      Anual: 365,
+    },
+);
+const RENEWABLE_PLAN_NAMES = window.TurnoListoPlans?.renewablePlanNames || ["Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"];
 const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
-const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
-const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
-
-let selectedPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
-let selectedAdminCreateAdminPhoneCountryIso = SHARED_DEFAULT_PHONE_COUNTRY_ISO;
 const adminRestaurantPhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
     field: adminPhoneField,
@@ -322,6 +350,7 @@ window.addEventListener("click", handleAdminAccountOutsideClick);
 window.addEventListener("turnolisto:language-change", () => {
   adminRestaurantPhoneController?.refreshLanguage();
   adminCreateAdminPhoneController?.refreshLanguage();
+  syncActivationDaysWithPlan();
   if (isAdminAuthenticated()) {
     renderAdminWorkspace();
     void refreshOpenAdminModals();
@@ -359,23 +388,45 @@ function initializeTermHints(root) {
   });
 }
 
+function getPlanDefinition(planName, fallbackName = "Mensual") {
+  if (window.TurnoListoPlans?.getDefinition) {
+    return window.TurnoListoPlans.getDefinition(planName, fallbackName);
+  }
+
+  const normalizedPlanName = String(planName || "").trim();
+  return {
+    name: PLAN_DURATIONS[normalizedPlanName] ? normalizedPlanName : fallbackName,
+    activationDays: PLAN_DURATIONS[normalizedPlanName] || PLAN_DURATIONS[fallbackName] || 30,
+    salesHint: "",
+  };
+}
+
+function buildPlanHint(plan) {
+  if (!plan) return "";
+  if (plan.salesHint) return translateRuntimeText(plan.salesHint);
+  return translateRuntimeText(`${plan.name}: ${plan.activationDays} días de acceso para este ciclo comercial.`);
+}
+
+function syncDynamicFieldValue(element, value) {
+  setDynamicRuntimeAttribute(element, "value", value);
+}
+
+function syncDynamicFieldPlaceholder(element, value) {
+  setDynamicRuntimeAttribute(element, "placeholder", value);
+}
+
 function syncActivationDaysWithPlan() {
-  const plan = adminPlanSelect.value || "Mensual";
-  const isDemo = plan === "Demo";
+  const plan = getPlanDefinition(adminPlanSelect.value || "Mensual");
+  const isDemo = plan.name === "Demo";
 
-  if (isDemo) {
-    adminActivationDays.value = PLAN_DURATIONS.Demo;
-  }
-
-  if (!isDemo) {
-    adminActivationDays.value = PLAN_DURATIONS[plan] || 30;
-  }
+  syncDynamicFieldValue(adminActivationDays, String(plan.activationDays));
+  setDynamicRuntimeText(adminPlanHint, buildPlanHint(plan));
 
   adminActivationDays.readOnly = true;
   if (adminCreateRestaurantOwner) adminCreateRestaurantOwner.required = !isDemo;
   if (adminRestaurantPhoneLocal) adminRestaurantPhoneLocal.required = !isDemo;
   if (adminCreateRestaurantName) {
-    adminCreateRestaurantName.placeholder = translateRuntimeText(isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro");
+    syncDynamicFieldPlaceholder(adminCreateRestaurantName, translateRuntimeText(isDemo ? "Ej. Demo Kebab Centro" : "Ej. Burger Centro"));
   }
   validateAdminPhoneNumber({ report: false });
 }
@@ -563,29 +614,6 @@ async function handleCreateRestaurant(event) {
     adminCreateFeedback.hidden = false;
     showTurnoAlert(message, "error");
   }
-}
-
-function getPhoneCountryByIso(iso) {
-  return adminRestaurantPhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
-}
-
-function shouldReportPhoneValidation(input, errorElement) {
-  return Boolean(String(input?.value || "").trim()) || Boolean(errorElement && !errorElement.hidden);
-}
-
-function buildPhoneHintMessage(country) {
-  const countryName = translateRuntimeText(country.name);
-  return country.minDigits === country.maxDigits
-    ? formatRuntimeKey(
-      "contact.dynamic.phone.hint.fixed",
-      { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
-      `Selecciona ${countryName} (${country.dialCode}) y escribe un número local de ${country.minDigits} dígitos sin añadir el prefijo.`,
-    )
-    : formatRuntimeKey(
-      "contact.dynamic.phone.hint.range",
-      { country: countryName, minDigits: country.minDigits, maxDigits: country.maxDigits, dialCode: country.dialCode },
-      `Selecciona ${countryName} (${country.dialCode}) y escribe un número local de entre ${country.minDigits} y ${country.maxDigits} dígitos sin añadir el prefijo.`,
-    );
 }
 
 function setAdminPhoneError(message = "") {
@@ -859,8 +887,9 @@ function activateRestaurantPlan(restaurantId, planName = "Mensual") {
   const restaurant = getRestaurantById(restaurantId);
   if (!restaurant) return null;
 
-  const normalizedPlanName = PLAN_DURATIONS[planName] ? planName : "Mensual";
-  const activationDays = PLAN_DURATIONS[normalizedPlanName] || 30;
+  const plan = getPlanDefinition(planName, "Mensual");
+  const normalizedPlanName = plan.name;
+  const activationDays = plan.activationDays;
   const activatedAt = new Date().toISOString();
   const activatedUntil = new Date(Date.now() + activationDays * 24 * 60 * 60 * 1000).toISOString();
 
@@ -875,8 +904,8 @@ function activateRestaurantPlan(restaurantId, planName = "Mensual") {
 
 function syncActivatePlanDays() {
   if (!adminActivatePlanSelect || !adminActivatePlanDays) return;
-  const plan = adminActivatePlanSelect.value || "Mensual";
-  adminActivatePlanDays.value = String(PLAN_DURATIONS[plan] || 30);
+  const plan = getPlanDefinition(adminActivatePlanSelect.value || "Mensual", "Mensual");
+  syncDynamicFieldValue(adminActivatePlanDays, String(plan.activationDays));
 }
 
 function renewRestaurantPlan(restaurantId, planName = "Mensual") {
@@ -900,14 +929,14 @@ function syncRenewPlanDays() {
   const restaurant = pendingRenewPlanRestaurantId ? getRestaurantById(pendingRenewPlanRestaurantId) : null;
   const plan = adminRenewPlanSelect.value || resolveRenewablePlanName(restaurant);
   const renewalWindow = buildRenewPlanWindow(restaurant, plan);
-  adminRenewPlanDays.value = String(renewalWindow.days);
-  if (adminRenewPlanStartsAt) adminRenewPlanStartsAt.value = formatAdminDate(renewalWindow.startDate);
-  if (adminRenewPlanEndsAt) adminRenewPlanEndsAt.value = formatAdminDate(renewalWindow.endDate);
+  syncDynamicFieldValue(adminRenewPlanDays, String(renewalWindow.days));
+  if (adminRenewPlanStartsAt) syncDynamicFieldValue(adminRenewPlanStartsAt, formatAdminDate(renewalWindow.startDate));
+  if (adminRenewPlanEndsAt) syncDynamicFieldValue(adminRenewPlanEndsAt, formatAdminDate(renewalWindow.endDate));
 }
 
 function buildRenewPlanWindow(restaurant, planName = "Mensual") {
   const normalizedPlanName = resolveRenewablePlanName(restaurant, planName);
-  const days = PLAN_DURATIONS[normalizedPlanName] || 30;
+  const days = getPlanDefinition(normalizedPlanName, "Mensual").activationDays;
   const now = Date.now();
   const currentUntil = restaurant?.activatedUntil ? new Date(restaurant.activatedUntil).getTime() : now;
   const startTime = Math.max(now, currentUntil);

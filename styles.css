@@ -266,7 +266,7 @@ body.celebration-active::after {
 }
 
 .workspace-topbar {
-  width: 100vw;
+  width: auto;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   margin-bottom: 1.5rem;
@@ -280,6 +280,7 @@ body.celebration-active::after {
   box-shadow: 0 18px 42px rgba(105, 66, 28, 0.08);
   backdrop-filter: blur(14px);
   position: relative;
+  isolation: isolate;
   z-index: 120;
   overflow: visible;
 }
@@ -458,6 +459,7 @@ body.celebration-active::after {
   justify-content: flex-end;
   flex-wrap: nowrap;
   gap: 0.75rem;
+  min-width: 0;
   position: relative;
   z-index: 130;
 }
@@ -550,6 +552,7 @@ body.celebration-active::after {
 
 .account-menu {
   position: relative;
+  margin-left: auto;
   z-index: 140;
 }
 
@@ -604,6 +607,8 @@ body.celebration-active::after {
   top: calc(100% + 0.8rem);
   right: 0;
   width: min(320px, calc(100vw - 2rem));
+  max-height: min(420px, calc(100vh - 7rem));
+  overflow: auto;
   padding: 1rem;
   border-radius: 24px;
   display: grid;
@@ -1763,6 +1768,7 @@ button:hover,
   gap: 0.45rem;
   flex-wrap: wrap;
   min-width: 0;
+  overflow: hidden;
 }
 
 .phone-country-trigger__dial {
@@ -1774,10 +1780,16 @@ button:hover,
 }
 
 .phone-country-trigger__name {
+  display: block;
+  flex: 1 1 auto;
+  max-width: 100%;
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.1;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .phone-country-trigger__chevron {
@@ -2490,14 +2502,21 @@ button:hover,
   color: var(--ink);
 }
 
-.field input,
-.field select {
+.field input:not(.file-picker__input),
+.field select,
+.field textarea {
   width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
   padding-top: 0.85rem;
   padding-bottom: 0.85rem;
   border-radius: 16px;
   background-color: #fffdf8;
   border: 1px solid rgba(29, 26, 22, 0.08);
+}
+
+.field select {
+  padding-right: 2.65rem;
 }
 
 .field--primary input {
@@ -4345,6 +4364,19 @@ button:hover,
   }
 }
 
+@media (max-width: 900px) {
+  .phone-country-trigger__meta {
+    display: grid;
+    gap: 0.12rem;
+    align-items: start;
+  }
+
+  .phone-country-trigger__name {
+    white-space: normal;
+    text-overflow: clip;
+  }
+}
+
 @media (min-width: 860px) {
   .hero {
     grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
@@ -4435,6 +4467,8 @@ button:hover,
   }
 
   .section-switcher {
+    position: static;
+    top: auto;
     grid-template-columns: 1fr 1fr;
   }
 
@@ -4512,6 +4546,7 @@ button:hover,
 
   .workspace-actions {
     width: 100%;
+    gap: 0.6rem;
     justify-content: space-between;
     align-items: center;
     flex-wrap: nowrap;
@@ -4532,9 +4567,9 @@ button:hover,
   }
 
   .account-menu__panel {
-    left: 0;
-    right: auto;
-    width: min(100%, 360px);
+    left: auto;
+    right: 0;
+    width: min(360px, calc(100vw - 2rem));
   }
 
   .contact-page__grid {
@@ -4729,6 +4764,7 @@ button:hover,
     flex-direction: row;
     align-items: center;
     gap: 0.55rem;
+    flex-wrap: wrap;
   }
 
   .workspace-mail-button,
@@ -4768,7 +4804,10 @@ button:hover,
   }
 
   .account-menu {
+    width: 100%;
     margin-left: 0;
+    display: grid;
+    justify-items: end;
   }
 
   .account-menu__trigger {
@@ -4780,6 +4819,7 @@ button:hover,
     position: static;
     margin-top: 0.65rem;
     width: 100%;
+    max-height: none;
   }
 
   .workspace-status {

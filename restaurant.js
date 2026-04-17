@@ -115,6 +115,25 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setDynamicRuntimeAttribute = (element, attributeName, value) => {
+  if (!element || !attributeName) return;
+  if (window.TurnoListoI18n?.setDynamicAttribute) {
+    window.TurnoListoI18n.setDynamicAttribute(element, attributeName, value);
+    return;
+  }
+  const normalizedValue = value === null || value === undefined ? "" : String(value);
+  if (attributeName === "value" && "value" in element) {
+    element.value = normalizedValue;
+    element.setAttribute("value", normalizedValue);
+    return;
+  }
+  if (attributeName === "placeholder" && "placeholder" in element) {
+    element.placeholder = normalizedValue;
+    element.setAttribute("placeholder", normalizedValue);
+    return;
+  }
+  element.setAttribute(attributeName, normalizedValue);
+};
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
 const restaurantDashboardPeriod = document.querySelector("#restaurantDashboardPeriod");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
@@ -172,11 +191,9 @@ let selectedRestaurantProfileLogoUrl = "";
 let lastAiTriggerButton = null;
 let activeCommentOrderId = null;
 let activeAiOrderId = null;
-let selectedRestaurantProfilePhoneCountryIso = "ES";
 const EMPTY_DATA_LABEL = "Sin datos cargados";
 const EMPTY_STATUS_LABEL = "No disponible";
 const EMPTY_AVATAR_LABEL = "?";
-const SHARED_PHONE_COUNTRIES = window.TurnoListoPhoneFields?.countries || [];
 const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
 const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
   elements: {
@@ -837,12 +854,12 @@ function renderRestaurantProfile(restaurant) {
   if (!restaurant) {
     restaurantProfileName.value = "";
     restaurantProfileOwnerName.value = "";
-    restaurantProfileEmail.value = "";
+    setDynamicRuntimeAttribute(restaurantProfileEmail, "value", "");
     restaurantProfileCity.value = "";
     restaurantProfileAddress.value = "";
     restaurantProfileNotes.value = "";
-    restaurantProfilePlanName.value = translateRuntimeText(EMPTY_STATUS_LABEL);
-    restaurantProfileActivatedUntil.value = translateRuntimeText(EMPTY_STATUS_LABEL);
+    setDynamicRuntimeAttribute(restaurantProfilePlanName, "value", translateRuntimeText(EMPTY_STATUS_LABEL));
+    setDynamicRuntimeAttribute(restaurantProfileActivatedUntil, "value", translateRuntimeText(EMPTY_STATUS_LABEL));
     applyRestaurantProfilePhoneValue("");
     syncRestaurantProfilePreview("");
     return;
@@ -850,12 +867,16 @@ function renderRestaurantProfile(restaurant) {
   const demoUsage = getRestaurantDemoUsage(restaurant);
   restaurantProfileName.value = restaurant.name || "";
   restaurantProfileOwnerName.value = restaurant.ownerName || "";
-  restaurantProfileEmail.value = restaurant.email || "";
+  setDynamicRuntimeAttribute(restaurantProfileEmail, "value", restaurant.email || "");
   restaurantProfileCity.value = restaurant.city || "";
   restaurantProfileAddress.value = restaurant.address || "";
   restaurantProfileNotes.value = restaurant.notes || "";
-  restaurantProfilePlanName.value = restaurant.planName || translateRuntimeText(EMPTY_STATUS_LABEL);
-  restaurantProfileActivatedUntil.value = restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : translateRuntimeText(EMPTY_STATUS_LABEL);
+  setDynamicRuntimeAttribute(restaurantProfilePlanName, "value", restaurant.planName || translateRuntimeText(EMPTY_STATUS_LABEL));
+  setDynamicRuntimeAttribute(
+    restaurantProfileActivatedUntil,
+    "value",
+    restaurant.activatedUntil ? formatProfileDate(restaurant.activatedUntil) : translateRuntimeText(EMPTY_STATUS_LABEL),
+  );
   applyRestaurantProfilePhoneValue(restaurant.phone || "");
   if (isDemoRestaurant(restaurant) && restaurantProfileNotes && !restaurantProfileNotes.value.trim()) {
     restaurantProfileNotes.value = translateRuntimeText(`Demo comercial activa · ${demoUsage.usedOrders}/${demoUsage.maxOrders} pedidos usados.`);
@@ -1016,29 +1037,6 @@ function handleRestaurantProfileSubmit(event) {
   restaurantProfileFeedback.className = "form-feedback form-feedback--success";
   restaurantProfileFeedback.hidden = false;
   renderRestaurant();
-}
-
-function getRestaurantProfilePhoneCountryByIso(iso) {
-  return restaurantProfilePhoneController?.getCountryByIso(iso) || SHARED_PHONE_COUNTRIES.find((country) => country.iso === iso) || SHARED_PHONE_COUNTRIES[0];
-}
-
-function shouldReportPhoneValidation(input, errorElement) {
-  return Boolean(String(input?.value || "").trim()) || Boolean(errorElement && !errorElement.hidden);
-}
-
-function buildPhoneHintMessage(country) {
-  const countryName = translateRuntimeText(country.name);
-  return country.minDigits === country.maxDigits
-    ? formatRuntimeKey(
-      "contact.dynamic.phone.hint.fixed",
-      { country: countryName, digits: country.minDigits, dialCode: country.dialCode },
-      `Selecciona ${countryName} (${country.dialCode}) y escribe un número local de ${country.minDigits} dígitos sin añadir el prefijo.`,
-    )
-    : formatRuntimeKey(
-      "contact.dynamic.phone.hint.range",
-      { country: countryName, minDigits: country.minDigits, maxDigits: country.maxDigits, dialCode: country.dialCode },
-      `Selecciona ${countryName} (${country.dialCode}) y escribe un número local de entre ${country.minDigits} y ${country.maxDigits} dígitos sin añadir el prefijo.`,
-    );
 }
 
 function setRestaurantProfilePhoneError(message = "") {
