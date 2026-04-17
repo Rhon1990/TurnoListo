@@ -19,6 +19,7 @@ const contactPhoneHint = document.querySelector("#contactPhoneHint");
 const contactPhoneError = document.querySelector("#contactPhoneError");
 const contactInterest = document.querySelector("#contactInterest");
 const contactMessage = document.querySelector("#contactMessage");
+const restaurantAccountMenu = document.querySelector("#restaurantAccountMenu");
 const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
 const restaurantAccountPanel = document.querySelector("#restaurantAccountPanel");
 const restaurantAccountAvatarImage = document.querySelector("#restaurantAccountAvatarImage");
@@ -364,10 +365,11 @@ function setContactPhoneValueIfEmpty(value) {
 }
 
 function renderRestaurantAccount(restaurant) {
-  if (!restaurantAccountName) return;
+  if (!restaurantAccountName || !restaurantAccountMenu) return;
   currentRestaurantAccount = restaurant || null;
   const restaurantName = String(restaurant?.name || "").trim();
   const logoUrl = String(restaurant?.logoUrl || "").trim();
+  restaurantAccountMenu.hidden = !restaurantName;
   restaurantAccountName.textContent = restaurantName || translateKey("restaurant.account.emptyName", "Sin datos cargados");
   restaurantAccountMeta.textContent = restaurantName
     ? translateText("Acceso verificado")
@@ -382,6 +384,10 @@ function renderRestaurantAccount(restaurant) {
     restaurantAccountAvatarImage.hidden = true;
     restaurantAccountAvatarImage.removeAttribute("src");
     restaurantAccountAvatarFallback.hidden = false;
+  }
+
+  if (!restaurantName) {
+    closeRestaurantAccountMenu();
   }
 }
 
