@@ -60,6 +60,10 @@ body.client-view {
   background-attachment: fixed;
 }
 
+body.turnolisto-phone-panel-open {
+  overflow: hidden;
+}
+
 body,
 input,
 select,
@@ -4537,8 +4541,22 @@ button:hover,
     grid-template-columns: 1fr;
   }
 
-  .phone-country-panel {
-    width: 100%;
+  .phone-country-panel--viewport {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    max-height: min(58dvh, calc(100dvh - 5rem));
+    z-index: 1100;
+    box-shadow: 0 30px 56px rgba(70, 43, 18, 0.24);
+    overscroll-behavior: contain;
+  }
+
+  .phone-country-panel--viewport .phone-country-list {
+    max-height: min(38dvh, calc(100dvh - 11rem));
   }
 
   .dashboard-heading {

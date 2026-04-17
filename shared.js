@@ -214,6 +214,40 @@ function initializePhoneFieldHelpers() {
     } = elements;
     let selectedCountryIso = String(options.defaultCountryIso || DEFAULT_PHONE_COUNTRY_ISO).trim() || DEFAULT_PHONE_COUNTRY_ISO;
     let initialized = false;
+    let panelAnchorNode = null;
+
+    function syncBodyPanelState() {
+      const hasOpenPhonePanel = Boolean(document.querySelector(".phone-country-panel:not([hidden])"));
+      document.body.classList.toggle("turnolisto-phone-panel-open", hasOpenPhonePanel);
+    }
+
+    function shouldUseViewportPanel() {
+      return Boolean(window.matchMedia?.("(max-width: 640px)").matches);
+    }
+
+    function ensurePanelAnchorNode() {
+      if (!countryPanel || panelAnchorNode || !countryPanel.parentNode) return;
+      panelAnchorNode = document.createComment("turnolisto-phone-panel-anchor");
+      countryPanel.parentNode.insertBefore(panelAnchorNode, countryPanel);
+    }
+
+    function mountPanelToViewport() {
+      if (!countryPanel || !shouldUseViewportPanel()) return;
+      ensurePanelAnchorNode();
+      if (countryPanel.parentNode !== document.body) {
+        document.body.appendChild(countryPanel);
+      }
+      countryPanel.classList.add("phone-country-panel--viewport");
+    }
+
+    function restorePanelToField() {
+      if (!countryPanel) return;
+      countryPanel.classList.remove("phone-country-panel--viewport");
+      if (!panelAnchorNode?.parentNode) return;
+      if (countryPanel.parentNode !== panelAnchorNode.parentNode) {
+        panelAnchorNode.parentNode.insertBefore(countryPanel, panelAnchorNode.nextSibling);
+      }
+    }
 
     function shouldReportValidation() {
       return Boolean(String(localInput?.value || "").trim()) || Boolean(errorElement && !errorElement.hidden);
@@ -421,9 +455,11 @@ function initializePhoneFieldHelpers() {
 
     function openPanel() {
       if (!countryPanel || !countryTrigger) return;
+      mountPanelToViewport();
       countryPanel.hidden = false;
       field?.classList.add("is-open");
       countryTrigger.setAttribute("aria-expanded", "true");
+      syncBodyPanelState();
       renderList();
       window.requestAnimationFrame(() => {
         countrySearch?.focus();
@@ -436,6 +472,8 @@ function initializePhoneFieldHelpers() {
       countryPanel.hidden = true;
       field?.classList.remove("is-open");
       countryTrigger.setAttribute("aria-expanded", "false");
+      syncBodyPanelState();
+      restorePanelToField();
     }
 
     function togglePanel() {
@@ -473,7 +511,7 @@ function initializePhoneFieldHelpers() {
 
     function handleOutsideClick(event) {
       if (!field || countryPanel?.hidden) return;
-      if (field.contains(event.target)) return;
+      if (field.contains(event.target) || countryPanel?.contains(event.target)) return;
       closePanel();
     }
 
@@ -486,6 +524,7 @@ function initializePhoneFieldHelpers() {
     function initialize() {
       if (!field) return api;
       if (initialized) return api;
+      ensurePanelAnchorNode();
       countryTrigger?.addEventListener("click", togglePanel);
       countrySearch?.addEventListener("input", renderList);
       localInput?.addEventListener("input", () => {
