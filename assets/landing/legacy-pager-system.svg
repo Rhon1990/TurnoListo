@@ -152,38 +152,46 @@
 
     <path
       id="keypad-dock-extension"
-      d="M548 410L714 396L842 492H672L548 410Z"
+      d="M574 418L724 404L836 486H684L574 418Z"
       fill="url(#dockEdge)"
     />
 
-    <g id="keypad-console" transform="translate(656 402) rotate(-7)">
-      <rect width="146" height="88" rx="24" fill="url(#keyPad)" />
-      <rect x="18" y="14" width="62" height="16" rx="8" fill="#15090A" />
-      <text x="49" y="26" text-anchor="middle" fill="#FF5E61" font-size="14" font-weight="700" filter="url(#redGlow)" font-family="Space Grotesk, Arial, sans-serif">525</text>
-      <g fill="#F4EEE7" fill-opacity="0.82" font-size="11" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">
-        <text x="22" y="52">1</text>
-        <text x="47" y="52">2</text>
-        <text x="72" y="52">3</text>
-        <text x="22" y="72">4</text>
-        <text x="47" y="72">5</text>
-        <text x="72" y="72">6</text>
-        <text x="97" y="52">7</text>
-        <text x="97" y="72">8</text>
-        <text x="122" y="52">9</text>
-        <text x="122" y="72">0</text>
-      </g>
-    </g>
-
     <path
       id="keypad-dock-front"
-      d="M660 482H830L889 534H728C706 534 684 526 666 512L612 468L660 482Z"
+      d="M682 486H830L888 530H730C709 530 688 523 672 511L628 476L682 486Z"
       fill="url(#dockSurface)"
     />
     <path
-      d="M666 455H785L840 505H743C720 505 697 497 679 483L639 451L666 455Z"
-      fill="#2D2323"
-      fill-opacity="0.9"
+      id="keypad-dock-cap"
+      d="M798 476H830L852 498H810L790 484L798 476Z"
+      fill="#21191A"
     />
+
+    <g id="keypad-console" transform="translate(650 382) rotate(-6)">
+      <rect width="166" height="128" rx="30" fill="url(#keyPad)" />
+      <rect x="20" y="14" width="74" height="18" rx="9" fill="#15090A" />
+      <text x="57" y="28" text-anchor="middle" fill="#FF5E61" font-size="14" font-weight="700" filter="url(#redGlow)" font-family="Space Grotesk, Arial, sans-serif">525</text>
+      <g
+        id="keypad-keys"
+        fill="#F4EEE7"
+        fill-opacity="0.88"
+        font-size="11"
+        font-weight="700"
+        font-family="Space Grotesk, Arial, sans-serif"
+        text-anchor="middle"
+      >
+        <text x="42" y="58">1</text>
+        <text x="76" y="58">2</text>
+        <text x="110" y="58">3</text>
+        <text x="42" y="80">4</text>
+        <text x="76" y="80">5</text>
+        <text x="110" y="80">6</text>
+        <text x="42" y="102">7</text>
+        <text x="76" y="102">8</text>
+        <text x="110" y="102">9</text>
+        <text x="76" y="118">0</text>
+      </g>
+    </g>
 
     <g transform="translate(356 380)">
       <ellipse cx="84" cy="74" rx="92" ry="62" fill="#2A2020" />

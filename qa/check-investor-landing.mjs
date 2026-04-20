@@ -77,8 +77,23 @@ assert.match(
 );
 assert.match(
   legacyPagerArtSvg,
+  /id="keypad-dock-cap"/i,
+  "La ilustracion del hardware tradicional debe cerrar la esquina inferior derecha bajo el control."
+);
+assert.match(
+  legacyPagerArtSvg,
   /id="keypad-console"/i,
   "La ilustracion del hardware tradicional debe mantener el bloque del teclado identificado en el SVG."
+);
+assert.match(
+  legacyPagerArtSvg,
+  /id="keypad-keys"[\s\S]*>1<\/text>[\s\S]*>2<\/text>[\s\S]*>3<\/text>[\s\S]*>4<\/text>[\s\S]*>5<\/text>[\s\S]*>6<\/text>[\s\S]*>7<\/text>[\s\S]*>8<\/text>[\s\S]*>9<\/text>[\s\S]*>0<\/text>/i,
+  "La ilustracion del hardware tradicional debe mostrar una reticula coherente de teclas del 1 al 9 y 0."
+);
+assert.doesNotMatch(
+  legacyPagerArtSvg,
+  /id="keypad-cable"/i,
+  "La ilustracion del hardware tradicional no debe mostrar un cable saliendo del control."
 );
 assert.doesNotMatch(
   legacyPagerArtSvg,
