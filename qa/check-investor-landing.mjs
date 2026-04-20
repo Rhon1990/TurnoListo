@@ -7,6 +7,7 @@ const currentFile = fileURLToPath(import.meta.url);
 const qaDir = path.dirname(currentFile);
 const projectRoot = path.resolve(qaDir, "..");
 const indexHtml = readFileSync(path.join(projectRoot, "index.html"), "utf8");
+const stylesCss = readFileSync(path.join(projectRoot, "styles.css"), "utf8");
 const legacyPagerArtSvg = readFileSync(path.join(projectRoot, "assets", "landing", "legacy-pager-system.svg"), "utf8");
 const restaurantShotPath = path.join(projectRoot, "assets", "landing", "restaurant-workspace.png");
 const clientShotPath = path.join(projectRoot, "assets", "landing", "client-tracking.png");
@@ -22,6 +23,7 @@ assert.match(indexHtml, /id="como-funciona"/i, "La portada debe incluir la secci
 assert.match(indexHtml, /hardware tradicional/i, "La portada debe comparar TurnoListo frente al enfoque tradicional.");
 assert.match(indexHtml, /localizadores f[ií]sicos/i, "La comparativa debe explicar la limitacion fisica del hardware tradicional.");
 assert.match(indexHtml, /alcance y distancia/i, "La comparativa debe mencionar la limitacion de alcance del hardware.");
+assert.match(indexHtml, /IA adaptativa/i, "La landing debe destacar la propuesta de IA adaptativa de TurnoListo.");
 assert.match(indexHtml, /IA que aprende entre m[aá]s la usas/i, "La comparativa debe incluir el beneficio de IA evolutiva con TurnoListo.");
 assert.match(indexHtml, /luces, vibraci[oó]n, sonido/i, "La comparativa debe incluir avisos multicanal en el movil.");
 assert.match(indexHtml, /segundo plano/i, "La comparativa debe indicar que TurnoListo trabaja en segundo plano.");
@@ -32,6 +34,11 @@ assert.match(indexHtml, /landing\.js/i, "La portada debe cargar la capa de motio
 assert.match(indexHtml, />\s*Iniciar sesi[oó]n\s*</i, "La portada debe ofrecer un acceso discreto de inicio de sesion.");
 assert.match(indexHtml, /href="\.\/restaurant\.html"[^>]*>\s*Eres restaurante\s*</i, "La portada debe enlazar al acceso restaurante.");
 assert.match(indexHtml, /href="\.\/admin\.html"[^>]*>\s*Eres admin\s*</i, "La portada debe enlazar al acceso administrador.");
+assert.match(
+  stylesCss,
+  /\.market-compare__device,\s*\.market-compare__media\s*\{[\s\S]*min-height:\s*clamp\(/,
+  "La comparativa debe mantener una altura visual compartida entre hardware tradicional y TurnoListo."
+);
 assert.ok(existsSync(restaurantShotPath), "Debe existir la captura real del panel restaurante.");
 assert.ok(existsSync(clientShotPath), "Debe existir la captura real del panel cliente.");
 assert.ok(existsSync(legacyPagerArtPath), "Debe existir la ilustracion propia del hardware tradicional.");

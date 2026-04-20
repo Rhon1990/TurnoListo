@@ -6684,7 +6684,7 @@ body.market-home::before {
 
 .market-proof {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   gap: 1rem;
 }
 
@@ -6842,7 +6842,8 @@ body.market-home::before {
 .market-compare__device,
 .market-compare__media {
   position: relative;
-  min-height: 248px;
+  min-height: clamp(25rem, 52vw, 48rem);
+  height: clamp(25rem, 52vw, 48rem);
   border-radius: 24px;
   overflow: hidden;
 }
@@ -6857,9 +6858,9 @@ body.market-home::before {
 }
 
 .market-compare__device img {
-  width: min(100%, 430px);
+  width: min(100%, 520px);
   height: auto;
-  max-height: 290px;
+  max-height: calc(100% - 1.8rem);
   object-fit: contain;
   display: block;
 }
@@ -6872,8 +6873,10 @@ body.market-home::before {
 }
 
 .market-compare__media img {
-  width: min(100%, 280px);
+  width: min(100%, 300px);
   height: auto;
+  max-height: calc(100% - 2rem);
+  object-fit: contain;
   border-radius: 28px;
   box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
 }
@@ -7061,6 +7064,12 @@ html.js-landing:not(.js-landing-reduced-motion) .market-shot--client {
 
   .market-display--phone {
     padding: 0.7rem;
+  }
+
+  .market-compare__device,
+  .market-compare__media {
+    min-height: clamp(22rem, 86vw, 30rem);
+    height: clamp(22rem, 86vw, 30rem);
   }
 
   .market-close {
