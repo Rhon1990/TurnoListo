@@ -6826,6 +6826,8 @@ body.market-home::before {
 
 .market-compare__card {
   display: grid;
+  align-content: start;
+  grid-template-rows: auto minmax(4.6rem, auto) auto auto 1fr;
   gap: 0.9rem;
   padding: 1.55rem;
   border-radius: 32px;
@@ -7014,6 +7016,10 @@ html.js-landing:not(.js-landing-reduced-motion) .market-shot--client {
   .market-flow__grid,
   .market-compare__grid {
     grid-template-columns: 1fr;
+  }
+
+  .market-compare__card {
+    grid-template-rows: auto;
   }
 
   .market-shot--client {

@@ -39,6 +39,11 @@ assert.match(
   /\.market-compare__device,\s*\.market-compare__media\s*\{[\s\S]*min-height:\s*clamp\(/,
   "La comparativa debe mantener una altura visual compartida entre hardware tradicional y TurnoListo."
 );
+assert.match(
+  stylesCss,
+  /\.market-compare__card\s*\{[\s\S]*grid-template-rows:/,
+  "La comparativa debe fijar filas explicitas para alinear encabezado, bloque visual y texto entre columnas."
+);
 assert.ok(existsSync(restaurantShotPath), "Debe existir la captura real del panel restaurante.");
 assert.ok(existsSync(clientShotPath), "Debe existir la captura real del panel cliente.");
 assert.ok(existsSync(legacyPagerArtPath), "Debe existir la ilustracion propia del hardware tradicional.");
