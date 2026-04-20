@@ -1,0 +1,185 @@
+<svg width="800" height="420" viewBox="40 110 800 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dockSurface" x1="86" y1="346" x2="792" y2="468" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B302D" />
+      <stop offset="0.55" stop-color="#221B1B" />
+      <stop offset="1" stop-color="#171213" />
+    </linearGradient>
+    <linearGradient id="dockEdge" x1="110" y1="390" x2="770" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#584741" />
+      <stop offset="1" stop-color="#1D1718" />
+    </linearGradient>
+    <linearGradient id="pagerShell" x1="0" y1="0" x2="196" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B4744" />
+      <stop offset="0.52" stop-color="#33282A" />
+      <stop offset="1" stop-color="#221B1B" />
+    </linearGradient>
+    <linearGradient id="pagerHighlight" x1="18" y1="7" x2="146" y2="16" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7E6963" stop-opacity="0.75" />
+      <stop offset="1" stop-color="#7E6963" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="screenWindow" x1="98" y1="13" x2="164" y2="35" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3A1014" />
+      <stop offset="1" stop-color="#180809" />
+    </linearGradient>
+    <linearGradient id="keyPad" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#40312E" />
+      <stop offset="1" stop-color="#241D1D" />
+    </linearGradient>
+    <filter id="softShadow" x="42" y="115" width="836" height="390" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix" />
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+      <feOffset dy="16" />
+      <feGaussianBlur stdDeviation="20" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0.115 0 0 0 0 0.079 0 0 0 0 0.071 0 0 0 0.22 0" />
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1" />
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape" />
+    </filter>
+    <filter id="redGlow" x="0" y="0" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.8" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0 0 0.35 0 0 0 0 0.18 0 0 0 0 0 0 1 0" result="glow" />
+      <feBlend in="SourceGraphic" in2="glow" mode="screen" />
+    </filter>
+    <filter id="amberGlow" x="0" y="0" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0 0 0.52 0 0 0 0 0.2 0 0 0 0 0 0 1 0" result="glow" />
+      <feBlend in="SourceGraphic" in2="glow" mode="screen" />
+    </filter>
+  </defs>
+
+  <ellipse cx="430" cy="475" rx="300" ry="30" fill="#000000" fill-opacity="0.08" />
+
+  <g filter="url(#softShadow)">
+    <path d="M86 404C86 373.072 111.072 348 142 348H634C664.566 348 689.33 359.94 706.454 382.152L789.454 489.848C796.806 499.387 790.009 513 777.965 513H201.772C178.865 513 157.26 502.452 143.214 484.406L97.4424 425.558C89.9783 415.959 86 404.143 86 392V404Z" fill="url(#dockSurface)" />
+    <path d="M108 382C108 369.85 117.85 360 130 360H626C648.342 360 669.43 370.392 683.05 388.112L748 472H210.704C196.928 472 183.888 465.726 175.335 454.947L113.631 377.184C109.99 372.596 108 366.911 108 361.054V382Z" fill="url(#dockEdge)" />
+
+    <g transform="translate(168 162)">
+      <g transform="translate(0 174)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">16</text>
+      </g>
+      <g transform="translate(4 139)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">15</text>
+      </g>
+      <g transform="translate(8 104)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">14</text>
+      </g>
+      <g transform="translate(12 69)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">13</text>
+      </g>
+      <g transform="translate(16 34)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">12</text>
+      </g>
+      <g>
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">11</text>
+      </g>
+    </g>
+
+    <g transform="translate(404 132)">
+      <g transform="translate(0 209)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">22</text>
+      </g>
+      <g transform="translate(5 174)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">21</text>
+      </g>
+      <g transform="translate(9 139)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">20</text>
+      </g>
+      <g transform="translate(13 104)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">19</text>
+      </g>
+      <g transform="translate(17 69)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">18</text>
+      </g>
+      <g transform="translate(21 34)">
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">17</text>
+      </g>
+      <g>
+        <rect width="196" height="48" rx="24" fill="url(#pagerShell)" />
+        <rect x="18" y="8" width="138" height="8" rx="4" fill="url(#pagerHighlight)" />
+        <rect x="99" y="13" width="68" height="22" rx="11" fill="url(#screenWindow)" />
+        <circle cx="113" cy="24" r="4.8" fill="#F44C52" filter="url(#redGlow)" />
+        <text x="145" y="30" text-anchor="middle" fill="#FF5E61" font-size="22" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">16</text>
+      </g>
+    </g>
+
+    <g transform="translate(648 344) rotate(-7)">
+      <rect width="146" height="88" rx="24" fill="url(#keyPad)" />
+      <rect x="18" y="14" width="62" height="16" rx="8" fill="#15090A" />
+      <text x="49" y="26" text-anchor="middle" fill="#FF5E61" font-size="14" font-weight="700" filter="url(#redGlow)" font-family="Space Grotesk, Arial, sans-serif">525</text>
+      <g fill="#F4EEE7" fill-opacity="0.82" font-size="11" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">
+        <text x="22" y="52">1</text>
+        <text x="47" y="52">2</text>
+        <text x="72" y="52">3</text>
+        <text x="22" y="72">4</text>
+        <text x="47" y="72">5</text>
+        <text x="72" y="72">6</text>
+        <text x="97" y="52">7</text>
+        <text x="97" y="72">8</text>
+        <text x="122" y="52">9</text>
+        <text x="122" y="72">0</text>
+      </g>
+    </g>
+
+    <g transform="translate(356 380)">
+      <ellipse cx="84" cy="74" rx="92" ry="62" fill="#2A2020" />
+      <ellipse cx="84" cy="68" rx="88" ry="58" fill="url(#pagerShell)" />
+      <ellipse cx="84" cy="68" rx="54" ry="34" fill="#F3EADF" />
+      <circle cx="34" cy="62" r="5.5" fill="#FFB34F" filter="url(#amberGlow)" />
+      <circle cx="54" cy="34" r="5.5" fill="#FFB34F" filter="url(#amberGlow)" />
+      <circle cx="114" cy="32" r="5.5" fill="#FFB34F" filter="url(#amberGlow)" />
+      <circle cx="138" cy="58" r="5.5" fill="#FFB34F" filter="url(#amberGlow)" />
+      <circle cx="110" cy="90" r="5.5" fill="#FFB34F" filter="url(#amberGlow)" />
+      <circle cx="54" cy="92" r="5.5" fill="#FFB34F" filter="url(#amberGlow)" />
+      <rect x="64" y="104" width="40" height="12" rx="6" fill="#16090A" />
+      <text x="84" y="80" text-anchor="middle" fill="#2B2623" font-size="16" font-weight="700" font-family="Space Grotesk, Arial, sans-serif">alerta</text>
+    </g>
+  </g>
+</svg>

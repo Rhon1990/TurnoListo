@@ -6842,45 +6842,26 @@ body.market-home::before {
 .market-compare__device,
 .market-compare__media {
   position: relative;
-  min-height: 208px;
+  min-height: 248px;
   border-radius: 24px;
   overflow: hidden;
 }
 
 .market-compare__device {
-  background: linear-gradient(180deg, #efefef, #e7e7e7);
   display: grid;
   place-items: center;
+  padding: 0.9rem;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 40%),
+    linear-gradient(180deg, #f1f1f1, #e7e7e7);
 }
 
-.market-compare__device-body {
-  width: 110px;
-  height: 150px;
-  border-radius: 30px;
-  background: linear-gradient(180deg, #4a423a, #2f2a26);
-  position: relative;
-  box-shadow: 0 24px 36px rgba(62, 47, 34, 0.18);
-}
-
-.market-compare__device-screen {
-  position: absolute;
-  width: 62px;
-  height: 46px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #f6eddc, #eadfc8);
-  top: 34px;
-  left: calc(50% - 31px);
-}
-
-.market-compare__device-ring {
-  position: absolute;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  background: #1d1916;
-  bottom: 24px;
-  left: calc(50% - 13px);
-  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.06);
+.market-compare__device img {
+  width: min(100%, 430px);
+  height: auto;
+  max-height: 290px;
+  object-fit: contain;
+  display: block;
 }
 
 .market-compare__media {
