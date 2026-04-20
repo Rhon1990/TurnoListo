@@ -24,6 +24,8 @@ assert.match(indexHtml, /hardware tradicional/i, "La portada debe comparar Turno
 assert.match(indexHtml, /localizadores f[ií]sicos/i, "La comparativa debe explicar la limitacion fisica del hardware tradicional.");
 assert.match(indexHtml, /alcance y distancia/i, "La comparativa debe mencionar la limitacion de alcance del hardware.");
 assert.match(indexHtml, /IA adaptativa/i, "La landing debe destacar la propuesta de IA adaptativa de TurnoListo.");
+assert.match(indexHtml, /software actual/i, "La landing debe explicar que TurnoListo se adapta al software actual del negocio.");
+assert.match(indexHtml, /(complemento|sin reemplazar|no es un reemplazo)/i, "La landing debe dejar claro que TurnoListo complementa la operacion existente.");
 assert.match(indexHtml, /IA que aprende entre m[aá]s la usas/i, "La comparativa debe incluir el beneficio de IA evolutiva con TurnoListo.");
 assert.match(indexHtml, /luces, vibraci[oó]n, sonido/i, "La comparativa debe incluir avisos multicanal en el movil.");
 assert.match(indexHtml, /segundo plano/i, "La comparativa debe indicar que TurnoListo trabaja en segundo plano.");
