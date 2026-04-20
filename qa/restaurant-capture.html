@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo QA | Restaurant Capture</title>
+  </head>
+  <body>
+    <script>
+      window.localStorage.setItem(
+        "turnolisto-restaurant-session-v1",
+        JSON.stringify({
+          restaurantId: "rest-demo",
+          restaurantName: "Restaurante Demo",
+          username: "demo@turnolisto.com",
+          activatedUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      );
+      window.location.replace("../restaurant.html");
+    </script>
+  </body>
+</html>

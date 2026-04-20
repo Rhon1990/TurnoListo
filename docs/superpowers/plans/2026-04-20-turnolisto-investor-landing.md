@@ -2,52 +2,67 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Reemplazar la portada pública por una landing comercial premium centrada en el ahorro frente al hardware tradicional.
+**Goal:** Reemplazar la portada pública por una landing comercial premium, blanca y muy visual, centrada en el ahorro frente al hardware tradicional y apoyada por capturas reales del producto.
 
-**Architecture:** La implementación se limita a `index.html` y a estilos aislados dentro de `styles.css`, reutilizando componentes visuales ya existentes para preservar consistencia y reducir riesgo. La home debe evolucionar desde una landing mayormente textual hacia una portada visual con mapa, estados, móvil y comparativa gráfica. La verificación automatizada se resuelve con un script ligero en `qa/` que cubre el contenido clave y los elementos visuales principales.
+**Architecture:** La implementación se limita a `index.html`, a estilos aislados dentro de `styles.css`, a una pequeña capa opcional de motion en `landing.js` y a assets reproducibles de screenshots reales en `assets/landing/`. La home debe evolucionar desde una landing ilustrada hacia una portada editorial con capturas auténticas de `restaurant.html` y `client.html`, y motion sutil. La verificación automatizada se resuelve con un script ligero en `qa/` que cubre el contenido clave, la referencia a assets reales y los elementos visuales principales.
 
-**Tech Stack:** HTML estático, CSS global existente, Node.js para verificación local
+**Tech Stack:** HTML estático, CSS global existente, JavaScript ligero para animación, Node.js para verificación local, Playwright CLI para capturas reproducibles
 
 ---
 
-### Task 1: Crear el check rojo de la nueva landing
+### Task 1: Actualizar el check rojo de la nueva landing visual
 
 **Files:**
-- Create: `qa/check-investor-landing.mjs`
+- Modify: `qa/check-investor-landing.mjs`
 - Test: `qa/check-investor-landing.mjs`
 
 - [ ] **Step 1: Escribir la verificación esperada**
 
 ```js
-assert.match(indexHtml, /Solicitar demo/i);
-assert.match(indexHtml, /sin hardware dedicado/i);
-assert.match(indexHtml, /id="como-funciona"/i);
-assert.match(indexHtml, /href="\.\/contact\.html"/i);
-assert.match(indexHtml, /market-scene/i);
-assert.match(indexHtml, /market-map/i);
-assert.match(indexHtml, /market-phone/i);
-assert.match(indexHtml, /market-status-badge--cancelled/i);
-assert.doesNotMatch(indexHtml, /Abrir administrador|Abrir restaurante|Abrir cliente/i);
+assert.match(indexHtml, /assets\/landing\/restaurant-workspace\.png/i);
+assert.match(indexHtml, /assets\/landing\/client-tracking\.png/i);
+assert.match(indexHtml, /landing\.js/i);
+assert.ok(existsSync(restaurantShotPath));
+assert.ok(existsSync(clientShotPath));
 ```
 
 - [ ] **Step 2: Ejecutar el check y confirmar fallo**
 
 Run: `node qa/check-investor-landing.mjs`
-Expected: FAIL porque la `index.html` actual sigue mostrando la portada operativa.
+Expected: FAIL porque la `index.html` actual no referencia screenshots reales ni la nueva capa de motion.
 
-### Task 2: Sustituir la portada por la landing comercial
+### Task 2: Generar capturas reales reproducibles del producto
+
+**Files:**
+- Create: `qa/restaurant-capture.html`
+- Create: `qa/client-capture.html`
+- Create: `assets/landing/restaurant-workspace.png`
+- Create: `assets/landing/client-tracking.png`
+
+- [ ] **Step 1: Capturar restaurante real**
+
+Run: `npx -y playwright@latest screenshot --channel=chrome --color-scheme=light --viewport-size="1512,1100" --wait-for-selector="#restaurantWorkspace:not([hidden])" --wait-for-timeout=1800 http://127.0.0.1:4173/qa/restaurant-capture.html assets/landing/restaurant-workspace.png`
+Expected: PASS con una captura real y legible del workspace restaurante.
+
+- [ ] **Step 2: Capturar cliente real**
+
+Run: `npx -y playwright@latest screenshot --channel=chrome --color-scheme=light --viewport-size="520,1080" --wait-for-selector="#clientTicket" --wait-for-timeout=1400 http://127.0.0.1:4173/qa/client-capture.html assets/landing/client-tracking.png`
+Expected: PASS con una captura real y legible de la experiencia cliente.
+
+### Task 3: Rediseñar la portada con screenshots reales
 
 **Files:**
 - Modify: `index.html`
 
-- [ ] **Step 1: Reemplazar la estructura de la portada**
+- [ ] **Step 1: Sustituir la escena ilustrada por una composición editorial**
 
 ```html
-<header class="market-hero glass-card">...</header>
-<div class="market-scene">...</div>
-<section class="market-proof" id="diferencial">...</section>
-<section class="market-compare" id="comparativa">...</section>
-<section class="market-journey" id="como-funciona">...</section>
+<figure class="market-shot market-shot--restaurant">
+  <img src="./assets/landing/restaurant-workspace.png" alt="Captura real del panel restaurante de TurnoListo" />
+</figure>
+<figure class="market-shot market-shot--client">
+  <img src="./assets/landing/client-tracking.png" alt="Captura real del seguimiento del cliente en TurnoListo" />
+</figure>
 ```
 
 - [ ] **Step 2: Mantener navegación mínima y CTA principal**
@@ -57,52 +72,36 @@ Expected: FAIL porque la `index.html` actual sigue mostrando la portada operativ
 <a class="button-secondary" href="#como-funciona">Ver cómo funciona</a>
 ```
 
-- [ ] **Step 3: Sustituir texto explicativo por lenguaje visual**
-
-```html
-<div class="market-map">...</div>
-<div class="market-phone">...</div>
-<span class="market-status-badge market-status-badge--cancelled">Cancelado</span>
-```
-
-### Task 3: Añadir estilos aislados de la landing
+### Task 4: Añadir estilos y motion sutil
 
 **Files:**
 - Modify: `styles.css`
+- Create: `landing.js`
 
-- [ ] **Step 1: Añadir clases exclusivas para la home comercial**
+- [ ] **Step 1: Reorientar la landing a fondo blanco editorial**
 
 ```css
 .market-home { ... }
-.market-hero { ... }
-.market-scene { ... }
-.market-map { ... }
-.market-phone { ... }
-.market-status-badge--cancelled { ... }
+.market-shot { ... }
+.market-feature { ... }
 .market-compare { ... }
-.market-clients { ... }
-.market-final { ... }
+.market-close { ... }
 ```
 
-- [ ] **Step 2: Añadir reglas responsive**
+- [ ] **Step 2: Añadir reveal suave**
 
-```css
-@media (max-width: 640px) {
-  .market-hero,
-  .market-proof,
-  .market-compare__grid,
-  .market-value {
-    grid-template-columns: 1fr;
-  }
-}
+```js
+const observer = new IntersectionObserver(...);
+document.querySelectorAll("[data-reveal]").forEach((node) => observer.observe(node));
 ```
 
-### Task 4: Ejecutar verificación verde y revisión rápida
+### Task 5: Ejecutar verificación verde y revisión rápida
 
 **Files:**
 - Test: `qa/check-investor-landing.mjs`
 - Test: `index.html`
 - Test: `styles.css`
+- Test: `landing.js`
 
 - [ ] **Step 1: Ejecutar el check automatizado**
 
@@ -111,5 +110,5 @@ Expected: PASS
 
 - [ ] **Step 2: Revisar contenido final**
 
-Run: `git diff -- index.html styles.css qa/check-investor-landing.mjs docs/superpowers/specs/2026-04-20-turnolisto-investor-landing-design.md docs/superpowers/plans/2026-04-20-turnolisto-investor-landing.md`
-Expected: Solo cambios en la landing, estilos aislados y documentación de soporte.
+Run: `git diff -- index.html styles.css landing.js qa/check-investor-landing.mjs qa/client-capture.html qa/restaurant-capture.html docs/superpowers/specs/2026-04-20-turnolisto-investor-landing-design.md docs/superpowers/plans/2026-04-20-turnolisto-investor-landing.md`
+Expected: Solo cambios en la landing, assets visuales, motion y documentación de soporte.

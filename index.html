@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="./turnolisto-brand.png" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TurnoListo" />
-    <meta name="theme-color" content="#10352f" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="stylesheet" href="./styles.css?v=20260420a" />
   </head>
   <body class="market-home">
@@ -41,265 +41,172 @@
       </section>
 
       <main class="market-main">
-        <header class="market-hero glass-card">
-          <div class="market-hero__copy">
-            <p class="eyebrow">TurnoListo para restaurantes e inversionistas</p>
-            <h1>Seguimiento de pedidos sin hardware dedicado.</h1>
+        <header class="market-hero">
+          <div class="market-hero__copy" data-reveal>
+            <p class="eyebrow">TurnoListo para restaurante y cliente</p>
+            <h1>La experiencia del pedido, ahora en software.</h1>
             <p class="market-hero__lead">
-              TurnoListo reemplaza avisos físicos por una experiencia visual conectada entre restaurante, pedido y
-              cliente.
+              TurnoListo conecta restaurante y cliente sin hardware dedicado, con una operación clara y seguimiento
+              visible desde el móvil.
             </p>
             <div class="market-actions">
               <a class="launcher" href="./contact.html">Solicitar demo</a>
               <a class="button-secondary" href="#como-funciona">Ver cómo funciona</a>
             </div>
-            <div class="market-chip-row" aria-label="Diferenciales principales">
-              <span class="market-chip">Sin hardware dedicado</span>
-              <span class="market-chip">Mapa de pedidos</span>
-              <span class="market-chip">Estados en vivo</span>
-              <span class="market-chip">QR y móvil</span>
-              <span class="market-chip">Escala como software</span>
-            </div>
           </div>
 
-          <div class="market-hero__visual" aria-label="Resumen de propuesta de valor">
-            <div class="market-scene">
-              <div class="market-scene__ambient" aria-hidden="true"></div>
-
-              <article class="market-scene__brand glass-card">
-                <img class="market-scene__logo" src="./turnolisto-brand.png" alt="TurnoListo" />
-                <div class="market-scene__brand-copy">
-                  <p class="market-scene__eyebrow">TurnoListo</p>
-                  <p class="market-scene__title">Software-first</p>
-                  <p class="market-scene__text">Pedido, QR y cliente sincronizados sin hardware tradicional.</p>
-                </div>
-              </article>
-
-              <article class="market-map glass-card" aria-label="Localizador visual de pedidos">
-                <div class="market-map__top">
-                  <p class="market-map__label">Localizador de pedidos</p>
-                  <span class="market-map__status">En vivo</span>
-                </div>
-                <div class="market-map__surface" aria-hidden="true">
-                  <span class="market-map__route market-map__route--primary"></span>
-                  <span class="market-map__route market-map__route--secondary"></span>
-                  <span class="market-map__pin market-map__pin--restaurant">R</span>
-                  <span class="market-map__pin market-map__pin--pickup">P</span>
-                  <span class="market-map__pin market-map__pin--client">C</span>
-                  <span class="market-map__label-badge market-map__label-badge--restaurant">Restaurante</span>
-                  <span class="market-map__label-badge market-map__label-badge--pickup">Pickup</span>
-                  <span class="market-map__label-badge market-map__label-badge--client">Cliente</span>
-                </div>
-              </article>
-
-              <article class="market-phone" aria-label="Seguimiento visual del pedido">
-                <div class="market-phone__shell">
-                  <div class="market-phone__speaker" aria-hidden="true"></div>
-                  <div class="market-phone__screen">
-                    <div class="market-phone__header">
-                      <span class="market-phone__header-title">Pedido TL-2048</span>
-                      <span class="market-phone__header-time">12 min</span>
-                    </div>
-                    <div class="market-phone__card">
-                      <div class="market-phone__food">
-                        <span class="market-phone__food-mark" aria-hidden="true"></span>
-                        <div>
-                          <p class="market-phone__food-title">Combo signature</p>
-                          <p class="market-phone__food-copy">QR listo para recoger</p>
-                        </div>
-                      </div>
-                      <span class="market-phone__qr">QR</span>
-                    </div>
-                    <div class="market-phone__steps">
-                      <span class="market-phone__step market-phone__step--done">Recibido</span>
-                      <span class="market-phone__step market-phone__step--active">Listo</span>
-                      <span class="market-phone__step">Cliente avisado</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-
-              <span class="market-status-badge market-status-badge--ready">Listo</span>
-              <span class="market-status-badge market-status-badge--cancelled">Cancelado</span>
-              <span class="market-status-badge market-status-badge--tracking">QR en móvil</span>
-            </div>
-
-            <div class="market-signal-row" aria-label="Señales visuales del producto">
-              <article class="market-signal">
-                <span class="market-signal__icon market-signal__icon--map" aria-hidden="true"></span>
-                <div>
-                  <p class="market-signal__title">Mapa visual</p>
-                  <p class="market-signal__text">Ubica pedidos sin hardware.</p>
-                </div>
-              </article>
-              <article class="market-signal">
-                <span class="market-signal__icon market-signal__icon--status" aria-hidden="true"></span>
-                <div>
-                  <p class="market-signal__title">Estados en vivo</p>
-                  <p class="market-signal__text">Listo, pickup y cancelado.</p>
-                </div>
-              </article>
-              <article class="market-signal">
-                <span class="market-signal__icon market-signal__icon--qr" aria-hidden="true"></span>
-                <div>
-                  <p class="market-signal__title">Cliente conectado</p>
-                  <p class="market-signal__text">Todo via QR y móvil.</p>
-                </div>
-              </article>
-            </div>
+          <div class="market-stage" aria-label="Capturas reales de TurnoListo">
+            <figure class="market-shot market-shot--restaurant" data-reveal style="--reveal-delay: 0.08s">
+              <img
+                src="./assets/landing/restaurant-workspace.png"
+                alt="Captura real del panel restaurante de TurnoListo"
+              />
+            </figure>
+            <figure class="market-shot market-shot--client" data-reveal style="--reveal-delay: 0.18s">
+              <img
+                src="./assets/landing/client-tracking.png"
+                alt="Captura real del seguimiento del cliente en TurnoListo"
+              />
+            </figure>
           </div>
         </header>
 
         <section class="market-proof" id="diferencial" aria-label="Diferenciales clave de TurnoListo">
-          <article class="market-proof__card glass-card">
-            <span class="market-proof__icon market-proof__icon--light" aria-hidden="true"></span>
-            <p class="market-proof__label">Ahorro operativo</p>
-            <h2>Menos gasto atado a dispositivos.</h2>
-            <p>Menos compra, instalación y mantenimiento para comunicar estados del pedido.</p>
+          <article class="market-proof__card" data-reveal>
+            <p class="market-proof__label">Sin hardware dedicado</p>
+            <h2>Menos compra, instalación y mantenimiento.</h2>
           </article>
-          <article class="market-proof__card glass-card">
-            <span class="market-proof__icon market-proof__icon--launch" aria-hidden="true"></span>
-            <p class="market-proof__label">Implementación</p>
-            <h2>Menos fricción para ponerlo en marcha.</h2>
-            <p>La experiencia nace en software, así que el go-live es más ligero y más rápido.</p>
+          <article class="market-proof__card" data-reveal style="--reveal-delay: 0.06s">
+            <p class="market-proof__label">Operación clara</p>
+            <h2>Una vista real para restaurante y otra para cliente.</h2>
           </article>
-          <article class="market-proof__card glass-card">
-            <span class="market-proof__icon market-proof__icon--scale" aria-hidden="true"></span>
-            <p class="market-proof__label">Escalabilidad</p>
-            <h2>Una base más eficiente para crecer.</h2>
-            <p>Al depender menos de infraestructura física, TurnoListo escala con lógica SaaS.</p>
+          <article class="market-proof__card" data-reveal style="--reveal-delay: 0.12s">
+            <p class="market-proof__label">Escala como software</p>
+            <h2>Más experiencia con menos complejidad física.</h2>
           </article>
         </section>
 
-        <section class="market-compare panel glass-card" id="comparativa">
-          <div class="panel__heading">
-            <div>
-              <p class="panel__kicker">Comparativa</p>
-              <h2>Del hardware tradicional a una operación software-first.</h2>
-            </div>
+        <section class="market-feature market-feature--restaurant">
+          <div class="market-feature__copy" data-reveal>
+            <p class="market-feature__eyebrow">Restaurant</p>
+            <h2>Control claro para cada pedido.</h2>
+            <p>
+              La operación ve lo importante primero: estado, prioridad y ritmo del servicio desde un panel que ya se
+              siente listo para trabajar.
+            </p>
+            <ul class="market-feature__list">
+              <li>Vista operativa real</li>
+              <li>Menos fricción para el equipo</li>
+              <li>Preparado para crecer sin hardware tradicional</li>
+            </ul>
+          </div>
+          <figure class="market-display market-display--wide" data-reveal style="--reveal-delay: 0.08s">
+            <img
+              src="./assets/landing/restaurant-workspace.png"
+              alt="Captura real del panel restaurante de TurnoListo"
+            />
+          </figure>
+        </section>
+
+        <section class="market-feature market-feature--client">
+          <figure class="market-display market-display--phone" data-reveal>
+            <img
+              src="./assets/landing/client-tracking.png"
+              alt="Captura real del seguimiento del cliente en TurnoListo"
+            />
+          </figure>
+          <div class="market-feature__copy" data-reveal style="--reveal-delay: 0.08s">
+            <p class="market-feature__eyebrow">Client</p>
+            <h2>Seguimiento simple desde el móvil.</h2>
+            <p>
+              El cliente ve el estado del pedido, el progreso y la recogida sin depender de otro dispositivo físico para
+              enterarse.
+            </p>
+            <ul class="market-feature__list">
+              <li>Estado visible en tiempo real</li>
+              <li>QR y móvil como experiencia principal</li>
+              <li>Menos espera opaca, más claridad</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="market-compare" id="comparativa">
+          <div class="market-compare__intro" data-reveal>
+            <p class="market-feature__eyebrow">Comparativa</p>
+            <h2>Del hardware tradicional al software conectado.</h2>
+            <p>
+              Lo que antes dependía de otra capa física ahora vive dentro de una experiencia de producto más ligera y
+              agradable.
+            </p>
           </div>
           <div class="market-compare__grid">
-            <article class="market-compare__column market-compare__column--legacy">
-              <div class="market-compare__visual market-compare__visual--legacy" aria-hidden="true">
-                <div class="market-device">
-                  <span class="market-device__antenna"></span>
-                  <span class="market-device__screen"></span>
-                  <span class="market-device__button"></span>
-                </div>
+            <article class="market-compare__card market-compare__card--legacy" data-reveal>
+              <p class="market-compare__label">Hardware tradicional</p>
+              <h3>Más compra. Más instalación. Más fricción.</h3>
+              <div class="market-compare__device" aria-hidden="true">
+                <span class="market-compare__device-body"></span>
+                <span class="market-compare__device-screen"></span>
+                <span class="market-compare__device-ring"></span>
               </div>
-              <p class="market-compare__label">Modelo tradicional</p>
-              <h3>Más hardware, más fricción.</h3>
-              <ul class="market-list">
-                <li>Depende de hardware tradicional para avisar al cliente.</li>
-                <li>Añade costo de compra, instalación y mantenimiento.</li>
-                <li>Hace más pesado el despliegue operativo y la expansión.</li>
-              </ul>
+              <p class="market-compare__text">
+                Avisos, recogida y seguimiento dependen de hardware tradicional añadido al flujo.
+              </p>
             </article>
-            <article class="market-compare__column market-compare__column--modern">
-              <div class="market-compare__visual market-compare__visual--modern" aria-hidden="true">
-                <span class="market-compare__route"></span>
-                <span class="market-compare__route market-compare__route--secondary"></span>
-                <span class="market-compare__dot market-compare__dot--start"></span>
-                <span class="market-compare__dot market-compare__dot--end"></span>
-                <div class="market-compare__mini-screen">
-                  <span class="market-compare__mini-pill market-compare__mini-pill--done"></span>
-                  <span class="market-compare__mini-pill market-compare__mini-pill--active"></span>
-                  <span class="market-compare__mini-pill"></span>
-                </div>
-              </div>
+
+            <article class="market-compare__card market-compare__card--software" data-reveal style="--reveal-delay: 0.08s">
               <p class="market-compare__label">TurnoListo</p>
-              <h3>Experiencia conectada sin hardware dedicado.</h3>
-              <ul class="market-list">
-                <li>El cliente sigue su pedido desde una experiencia digital clara.</li>
-                <li>Reduce la dependencia de dispositivos físicos para notificaciones.</li>
-                <li>Acelera la puesta en marcha y escala como producto de software.</li>
-              </ul>
-            </article>
-          </div>
-        </section>
-
-        <section class="market-value" aria-label="Valor para clientes e inversionistas">
-          <article class="panel glass-card market-value__card">
-            <div class="market-value__visual market-value__visual--restaurant" aria-hidden="true">
-              <div class="market-dashboard">
-                <span class="market-dashboard__bar market-dashboard__bar--short"></span>
-                <span class="market-dashboard__bar market-dashboard__bar--long"></span>
-                <span class="market-dashboard__card market-dashboard__card--active"></span>
-                <span class="market-dashboard__card"></span>
+              <h3>Una experiencia unificada desde el primer día.</h3>
+              <div class="market-compare__media">
+                <img
+                  src="./assets/landing/client-tracking.png"
+                  alt="Captura real de la experiencia cliente de TurnoListo"
+                />
               </div>
-            </div>
-            <p class="panel__kicker">Para restaurantes</p>
-            <h2>Menos hardware. Más control. Mejor experiencia.</h2>
-            <p class="hero__hint">Una operación más clara para sala, pickup y cliente final.</p>
-            <ul class="market-list">
-              <li>Seguimiento del pedido en tiempo real desde el flujo del restaurante.</li>
-              <li>Menor dependencia de equipos dedicados en el punto de atención.</li>
-              <li>Adopción más simple para negocios que quieren avanzar rápido.</li>
-            </ul>
-          </article>
-          <article class="panel glass-card market-value__card">
-            <div class="market-value__visual market-value__visual--investor" aria-hidden="true">
-              <span class="market-network__node market-network__node--one"></span>
-              <span class="market-network__node market-network__node--two"></span>
-              <span class="market-network__node market-network__node--three"></span>
-              <span class="market-network__line market-network__line--one"></span>
-              <span class="market-network__line market-network__line--two"></span>
-            </div>
-            <p class="panel__kicker">Para inversionistas</p>
-            <h2>Una tesis más eficiente para crecer.</h2>
-            <p class="hero__hint">Menor complejidad física, onboarding más ligero y más espacio para escalar.</p>
-            <ul class="market-list">
-              <li>Menor carga operativa asociada a activos físicos.</li>
-              <li>Implementación más ligera para abrir nuevas cuentas.</li>
-              <li>Un modelo alineado con escalabilidad de software y margen operacional.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="market-journey panel glass-card" id="como-funciona">
-          <div class="panel__heading">
-            <div>
-              <p class="panel__kicker">Cómo funciona</p>
-              <h2>Un flujo simple en tres pasos.</h2>
-            </div>
-          </div>
-          <div class="market-journey__grid">
-            <article class="market-step">
-              <span class="market-step__icon market-step__icon--origin">1</span>
-              <h3>El restaurante actualiza el estado.</h3>
-              <p>Una sola interfaz mantiene el control del pedido.</p>
-            </article>
-            <article class="market-step">
-              <span class="market-step__icon market-step__icon--pickup">2</span>
-              <h3>El cliente sigue el pedido desde su móvil.</h3>
-              <p>El seguimiento llega por QR y móvil, no por hardware adicional.</p>
-            </article>
-            <article class="market-step">
-              <span class="market-step__icon market-step__icon--scale">3</span>
-              <h3>El negocio crece con menos fricción.</h3>
-              <p>La expansión se apoya en software, no en una capa física extra.</p>
+              <p class="market-compare__text">
+                El restaurante opera y el cliente sigue su pedido desde software, sin hardware dedicado.
+              </p>
             </article>
           </div>
         </section>
 
-        <section class="market-final glass-card">
-          <div class="market-final__rail" aria-hidden="true">
-            <div class="market-final__brand-mark">
-              <img class="market-final__brand-logo" src="./turnolisto-brand.png" alt="" />
-            </div>
-            <span class="market-final__pill">Localizador</span>
-            <span class="market-final__pill market-final__pill--ready">Listo</span>
-            <span class="market-final__pill market-final__pill--cancelled">Cancelado</span>
+        <section class="market-flow" id="como-funciona">
+          <div class="market-flow__intro" data-reveal>
+            <p class="market-feature__eyebrow">Cómo funciona</p>
+            <h2>Tres pasos. Una experiencia mejor.</h2>
           </div>
-          <p class="eyebrow">Solicitar demo</p>
-          <h2>TurnoListo convierte una necesidad operativa en una ventaja software-first.</h2>
-          <p>Si quieres ver cómo esta experiencia sustituye el hardware dedicado en tu operación, el siguiente paso es una demo.</p>
+          <div class="market-flow__grid">
+            <article class="market-flow__step" data-reveal>
+              <span class="market-flow__number">1</span>
+              <h3>El restaurante actualiza.</h3>
+              <p>Una sola interfaz mueve el pedido con claridad.</p>
+            </article>
+            <article class="market-flow__step" data-reveal style="--reveal-delay: 0.06s">
+              <span class="market-flow__number">2</span>
+              <h3>El cliente lo sigue.</h3>
+              <p>La información llega por móvil y QR, no por hardware tradicional.</p>
+            </article>
+            <article class="market-flow__step" data-reveal style="--reveal-delay: 0.12s">
+              <span class="market-flow__number">3</span>
+              <h3>El negocio escala.</h3>
+              <p>Más experiencia y menos complejidad física para crecer.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="market-close" data-reveal>
+          <p class="market-feature__eyebrow">Solicitar demo</p>
+          <h2>Haz que la espera se sienta moderna.</h2>
+          <p>
+            Si quieres ver cómo TurnoListo reemplaza hardware tradicional por una experiencia conectada entre restaurante
+            y cliente, el siguiente paso es una demo.
+          </p>
           <div class="market-actions">
             <a class="launcher" href="./contact.html">Solicitar demo</a>
-            <a class="button-secondary" href="#comparativa">Ver comparativa</a>
+            <a class="button-secondary" href="#diferencial">Ver beneficios</a>
           </div>
         </section>
       </main>
     </div>
+    <script src="./landing.js?v=20260420b"></script>
   </body>
 </html>
