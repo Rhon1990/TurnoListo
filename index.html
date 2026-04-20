@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="TurnoListo conecta administración, restaurante y cliente con seguimiento de pedidos en tiempo real y operación lista para escalar."
+      content="TurnoListo elimina el hardware dedicado para avisar pedidos y convierte la espera del cliente en una experiencia software-first para restaurantes e inversionistas."
     />
-    <title>TurnoListo</title>
+    <title>TurnoListo | Software-first para restaurantes</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -19,68 +19,208 @@
     <link rel="apple-touch-icon" href="./turnolisto-brand.png" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TurnoListo" />
-    <meta name="theme-color" content="#1f7a63" />
-    <link rel="stylesheet" href="./styles.css?v=20260417m" />
+    <meta name="theme-color" content="#10352f" />
+    <link rel="stylesheet" href="./styles.css?v=20260420a" />
   </head>
-  <body>
-    <div class="app-shell">
-      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo" data-i18n-aria-label-key="layout.topbar.aria">
+  <body class="market-home">
+    <div class="app-shell market-shell">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
         <div class="workspace-topbar__inner">
-          <a class="workspace-brand workspace-brand--link" href="./index.html" aria-label="Ir al inicio de TurnoListo" data-i18n-aria-label-key="layout.home.aria">
+          <a class="workspace-brand workspace-brand--link" href="./index.html" aria-label="Ir al inicio de TurnoListo">
             <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
             <div class="workspace-brand__copy">
-              <p class="workspace-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
-              <p class="workspace-brand__tagline" data-i18n-key="brand.tagline">Tecnología que Agiliza tu Restaurante</p>
+              <p class="workspace-brand__name" translate="no">Turno<span>Listo</span></p>
+              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
             </div>
           </a>
-          <div class="workspace-actions" aria-label="Acciones de cabecera" data-i18n-aria-label-key="layout.actions.aria">
-            <span class="workspace-status" data-i18n-key="layout.home">Inicio</span>
-            <a class="workspace-contact-button" href="./contact.html">
-              <span class="workspace-action-icon material-symbols-rounded" data-icon="support_agent" aria-hidden="true"></span>
-              <span data-i18n-key="layout.contact">Contáctenos</span>
-            </a>
+          <div class="workspace-actions" aria-label="Acciones principales de la portada">
+            <span class="workspace-status">Software-first</span>
+            <a class="workspace-contact-button" href="./contact.html">Solicitar demo</a>
           </div>
         </div>
       </section>
-      <header class="hero hero--landing">
-        <div class="hero__copy">
-          <p class="eyebrow">TurnoListo</p>
-          <h1 data-i18n-key="landing.hero.title">Dos códigos, un mismo pedido.</h1>
-          <p class="hero__text" data-i18n-key="landing.hero.text">
-            Una pantalla para el restaurante y otra para el cliente, conectadas por el mismo flujo.
-          </p>
-        </div>
-      </header>
 
-      <main class="grid">
-        <section class="panel glass-card">
-          <p class="panel__kicker" data-i18n-key="landing.admin.code">Código 0</p>
-          <h2 data-i18n-key="landing.admin.title">Panel administrador</h2>
-          <p class="hero__hint" data-i18n-key="landing.admin.text">
-            Crea restaurantes, define su usuario y contraseña y controla quién entra al panel operativo.
-          </p>
-          <a class="launcher" href="./admin.html" data-i18n-key="landing.admin.cta">Abrir administrador</a>
+      <main class="market-main">
+        <header class="market-hero glass-card">
+          <div class="market-hero__copy">
+            <p class="eyebrow">TurnoListo para restaurantes e inversionistas</p>
+            <h1>La espera del cliente ya no necesita hardware dedicado.</h1>
+            <p class="market-hero__lead">
+              TurnoListo transforma el seguimiento del pedido en una experiencia digital conectada. Para restaurantes
+              significa menos fricción operativa; para inversionistas, una tesis software-first con menor complejidad
+              física y mejor capacidad de escalado.
+            </p>
+            <div class="market-actions">
+              <a class="launcher" href="./contact.html">Solicitar demo</a>
+              <a class="button-secondary" href="#como-funciona">Ver cómo funciona</a>
+            </div>
+            <div class="market-chip-row" aria-label="Diferenciales principales">
+              <span class="market-chip">Sin hardware dedicado</span>
+              <span class="market-chip">Implementación más ligera</span>
+              <span class="market-chip">Escala como software</span>
+            </div>
+          </div>
+
+          <div class="market-hero__visual" aria-label="Resumen de propuesta de valor">
+            <article class="market-model">
+              <p class="market-model__label">Modelo TurnoListo</p>
+              <h2>Una operación conectada sin cargar al negocio con dispositivos físicos.</h2>
+              <p class="market-model__text">
+                El restaurante actualiza estados en tiempo real y el cliente sigue su pedido desde una experiencia
+                digital clara, sin añadir hardware tradicional para avisos.
+              </p>
+              <div class="market-model__grid">
+                <article class="market-model__metric">
+                  <p class="market-model__metric-label">Capex</p>
+                  <p class="market-model__metric-value">Menos dependencia física</p>
+                </article>
+                <article class="market-model__metric">
+                  <p class="market-model__metric-label">Go-live</p>
+                  <p class="market-model__metric-value">Despliegue más simple</p>
+                </article>
+                <article class="market-model__metric">
+                  <p class="market-model__metric-label">Escala</p>
+                  <p class="market-model__metric-value">Crecimiento software-first</p>
+                </article>
+              </div>
+            </article>
+
+            <article class="market-note">
+              <p class="market-note__label">Tesis de categoría</p>
+              <p class="market-note__text">
+                TurnoListo no compite por añadir más hardware al mostrador. Compite por convertir esa necesidad
+                operativa en una ventaja de software con mejor experiencia para el cliente y menos fricción para crecer.
+              </p>
+            </article>
+          </div>
+        </header>
+
+        <section class="market-proof" id="diferencial" aria-label="Diferenciales clave de TurnoListo">
+          <article class="market-proof__card glass-card">
+            <p class="market-proof__label">Ahorro operativo</p>
+            <h2>Menos gasto atado a dispositivos.</h2>
+            <p>
+              TurnoListo reduce la necesidad de comprar, instalar y mantener hardware dedicado para avisar al cliente
+              del estado del pedido.
+            </p>
+          </article>
+          <article class="market-proof__card glass-card">
+            <p class="market-proof__label">Implementación</p>
+            <h2>Menos fricción para ponerlo en marcha.</h2>
+            <p>
+              La experiencia nace en software, así que el despliegue es más ligero y la adopción del restaurante resulta
+              más directa.
+            </p>
+          </article>
+          <article class="market-proof__card glass-card">
+            <p class="market-proof__label">Escalabilidad</p>
+            <h2>Una base más eficiente para crecer.</h2>
+            <p>
+              Al depender menos de infraestructura física, TurnoListo está mejor posicionado para expandirse como
+              producto de software.
+            </p>
+          </article>
         </section>
 
-        <section class="panel glass-card">
-          <p class="panel__kicker" data-i18n-key="landing.restaurant.code">Código 1</p>
-          <h2 data-i18n-key="landing.restaurant.title">Panel restaurante</h2>
-          <p class="hero__hint" data-i18n-key="landing.restaurant.text">
-            Cambia el estado de cada pedido de forma amigable y entrega un QR al cliente.
-          </p>
-          <a class="launcher" href="./restaurant.html" data-i18n-key="landing.restaurant.cta">Abrir restaurante</a>
+        <section class="market-compare panel glass-card" id="comparativa">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Comparativa</p>
+              <h2>Del hardware tradicional a una operación software-first.</h2>
+            </div>
+          </div>
+          <div class="market-compare__grid">
+            <article class="market-compare__column market-compare__column--legacy">
+              <p class="market-compare__label">Modelo tradicional</p>
+              <h3>Más hardware, más fricción.</h3>
+              <ul class="market-list">
+                <li>Depende de hardware tradicional para avisar al cliente.</li>
+                <li>Añade costo de compra, instalación y mantenimiento.</li>
+                <li>Hace más pesado el despliegue operativo.</li>
+                <li>Escala con mayor complejidad física y logística.</li>
+              </ul>
+            </article>
+            <article class="market-compare__column market-compare__column--modern">
+              <p class="market-compare__label">TurnoListo</p>
+              <h3>Experiencia conectada sin hardware dedicado.</h3>
+              <ul class="market-list">
+                <li>El cliente sigue su pedido desde una experiencia digital clara.</li>
+                <li>Reduce la dependencia de dispositivos físicos para notificaciones.</li>
+                <li>Acelera la puesta en marcha del restaurante.</li>
+                <li>Escala con la lógica de un producto de software.</li>
+              </ul>
+            </article>
+          </div>
         </section>
 
-        <section class="panel glass-card">
-          <p class="panel__kicker" data-i18n-key="landing.client.code">Código 2</p>
-          <h2 data-i18n-key="landing.client.title">Vista cliente</h2>
-          <p class="hero__hint" data-i18n-key="landing.client.text">
-            El usuario lee su QR y ve el estado por colores junto a los pedidos anteriores.
+        <section class="market-value" aria-label="Valor para clientes e inversionistas">
+          <article class="panel glass-card market-value__card">
+            <p class="panel__kicker">Para restaurantes</p>
+            <h2>Menos hardware. Más control. Mejor experiencia.</h2>
+            <p class="hero__hint">
+              TurnoListo simplifica la comunicación del pedido y permite operar con más claridad, menos fricción y una
+              experiencia más moderna para el cliente final.
+            </p>
+            <ul class="market-list">
+              <li>Seguimiento del pedido en tiempo real desde el flujo del restaurante.</li>
+              <li>Menor dependencia de equipos dedicados en el punto de atención.</li>
+              <li>Adopción más simple para negocios que quieren avanzar rápido.</li>
+            </ul>
+          </article>
+          <article class="panel glass-card market-value__card">
+            <p class="panel__kicker">Para inversionistas</p>
+            <h2>Una tesis más eficiente para crecer.</h2>
+            <p class="hero__hint">
+              El valor de TurnoListo no está en desplegar más hardware, sino en reemplazar esa capa con una experiencia
+              software-first que reduce complejidad y mejora la posibilidad de expansión.
+            </p>
+            <ul class="market-list">
+              <li>Menor carga operativa asociada a activos físicos.</li>
+              <li>Implementación más ligera para abrir nuevas cuentas.</li>
+              <li>Un modelo alineado con escalabilidad de software y margen operacional.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="market-journey panel glass-card" id="como-funciona">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Cómo funciona</p>
+              <h2>Un flujo simple en tres pasos.</h2>
+            </div>
+          </div>
+          <div class="market-journey__grid">
+            <article class="market-step">
+              <span class="market-step__number">1</span>
+              <h3>El restaurante actualiza el estado.</h3>
+              <p>La operación mantiene el control desde una interfaz clara y lista para tiempo real.</p>
+            </article>
+            <article class="market-step">
+              <span class="market-step__number">2</span>
+              <h3>El cliente sigue el pedido desde su móvil.</h3>
+              <p>La experiencia de espera se vuelve más transparente sin depender de dispositivos físicos adicionales.</p>
+            </article>
+            <article class="market-step">
+              <span class="market-step__number">3</span>
+              <h3>El negocio crece con menos fricción.</h3>
+              <p>El modelo se apoya en software, no en una capa extra de hardware para cada despliegue.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="market-final glass-card">
+          <p class="eyebrow">Solicitar demo</p>
+          <h2>TurnoListo convierte una necesidad operativa en una ventaja software-first.</h2>
+          <p>
+            Si quieres conocer el producto, evaluar su encaje comercial o abrir una conversación de inversión, el
+            siguiente paso es ver cómo esta experiencia puede reemplazar el hardware dedicado en tu operación.
           </p>
-          <a class="launcher" href="./client.html" data-i18n-key="landing.client.cta">Abrir cliente</a>
+          <div class="market-actions">
+            <a class="launcher" href="./contact.html">Solicitar demo</a>
+            <a class="button-secondary" href="#comparativa">Ver comparativa</a>
+          </div>
         </section>
       </main>
     </div>
-    <script src="./i18n.js?v=20260417l"></script>
   </body>
 </html>
