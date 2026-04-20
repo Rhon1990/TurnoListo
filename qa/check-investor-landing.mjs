@@ -7,9 +7,13 @@ const currentFile = fileURLToPath(import.meta.url);
 const qaDir = path.dirname(currentFile);
 const projectRoot = path.resolve(qaDir, "..");
 const indexHtml = readFileSync(path.join(projectRoot, "index.html"), "utf8");
+const legacyPagerArtSvg = readFileSync(path.join(projectRoot, "assets", "landing", "legacy-pager-system.svg"), "utf8");
 const restaurantShotPath = path.join(projectRoot, "assets", "landing", "restaurant-workspace.png");
 const clientShotPath = path.join(projectRoot, "assets", "landing", "client-tracking.png");
 const legacyPagerArtPath = path.join(projectRoot, "assets", "landing", "legacy-pager-system.svg");
+const pagerDisplayMatches = [...legacyPagerArtSvg.matchAll(/fill="#FF5E61"[^>]*font-size="22"[^>]*>(\d+)<\/text>/g)];
+const pagerDisplayNumbers = pagerDisplayMatches.map((match) => Number(match[1]));
+const sortedPagerDisplayNumbers = [...pagerDisplayNumbers].sort((left, right) => left - right);
 
 assert.match(indexHtml, /Solicitar demo/i, "La portada debe exponer un CTA principal de demo.");
 assert.match(indexHtml, /sin hardware dedicado/i, "La portada debe destacar el ahorro frente al hardware dedicado.");
@@ -29,6 +33,21 @@ assert.ok(existsSync(legacyPagerArtPath), "Debe existir la ilustracion propia de
 assert.ok(statSync(restaurantShotPath).size > 0, "La captura de restaurante no puede estar vacia.");
 assert.ok(statSync(clientShotPath).size > 0, "La captura de cliente no puede estar vacia.");
 assert.ok(statSync(legacyPagerArtPath).size > 0, "La ilustracion del hardware tradicional no puede estar vacia.");
+assert.equal(
+  pagerDisplayNumbers.length,
+  14,
+  "La ilustracion del hardware tradicional debe mostrar catorce localizadores numerados."
+);
+assert.deepEqual(
+  sortedPagerDisplayNumbers,
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+  "La ilustracion del hardware tradicional debe enumerar los localizadores del 1 al 14."
+);
+assert.doesNotMatch(
+  legacyPagerArtSvg,
+  />alerta<\/text>/i,
+  "El localizador iluminado debe mostrar un numero, no texto generico."
+);
 assert.doesNotMatch(
   indexHtml,
   /Abrir administrador|Abrir restaurante|Abrir cliente/i,
