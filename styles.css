@@ -6478,6 +6478,87 @@ body.market-home::before {
   box-shadow: 0 20px 34px rgba(17, 17, 17, 0.14);
 }
 
+.market-login-menu {
+  position: relative;
+}
+
+.market-login-menu[open] {
+  z-index: 180;
+}
+
+.market-login-menu__summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: #ffffff;
+  color: #111111;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.market-login-menu__summary::-webkit-details-marker {
+  display: none;
+}
+
+.market-login-menu__summary:hover,
+.market-login-menu__summary:focus-visible,
+.market-login-menu[open] .market-login-menu__summary {
+  background: #fafafa;
+  border-color: rgba(17, 17, 17, 0.14);
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.market-login-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.7rem);
+  right: 0;
+  width: 220px;
+  padding: 0.6rem;
+  border-radius: 24px;
+  display: grid;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(16px);
+}
+
+.market-login-menu__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  color: #111111;
+  text-decoration: none;
+  font-weight: 700;
+  background: rgba(250, 250, 250, 0.96);
+  border: 1px solid rgba(17, 17, 17, 0.04);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.market-login-menu__item:hover,
+.market-login-menu__item:focus-visible {
+  background: rgba(236, 124, 13, 0.1);
+  border-color: rgba(236, 124, 13, 0.16);
+  color: var(--brand-dark);
+}
+
 .market-home .button-secondary {
   background: #ffffff;
   border-color: rgba(17, 17, 17, 0.08);
@@ -6977,6 +7058,38 @@ html.js-landing:not(.js-landing-reduced-motion) .market-shot--client {
   .market-close {
     justify-items: start;
     text-align: left;
+  }
+
+  .market-home .workspace-status {
+    display: none;
+  }
+
+  .market-login-menu__panel {
+    right: auto;
+    left: 0;
+  }
+}
+
+@media (max-width: 540px) {
+  .market-home .workspace-actions {
+    gap: 0.5rem;
+  }
+
+  .market-login-menu,
+  .market-home .workspace-contact-button {
+    flex: 1 1 0;
+  }
+
+  .market-login-menu__summary,
+  .market-home .workspace-contact-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .market-login-menu__panel {
+    left: 0;
+    right: 0;
+    width: auto;
   }
 }
 

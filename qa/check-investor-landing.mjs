@@ -18,6 +18,9 @@ assert.match(indexHtml, /hardware tradicional/i, "La portada debe comparar Turno
 assert.match(indexHtml, /assets\/landing\/restaurant-workspace\.png/i, "La portada debe referenciar la captura real de restaurante.");
 assert.match(indexHtml, /assets\/landing\/client-tracking\.png/i, "La portada debe referenciar la captura real de cliente.");
 assert.match(indexHtml, /landing\.js/i, "La portada debe cargar la capa de motion suave.");
+assert.match(indexHtml, />\s*Iniciar sesi[oó]n\s*</i, "La portada debe ofrecer un acceso discreto de inicio de sesion.");
+assert.match(indexHtml, /href="\.\/restaurant\.html"[^>]*>\s*Eres restaurante\s*</i, "La portada debe enlazar al acceso restaurante.");
+assert.match(indexHtml, /href="\.\/admin\.html"[^>]*>\s*Eres admin\s*</i, "La portada debe enlazar al acceso administrador.");
 assert.ok(existsSync(restaurantShotPath), "Debe existir la captura real del panel restaurante.");
 assert.ok(existsSync(clientShotPath), "Debe existir la captura real del panel cliente.");
 assert.ok(statSync(restaurantShotPath).size > 0, "La captura de restaurante no puede estar vacia.");

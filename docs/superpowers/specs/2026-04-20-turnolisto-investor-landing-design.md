@@ -34,6 +34,9 @@ TurnoListo elimina la necesidad de hardware dedicado para avisar al cliente del 
 ## Dirección Visual
 
 - Reutilizar la identidad visual existente: `workspace-topbar`, `workspace-brand`, `glass-card`, `launcher`.
+- Mantener en la cabecera un acceso discreto de inicio de sesión para los flujos existentes:
+  - `Eres restaurante` hacia `restaurant.html`
+  - `Eres admin` hacia `admin.html`
 - Añadir clases exclusivas de landing para evitar impacto en `admin.html`, `restaurant.html`, `client.html` y `contact.html`.
 - Usar una composición editorial, blanca y sobria, inspirada en la claridad visual de Apple, sin copiar su interfaz.
 - Reducir la densidad textual y dar protagonismo a material visual real del producto.
@@ -70,6 +73,7 @@ TurnoListo elimina la necesidad de hardware dedicado para avisar al cliente del 
 
 - Verificar que `index.html` muestra la nueva narrativa comercial.
 - Verificar que existe CTA principal hacia `contact.html`.
+- Verificar que existe un acceso discreto `Iniciar sesión` con rutas a `restaurant.html` y `admin.html`.
 - Verificar que existe CTA secundario hacia `#como-funciona`.
 - Verificar que la landing referencia capturas reales de `restaurant.html` y `client.html`.
 - Verificar que los assets de screenshots existen localmente y tienen contenido.

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Reemplazar la portada pública por una landing comercial premium, blanca y muy visual, centrada en el ahorro frente al hardware tradicional y apoyada por capturas reales del producto.
+**Goal:** Reemplazar la portada pública por una landing comercial premium, blanca y muy visual, centrada en el ahorro frente al hardware tradicional, apoyada por capturas reales del producto y con un acceso discreto a los flujos de login de restaurante y admin.
 
 **Architecture:** La implementación se limita a `index.html`, a estilos aislados dentro de `styles.css`, a una pequeña capa opcional de motion en `landing.js` y a assets reproducibles de screenshots reales en `assets/landing/`. La home debe evolucionar desde una landing ilustrada hacia una portada editorial con capturas auténticas de `restaurant.html` y `client.html`, y motion sutil. La verificación automatizada se resuelve con un script ligero en `qa/` que cubre el contenido clave, la referencia a assets reales y los elementos visuales principales.
 
@@ -22,6 +22,9 @@
 assert.match(indexHtml, /assets\/landing\/restaurant-workspace\.png/i);
 assert.match(indexHtml, /assets\/landing\/client-tracking\.png/i);
 assert.match(indexHtml, /landing\.js/i);
+assert.match(indexHtml, /Iniciar sesi[oó]n/i);
+assert.match(indexHtml, /href="\.\/restaurant\.html"[^>]*>\s*Eres restaurante\s*</i);
+assert.match(indexHtml, /href="\.\/admin\.html"[^>]*>\s*Eres admin\s*</i);
 assert.ok(existsSync(restaurantShotPath));
 assert.ok(existsSync(clientShotPath));
 ```
@@ -49,7 +52,7 @@ Expected: PASS con una captura real y legible del workspace restaurante.
 Run: `npx -y playwright@latest screenshot --channel=chrome --color-scheme=light --viewport-size="520,1080" --wait-for-selector="#clientTicket" --wait-for-timeout=1400 http://127.0.0.1:4173/qa/client-capture.html assets/landing/client-tracking.png`
 Expected: PASS con una captura real y legible de la experiencia cliente.
 
-### Task 3: Rediseñar la portada con screenshots reales
+### Task 3: Rediseñar la portada con screenshots reales y acceso discreto
 
 **Files:**
 - Modify: `index.html`
@@ -68,6 +71,7 @@ Expected: PASS con una captura real y legible de la experiencia cliente.
 - [ ] **Step 2: Mantener navegación mínima y CTA principal**
 
 ```html
+<details class="market-login-menu">...</details>
 <a class="launcher" href="./contact.html">Solicitar demo</a>
 <a class="button-secondary" href="#como-funciona">Ver cómo funciona</a>
 ```
