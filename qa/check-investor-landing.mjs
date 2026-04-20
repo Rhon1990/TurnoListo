@@ -13,6 +13,10 @@ assert.match(indexHtml, /sin hardware dedicado/i, "La portada debe destacar el a
 assert.match(indexHtml, /href="\.\/contact\.html"/i, "La portada debe enlazar al formulario comercial.");
 assert.match(indexHtml, /id="como-funciona"/i, "La portada debe incluir la seccion de recorrido del producto.");
 assert.match(indexHtml, /hardware tradicional/i, "La portada debe comparar TurnoListo frente al enfoque tradicional.");
+assert.match(indexHtml, /market-scene/i, "La portada debe incluir una escena visual principal.");
+assert.match(indexHtml, /market-map/i, "La portada debe incluir un localizador o mapa visual.");
+assert.match(indexHtml, /market-phone/i, "La portada debe incluir un mockup movil del seguimiento.");
+assert.match(indexHtml, /market-status-badge--cancelled/i, "La portada debe incluir el estado visual de cancelado.");
 assert.doesNotMatch(
   indexHtml,
   /Abrir administrador|Abrir restaurante|Abrir cliente/i,

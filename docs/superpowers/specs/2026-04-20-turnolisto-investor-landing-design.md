@@ -36,6 +36,12 @@ TurnoListo elimina la necesidad de hardware dedicado para avisar al cliente del 
 - Reutilizar la identidad visual existente: `workspace-topbar`, `workspace-brand`, `glass-card`, `launcher`.
 - Añadir clases exclusivas de landing para evitar impacto en `admin.html`, `restaurant.html`, `client.html` y `contact.html`.
 - Usar una composición editorial, clara y sobria, con jerarquías amplias y contraste contenido.
+- Dar protagonismo a una escena visual de producto con menos dependencia del texto:
+  - logo de TurnoListo integrado en el hero
+  - localizador o mapa de pedidos
+  - estados visuales como `Listo` y `Cancelado`
+  - un mockup móvil con seguimiento del pedido
+  - comparativa gráfica frente al hardware tradicional
 
 ## Alcance Técnico
 
@@ -43,6 +49,7 @@ TurnoListo elimina la necesidad de hardware dedicado para avisar al cliente del 
 - Añadir estilos específicos y aislados en [styles.css](/Users/rdelgpad/Documents/personal/TurnoListo/styles.css).
 - No introducir JavaScript nuevo en la landing.
 - Mantener la navegación principal hacia [contact.html](/Users/rdelgpad/Documents/personal/TurnoListo/contact.html) y anclas internas.
+- Reducir densidad textual en hero y bloques de valor, apoyando la narrativa con componentes visuales hechos en HTML/CSS.
 
 ## Riesgos y Mitigación
 
