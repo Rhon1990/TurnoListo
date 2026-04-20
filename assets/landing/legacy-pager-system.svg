@@ -150,7 +150,13 @@
       </g>
     </g>
 
-    <g transform="translate(648 344) rotate(-7)">
+    <path
+      id="keypad-dock-extension"
+      d="M548 410L714 396L842 492H672L548 410Z"
+      fill="url(#dockEdge)"
+    />
+
+    <g id="keypad-console" transform="translate(656 402) rotate(-7)">
       <rect width="146" height="88" rx="24" fill="url(#keyPad)" />
       <rect x="18" y="14" width="62" height="16" rx="8" fill="#15090A" />
       <text x="49" y="26" text-anchor="middle" fill="#FF5E61" font-size="14" font-weight="700" filter="url(#redGlow)" font-family="Space Grotesk, Arial, sans-serif">525</text>
@@ -167,6 +173,17 @@
         <text x="122" y="72">0</text>
       </g>
     </g>
+
+    <path
+      id="keypad-dock-front"
+      d="M660 482H830L889 534H728C706 534 684 526 666 512L612 468L660 482Z"
+      fill="url(#dockSurface)"
+    />
+    <path
+      d="M666 455H785L840 505H743C720 505 697 497 679 483L639 451L666 455Z"
+      fill="#2D2323"
+      fill-opacity="0.9"
+    />
 
     <g transform="translate(356 380)">
       <ellipse cx="84" cy="74" rx="92" ry="62" fill="#2A2020" />

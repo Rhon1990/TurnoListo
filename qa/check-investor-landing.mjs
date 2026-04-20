@@ -20,6 +20,11 @@ assert.match(indexHtml, /sin hardware dedicado/i, "La portada debe destacar el a
 assert.match(indexHtml, /href="\.\/contact\.html"/i, "La portada debe enlazar al formulario comercial.");
 assert.match(indexHtml, /id="como-funciona"/i, "La portada debe incluir la seccion de recorrido del producto.");
 assert.match(indexHtml, /hardware tradicional/i, "La portada debe comparar TurnoListo frente al enfoque tradicional.");
+assert.match(indexHtml, /localizadores f[ií]sicos/i, "La comparativa debe explicar la limitacion fisica del hardware tradicional.");
+assert.match(indexHtml, /alcance y distancia/i, "La comparativa debe mencionar la limitacion de alcance del hardware.");
+assert.match(indexHtml, /IA que aprende entre m[aá]s la usas/i, "La comparativa debe incluir el beneficio de IA evolutiva con TurnoListo.");
+assert.match(indexHtml, /luces, vibraci[oó]n, sonido/i, "La comparativa debe incluir avisos multicanal en el movil.");
+assert.match(indexHtml, /segundo plano/i, "La comparativa debe indicar que TurnoListo trabaja en segundo plano.");
 assert.match(indexHtml, /assets\/landing\/restaurant-workspace\.png/i, "La portada debe referenciar la captura real de restaurante.");
 assert.match(indexHtml, /assets\/landing\/client-tracking\.png/i, "La portada debe referenciar la captura real de cliente.");
 assert.match(indexHtml, /assets\/landing\/legacy-pager-system\.svg/i, "La comparativa debe usar la ilustracion propia del hardware tradicional.");
@@ -47,6 +52,26 @@ assert.doesNotMatch(
   legacyPagerArtSvg,
   />alerta<\/text>/i,
   "El localizador iluminado debe mostrar un numero, no texto generico."
+);
+assert.match(
+  legacyPagerArtSvg,
+  /id="keypad-dock-extension"/i,
+  "La ilustracion del hardware tradicional debe integrar el teclado como parte de la base."
+);
+assert.match(
+  legacyPagerArtSvg,
+  /id="keypad-dock-front"/i,
+  "La ilustracion del hardware tradicional debe extender el frente de la base bajo el teclado."
+);
+assert.match(
+  legacyPagerArtSvg,
+  /id="keypad-console"/i,
+  "La ilustracion del hardware tradicional debe mantener el bloque del teclado identificado en el SVG."
+);
+assert.doesNotMatch(
+  legacyPagerArtSvg,
+  /id="keypad-support"/i,
+  "La ilustracion del hardware tradicional no debe depender de un soporte separado."
 );
 assert.doesNotMatch(
   indexHtml,
