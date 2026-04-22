@@ -521,7 +521,7 @@ function getProgressWidth(status) {
   }
 
   if (status === "delivered") {
-    return "calc(87.5% + (var(--progress-step-gap) * 3 / 8))";
+    return "100%";
   }
 
   return "0%";

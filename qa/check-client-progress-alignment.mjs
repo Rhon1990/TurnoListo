@@ -57,8 +57,8 @@ assert.equal(
 );
 assert.equal(
   context.result.delivered,
-  "calc(87.5% + (var(--progress-step-gap) * 3 / 8))",
-  "Entregado debe llenar hasta el centro del cuarto hito."
+  "100%",
+  "Entregado debe llenar todo el carril tras alcanzar el ultimo hito."
 );
 assert.equal(context.result.cancelled, "0%", "Cancelado no debe proyectarse sobre la linea de entrega.");
 
