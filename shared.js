@@ -2760,6 +2760,17 @@ function isWithinLastDays(value, days) {
   return diffMs >= 0 && diffMs <= days * 24 * 60 * 60 * 1000;
 }
 
+function getUniqueOperationalTodayCount({ progressOrders = [], deliveredOrders = [], archivedOrders = [] } = {}) {
+  const uniqueOrderIds = new Set();
+
+  [...progressOrders, ...deliveredOrders, ...archivedOrders].forEach((order) => {
+    const orderId = String(order?.id || "").trim();
+    if (orderId) uniqueOrderIds.add(orderId);
+  });
+
+  return uniqueOrderIds.size;
+}
+
 function getDashboardStats(options = {}) {
   const period = normalizeDashboardPeriod(options.period);
   const periodMeta = getDashboardPeriodMeta(period);
@@ -2786,6 +2797,7 @@ function getDashboardStats(options = {}) {
   const deliveredOrders = deliveredMilestoneOrders.filter((order) => order.status === "delivered");
   const cancelledOrders = cancelledMilestoneOrders.filter((order) => order.status === "cancelled");
   const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
+  const progressOrders = restaurantOrders.filter((order) => !order.archivedAt && ["received", "preparing", "ready"].includes(order.status));
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
   const ratedOrders = filterOrdersByDashboardPeriod(
     restaurantOrders.filter((order) => order.rating && order.rating.score),
@@ -2970,6 +2982,7 @@ function getDashboardStats(options = {}) {
     periodScopeLabel: periodMeta.scopeLabel,
     periodResultsLabel: periodMeta.resultsLabel,
     totalToday: periodOrders.length,
+    uniqueOperationalTodayCount: getUniqueOperationalTodayCount({ progressOrders, deliveredOrders, archivedOrders }),
     activeNow: activeOrders.length,
     readyNow: activeOrders.filter((order) => order.status === "ready").length,
     readyInPeriod: readyMilestoneOrders.length,

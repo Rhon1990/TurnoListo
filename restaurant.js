@@ -231,6 +231,7 @@ restaurantProfileForm?.addEventListener("submit", handleRestaurantProfileSubmit)
 restaurantProfileLogoInput?.addEventListener("change", handleRestaurantProfileLogoSelection);
 restaurantHistoryQuickFilters.forEach((button) => {
   button.addEventListener("click", () => {
+    if (button === restaurantTotalTodayChip) return;
     activeArchivedPeriod = "day";
     if (archivedPeriodFilter) archivedPeriodFilter.value = activeArchivedPeriod;
     window.localStorage.setItem("turnolisto-restaurant-archived-period", activeArchivedPeriod);
@@ -468,7 +469,7 @@ function renderRestaurant() {
   renderRestaurantHeroSignals(dashboard, restaurant, allOrders);
   renderRestaurantCreateHints(restaurant, allOrders);
   renderRestaurantPlaybook(restaurant, allOrders);
-  restaurantTotalTodayChip.textContent = translateRuntimeText(`${quickStats.archivedToday} total hoy`);
+  restaurantTotalTodayChip.textContent = translateRuntimeText(`${quickStats.uniqueOperationalTodayCount} total hoy`);
   restaurantDeliveredTodayChip.textContent = translateRuntimeText(`${quickStats.deliveredToday} entregados hoy`);
   restaurantCancelledTodayChip.textContent = translateRuntimeText(`${quickStats.cancelledToday} cancelados hoy`);
   syncRestaurantHistoryQuickFilters();
