@@ -63,20 +63,20 @@ for (const [label, html] of [
 
 assert.match(
   adminHtml,
-  /<script src="\.\/admin\.js\?v=20260422b"><\/script>/,
+  /<script src="\.\/admin\.js\?v=20260422c"><\/script>/,
   "admin.html debe invalidar cache del runtime del panel tras el saneado de credenciales sensibles."
 );
 
 assert.match(
   restaurantHtml,
-  /<script src="\.\/restaurant\.js\?v=20260422b"><\/script>/,
+  /<script src="\.\/restaurant\.js\?v=20260422c"><\/script>/,
   "restaurant.html debe invalidar cache del runtime del panel tras el saneado de credenciales sensibles."
 );
 
 assert.match(
   clientHtml,
-  /<script src="\.\/client\.js\?v=20260422a"><\/script>/,
-  "client.html debe invalidar cache del runtime del cliente tras el cambio del loading y busy state."
+  /<script src="\.\/client\.js\?v=20260422c"><\/script>/,
+  "client.html debe invalidar cache del runtime del cliente tras resolver la colision global del busy state."
 );
 
 assert.match(
@@ -93,25 +93,25 @@ assert.match(
 
 assert.match(
   adminJs,
-  /const sanitizeSensitiveQueryParams = window\.TurnoListoUrl\?\.sanitizeSensitiveQueryParams;/,
+  /const sanitizeSensitiveUrlQueryParams = window\.TurnoListoUrl\?\.sanitizeSensitiveQueryParams;/,
   "admin.js debe reutilizar el helper compartido para limpiar query params sensibles."
 );
 
 assert.match(
   adminJs,
-  /sanitizeSensitiveQueryParams\?\.\(\["username", "password"\]\);[\s\S]*initializeAdminFirebaseAuth\(\);/,
+  /sanitizeSensitiveUrlQueryParams\?\.\(\["username", "password"\]\);[\s\S]*initializeAdminFirebaseAuth\(\);/,
   "admin.js debe limpiar username y password de la URL antes de inicializar el login."
 );
 
 assert.match(
   restaurantJs,
-  /const sanitizeSensitiveQueryParams = window\.TurnoListoUrl\?\.sanitizeSensitiveQueryParams;/,
+  /const sanitizeSensitiveUrlQueryParams = window\.TurnoListoUrl\?\.sanitizeSensitiveQueryParams;/,
   "restaurant.js debe reutilizar el helper compartido para limpiar query params sensibles."
 );
 
 assert.match(
   restaurantJs,
-  /sanitizeSensitiveQueryParams\?\.\(\["username", "password"\]\);[\s\S]*initializeRestaurantFirebaseAuth\(\);/,
+  /sanitizeSensitiveUrlQueryParams\?\.\(\["username", "password"\]\);[\s\S]*initializeRestaurantFirebaseAuth\(\);/,
   "restaurant.js debe limpiar username y password de la URL antes de inicializar el login."
 );
 

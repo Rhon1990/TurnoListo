@@ -118,10 +118,10 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
-const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
+const uiSetBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
-const sanitizeSensitiveQueryParams = window.TurnoListoUrl?.sanitizeSensitiveQueryParams;
+const sanitizeSensitiveUrlQueryParams = window.TurnoListoUrl?.sanitizeSensitiveQueryParams;
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
 const restaurantDashboardPeriod = document.querySelector("#restaurantDashboardPeriod");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
@@ -206,7 +206,7 @@ const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
   isRequired: () => false,
 });
 
-sanitizeSensitiveQueryParams?.(["username", "password"]);
+sanitizeSensitiveUrlQueryParams?.(["username", "password"]);
 initializeRestaurantFirebaseAuth();
 bootRestaurantPage();
 window.setInterval(() => {
@@ -934,7 +934,7 @@ async function handleRestaurantLogin(event) {
     return;
   }
 
-  setBusyButton(restaurantLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
+  uiSetBusyButton(restaurantLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
 
   try {
     const backend = await waitForFirebaseBackend();
@@ -980,7 +980,7 @@ async function handleRestaurantLogin(event) {
       showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}."), "error");
     }
   } finally {
-    setBusyButton(restaurantLoginSubmitButton, false, { busyLabel });
+    uiSetBusyButton(restaurantLoginSubmitButton, false, { busyLabel });
   }
 }
 
