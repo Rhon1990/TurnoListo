@@ -2766,7 +2766,6 @@ button:hover,
 
 .progress__bar {
   position: relative;
-  margin-inline: calc(12.5% - (var(--progress-step-gap) * 3 / 8));
   height: 0.75rem;
   border-radius: 999px;
   background: rgba(29, 26, 22, 0.08);

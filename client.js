@@ -252,7 +252,7 @@ function renderClient() {
   statusPill.textContent = translateText(meta.label);
   statusPill.style.background = meta.bg;
   statusPill.style.color = meta.color;
-  progressFill.style.width = `${getProgressWidth(order.status)}%`;
+  progressFill.style.width = getProgressWidth(order.status);
   renderProgressSteps(order.status);
   statsBlock.hidden = order.status === "delivered";
   queueCount.textContent = queue.length;
@@ -508,9 +508,23 @@ function renderProgressSteps(status) {
 }
 
 function getProgressWidth(status) {
-  const currentIndex = progressStatusOrder.indexOf(status);
-  if (currentIndex <= 0) return 0;
-  return (currentIndex / (progressStatusOrder.length - 1)) * 100;
+  if (status === "received") {
+    return "calc(12.5% - (var(--progress-step-gap) * 3 / 8))";
+  }
+
+  if (status === "preparing") {
+    return "calc(37.5% - (var(--progress-step-gap) / 8))";
+  }
+
+  if (status === "ready") {
+    return "calc(62.5% + (var(--progress-step-gap) / 8))";
+  }
+
+  if (status === "delivered") {
+    return "calc(87.5% + (var(--progress-step-gap) * 3 / 8))";
+  }
+
+  return "0%";
 }
 
 function buildNotificationBody(order) {
