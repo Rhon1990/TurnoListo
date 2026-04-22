@@ -954,6 +954,18 @@ body.celebration-active::after {
   box-shadow: 0 12px 24px rgba(236, 124, 13, 0.18);
 }
 
+.admin-inbox-quick-filter--static:disabled,
+.admin-inbox-quick-filter--static:disabled:hover,
+.admin-inbox-quick-filter--static:disabled:focus-visible {
+  background: rgba(29, 26, 22, 0.06);
+  border-color: transparent;
+  color: var(--brand-dark);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  opacity: 1;
+  cursor: default;
+  pointer-events: none;
+}
+
 .panel__heading-copy--restaurant-summary {
   gap: 0.85rem;
 }

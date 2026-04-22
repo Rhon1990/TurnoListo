@@ -9,6 +9,8 @@ const qaDir = path.dirname(currentFile);
 const projectRoot = path.resolve(qaDir, "..");
 const sharedJs = readFileSync(path.join(projectRoot, "shared.js"), "utf8");
 const restaurantJs = readFileSync(path.join(projectRoot, "restaurant.js"), "utf8");
+const restaurantHtml = readFileSync(path.join(projectRoot, "restaurant.html"), "utf8");
+const stylesCss = readFileSync(path.join(projectRoot, "styles.css"), "utf8");
 
 const uniqueCountHelperMatch = sharedJs.match(/function getUniqueOperationalTodayCount\(\{[\s\S]*?\n\}/);
 assert.ok(uniqueCountHelperMatch, "shared.js debe exponer un helper para calcular el total unico del chip de hoy.");
@@ -37,9 +39,33 @@ assert.match(
 );
 
 assert.match(
-  restaurantJs,
-  /restaurantHistoryQuickFilters\.forEach\(\(button\) => \{\s*button\.addEventListener\("click", \(\) => \{\s*if \(button === restaurantTotalTodayChip\) return;/s,
-  "El chip total hoy no debe reutilizar la redireccion de historial."
+  restaurantHtml,
+  /<button class="admin-inbox-quick-filter admin-inbox-quick-filter--static" id="restaurantTotalTodayChip" type="button" disabled>/,
+  "El chip total hoy debe mantenerse como boton, pero deshabilitado para que no sugiera navegacion."
+);
+
+assert.doesNotMatch(
+  restaurantHtml,
+  /id="restaurantTotalTodayChip"[^>]*data-restaurant-history-filter=/,
+  "El chip total hoy no debe incluir el dataset que activa la navegacion al historial."
+);
+
+assert.match(
+  stylesCss,
+  /\.admin-inbox-quick-filter--static:disabled,\s*[\s\S]*\.admin-inbox-quick-filter--static:disabled:hover,\s*[\s\S]*\.admin-inbox-quick-filter--static:disabled:focus-visible\s*\{/s,
+  "El chip total hoy debe definir una variante deshabilitada que cubra hover y foco."
+);
+
+assert.match(
+  stylesCss,
+  /\.admin-inbox-quick-filter--static:disabled[\s\S]*pointer-events:\s*none;/s,
+  "El chip total hoy debe ignorar interacciones del puntero."
+);
+
+assert.match(
+  stylesCss,
+  /\.admin-inbox-quick-filter--static:disabled[\s\S]*box-shadow:\s*inset 0 1px 0 rgba\(255, 255, 255, 0\.42\);/s,
+  "El chip total hoy debe conservar solo el relieve base, sin sombra de accion."
 );
 
 assert.match(
