@@ -1,130 +1,143 @@
-# TurnoListo demo
+# TurnoListo
 
-Estado del proyecto: estable.
+TurnoListo es una plataforma software-first para restaurantes que conecta operacion, cliente y administracion sin depender de hardware dedicado para avisos de recogida. El producto combina seguimiento en tiempo real, QR seguro, notificaciones, lectura operativa e inteligencia adaptativa para mejorar tiempos, visibilidad y renovacion de cuentas.
 
-La demo está separada en tres páginas:
+Estado actual del proyecto: estable.
 
-- `admin.html`: el administrador crea restaurantes y genera sus accesos
-- `restaurant.html`: el restaurante crea, edita, archiva y actualiza el estado de cada pedido de forma amigable
-- `client.html`: el cliente lee su QR y ve el estado por colores junto a los pedidos anteriores
+## Propuesta de valor
 
-## Cómo probarla
+- Sustituye el flujo de aviso basado en dispositivos fisicos por una experiencia conectada entre restaurante y cliente.
+- Permite operar pedidos desde una interfaz ligera y clara, sin obligar al negocio a reemplazar su sistema principal.
+- Da al cliente una vista movil del pedido con progreso, QR y avisos cuando el pedido esta listo.
+- Centraliza la cartera de restaurantes, el onboarding, la renovacion y las señales de uso desde un panel administrador.
 
-1. Abre [admin.html](/Users/rdelgpad/Documents/personal/TurnoListo/admin.html).
-2. Entra como administrador con `admin` / `admin123`.
-3. Crea un restaurante o usa el restaurante demo `demo` / `demo123`.
-4. Abre [restaurant.html](/Users/rdelgpad/Documents/personal/TurnoListo/restaurant.html) e inicia sesión con ese acceso.
-5. Abre [client.html](/Users/rdelgpad/Documents/personal/TurnoListo/client.html).
-6. En restaurante crea un pedido nuevo o edita uno existente.
-7. En cliente escribe `TL-ANA2048Q2Z9`, `TL-LUIS2049R7MX`, `TL-MARTA2050K4P` o `TL-PABLO2051N8W`, o abre `client.html?order=TL-ANA2048Q2Z9`.
+## Modulos del producto
 
-## Cómo se conectan
+- `index.html`: landing comercial y posicionamiento B2B de TurnoListo.
+- `admin.html`: panel maestro para altas, cartera, renovaciones, mensajes y lectura ejecutiva.
+- `restaurant.html`: panel operativo para pedidos activos, dashboard, modo hora pico e historial.
+- `client.html`: seguimiento publico del pedido por codigo seguro o QR, con avisos y valoracion posterior.
+- `contact.html`: canal de entrada para soporte, alianzas y conversaciones comerciales.
+- `admin-profile.html` y `restaurant-profile.html`: gestion de perfil, branding y datos de cuenta.
 
-Si no configuras Firebase, la demo usa `localStorage`, así que solo verás los cambios reflejados dentro del mismo navegador.
+## Capacidades principales
 
-Si configuras Firebase, `admin.html`, `restaurant.html` y `client.html` comparten los mismos datos en Firestore y ya funcionan entre dispositivos.
+- Seguimiento de pedidos en tiempo real entre restaurante y cliente.
+- QR seguro para consulta publica del pedido.
+- ETA adaptativo y priorizacion automatica por restaurante.
+- Panel administrador con salud de cartera, renovaciones y señales heuristicas de churn.
+- Alta automatizada de restaurantes y administradores con Firebase Authentication y Firestore.
+- Notificaciones push web para el cliente cuando el pedido pasa a estado `ready`.
+- Valoracion publica del servicio una vez entregado el pedido.
+- Branding por restaurante con logo, datos de contacto y configuracion de cuenta.
+- Internacionalizacion runtime y experiencia responsive para movil y escritorio.
+- Soporte PWA en cliente con `manifest.webmanifest`, instalacion en pantalla de inicio y experiencia `standalone`.
 
-## Configurar Firebase
+## Arquitectura
 
-1. Crea un proyecto en Firebase y habilita `Cloud Firestore`.
-2. En la configuración web del proyecto copia las credenciales en [firebase-config.js](/Users/rdelgpad/Documents/personal/TurnoListo/firebase-config.js).
-3. Cambia `enabled: false` por `enabled: true`.
-4. Despliega las reglas de [firestore.rules](/Users/rdelgpad/Documents/personal/TurnoListo/firestore.rules). No uses reglas abiertas en entornos reales.
-5. Crea las colecciones necesarias en Firestore o deja que la app las cree al arrancar:
-   `orders`
-   `restaurants`
-   `tracking`
-   `users`
-   `contactInquiries`
-6. Abre `admin.html`, `restaurant.html` y `client.html` con esa configuración y comprueba que los cambios viajan entre navegador y móvil.
+### Frontend
 
-La integración de Firebase usa el SDK web por CDN y sincroniza los pedidos y restaurantes en tiempo real con Firestore.
+- HTML, CSS y JavaScript vanilla.
+- Paginas separadas por contexto de uso: comercial, administrador, restaurante y cliente.
+- `shared.js` concentra el dominio compartido, utilidades comunes, persistencia y logica transversal.
+- `firebase-bridge.js` encapsula acceso a Firestore y Cloud Functions.
+- `i18n.js` resuelve traducciones y textos dinamicos en runtime.
+- `firebase-messaging-sw.js` y `manifest.webmanifest` cubren notificaciones e instalacion de la vista cliente.
 
-## Automatizar alta de restaurantes
+### Backend
 
-La carpeta `functions/` incluye una Cloud Function callable llamada `createRestaurantAccount`.
+- Firebase Authentication para identidades privadas.
+- Cloud Firestore como base de datos operativa.
+- Cloud Functions for Firebase en Node.js 22 para automatizaciones y validaciones de negocio.
+- Firebase Cloud Messaging para avisos push del cliente.
+- Firebase Hosting para publicar el frontend con CSP y headers de seguridad definidos en `firebase.json`.
 
-Esta funcion hace el alta completa:
+## Colecciones principales
 
-- crea el usuario en `Firebase Authentication`
-- crea `users/{uid}` con `role: "restaurant"`
-- crea `restaurants/{restaurantId}`
+- `users`: perfiles, roles y metadatos de cuenta.
+- `restaurants`: restaurantes, plan, activacion, branding y configuracion operativa.
+- `orders`: flujo operativo privado de pedidos.
+- `tracking`: seguimiento publico sanitizado, estado visible y valoracion del cliente.
+- `contactInquiries`: solicitudes recibidas desde el formulario de contacto.
+- `clientPushSubscriptions`: suscripciones push vinculadas a pedidos concretos.
 
-### Despliegue
+## Cloud Functions incluidas
 
-1. Instala Firebase CLI si no la tienes.
-2. Inicia sesion:
+- `createRestaurantAccount`: alta completa de un restaurante.
+- `createRestaurantAccessLink`: genera enlace seguro de acceso inicial para restaurante.
+- `updateCurrentAdminProfile`: actualiza el perfil del administrador autenticado.
+- `createAdminAccount`: alta completa de nuevos administradores.
+- `getPublicTrackingOrder`: obtiene el seguimiento publico de un pedido.
+- `submitPublicTrackingRating`: registra la valoracion del cliente tras la entrega.
+- `submitContactInquiry`: almacena solicitudes comerciales o de soporte.
+- `registerClientPushSubscription`: vincula un token push a un pedido publico.
+- `unregisterClientPushSubscription`: elimina una suscripcion push.
+- `notifyClientOrderReady`: envia una notificacion cuando el pedido cambia a `ready`.
+- `syncRestaurantAiModelSummary`: recalcula el resumen del modelo adaptativo por restaurante.
 
-```bash
-firebase login
-```
+## Seguridad
 
-3. Instala dependencias de Functions:
+- Reglas de Firestore por rol en `firestore.rules`.
+- Escritura privada restringida segun rol y ownership del documento.
+- Lectura publica del pedido expuesta mediante Cloud Function sanitizada, no por acceso directo a Firestore.
+- CSP, `Referrer-Policy`, `X-Frame-Options`, `X-Content-Type-Options` y `Permissions-Policy` definidos en Hosting.
+
+## Estructura tecnica relevante
+
+- `styles.css`: sistema visual y layouts responsive.
+- `shared.js`: modelo compartido, sincronizacion y utilidades de producto.
+- `firebase-config.js`: configuracion Firebase actualmente activa para el proyecto.
+- `firebase-bridge.js`: integracion web con Firestore y Functions.
+- `functions/index.js`: backend serverless y automatizaciones.
+- `firestore.rules`: control de acceso por roles.
+- `assets/landing/`: material visual real de la web comercial.
+- `qa/`: comprobaciones locales de layout, comportamiento y regresiones clave.
+
+## Puesta en marcha
+
+### Requisitos
+
+- Firebase CLI instalada.
+- Proyecto Firebase con Authentication, Firestore, Functions, Hosting y Cloud Messaging habilitados.
+- Un usuario administrador existente en Authentication.
+- Documento `users/{adminUid}` con `role: "admin"`.
+- Dominios autorizados correctamente configurados en Firebase Authentication para los accesos web.
+
+### Dependencias de Functions
 
 ```bash
 cd functions
 npm install
 ```
 
-4. Vuelve a la raiz del proyecto y despliega:
+### Despliegue
 
 ```bash
-cd ..
+firebase login
 firebase deploy --only functions,firestore:rules,hosting
 ```
 
-### Requisitos
+### Desarrollo local
 
-- el admin debe existir en `Authentication`
-- `users/{adminUid}` debe tener `role: "admin"`
-- `rhon1990.github.io` debe estar en `Authentication > Configuracion > Dominios autorizados`
-- si publicas Hosting, revisa también los headers y CSP definidos en [firebase.json](/Users/rdelgpad/Documents/personal/TurnoListo/firebase.json)
+Como el frontend es estatico, la raiz del proyecto puede servirse con cualquier servidor web simple. La integracion Firebase ya esta conectada desde `firebase-config.js`, por lo que el comportamiento esperado en local depende de la disponibilidad del proyecto configurado y de sus permisos.
 
-Si la funcion no esta desplegada, `admin.html` mostrara un error indicando que la automatizacion no esta disponible.
+## Operacion del sistema
 
-## Alta de restaurantes
+- El administrador crea cuentas, activa accesos y sigue renovaciones, actividad y mensajes entrantes.
+- El restaurante crea y mueve pedidos por estados, consulta dashboard e historial y ajusta su operacion diaria.
+- El cliente sigue su pedido desde el movil, visualiza el progreso, recibe avisos y puede valorar la experiencia al finalizar.
+- Las Functions sincronizan onboarding, acceso, seguimiento publico, notificaciones y resumenes del modelo adaptativo.
 
-Desde administración ahora puedes guardar:
+## QA y validacion
 
-- nombre del restaurante
-- responsable
-- correo electrónico
-- número móvil
-- ciudad
-- dirección
-- plan: `Quincenal`, `Mensual`, `Trimestral`, `Semestral`, `Anual`
-- días de activación
-- notas internas
+La carpeta `qa/` incluye comprobaciones locales para puntos criticos del producto, entre ellos:
 
-El sistema genera automáticamente:
+- landing comercial
+- endurecimiento del login y cache-bust de runtimes
+- sistema compartido de spinners y estados ocupados
+- carga del pedido cliente
+- alineacion de progreso en cliente
+- layouts de administrador y restaurante
+- colisiones entre scripts clasicos
 
-- usuario: `correo electrónico registrado`
-- contraseña aleatoria segura
-
-Cuando se vence el tiempo de activación, el restaurante queda bloqueado hasta renovación.
-
-## Qué cambió
-
-- alta rápida de pedidos con origen, cliente, pedido, recogida y notas
-- edición segura del seguimiento sin tocar el registro original del restaurante
-- archivado en lugar de borrado duro
-- estados operativos: `Recibido`, `En preparación`, `Listo`, `Entregado`, `Cancelado`
-- historial de pedidos archivados para no perder trazabilidad
-- panel administrador con dashboard, filtros y fichas de restaurante
-- acceso del restaurante protegido por usuario y contraseña
-- eliminación manual de restaurantes desde administración
-- el QR del cliente usa directamente el `Pedido original`
-
-## Archivos
-
-- `index.html`: portada con acceso a ambas vistas
-- `admin.html`: interfaz del administrador
-- `restaurant.html`: interfaz del restaurante
-- `client.html`: interfaz del cliente
-- `shared.js`: datos y persistencia compartida
-- `admin.js`: lógica del administrador
-- `restaurant.js`: lógica del restaurante
-- `client.js`: lógica del cliente
-- `styles.css`: estilos responsive
-- `firebase-config.js`: configuración del proyecto Firebase
-- `firebase-bridge.js`: conexión web con Firestore
+Estas utilidades ayudan a validar cambios visuales, contratos de runtime y regresiones operativas antes de publicar.
