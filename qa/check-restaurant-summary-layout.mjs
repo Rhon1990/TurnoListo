@@ -29,8 +29,8 @@ assert.match(
 
 assert.match(
   stylesCss,
-  /\.admin-inbox-quick-filters--restaurant-summary\s*\{[\s\S]*grid-auto-flow:\s*column;[\s\S]*justify-content:\s*start;[\s\S]*max-width:\s*34rem;[\s\S]*overflow-x:\s*auto;/,
-  "El resumen del restaurante debe quedar debajo del titulo, en una sola fila y con scroll horizontal si falta espacio."
+  /\.admin-inbox-quick-filters--restaurant-summary\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-wrap:\s*wrap;[\s\S]*justify-content:\s*start;[\s\S]*max-width:\s*none;[\s\S]*overflow:\s*visible;/,
+  "El resumen del restaurante debe poder envolver chips en varias lineas para evitar recortes."
 );
 
 assert.match(

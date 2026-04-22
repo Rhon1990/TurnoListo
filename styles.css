@@ -971,15 +971,14 @@ body.celebration-active::after {
 }
 
 .admin-inbox-quick-filters--restaurant-summary {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: start;
   width: 100%;
-  max-width: 34rem;
+  max-width: none;
   min-width: 0;
-  overflow-x: auto;
-  padding-bottom: 0.2rem;
+  overflow: visible;
+  padding-bottom: 0;
 }
 
 .admin-inbox-quick-filters--restaurant-summary .admin-inbox-quick-filter {
