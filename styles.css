@@ -970,6 +970,12 @@ body.celebration-active::after {
   gap: 0.85rem;
 }
 
+.panel__heading-copy--admin-inbox {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
 .admin-inbox-quick-filters--restaurant-summary {
   display: flex;
   flex-wrap: wrap;
@@ -982,6 +988,22 @@ body.celebration-active::after {
 }
 
 .admin-inbox-quick-filters--restaurant-summary .admin-inbox-quick-filter {
+  white-space: nowrap;
+}
+
+.admin-inbox-quick-filters--messages {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-inbox-quick-filters--messages .admin-inbox-quick-filter {
   white-space: nowrap;
 }
 
