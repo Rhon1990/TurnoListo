@@ -145,6 +145,27 @@ function setDynamicI18nText(element, value) {
   element.textContent = normalizedValue;
 }
 
+function sanitizeSensitiveQueryParams(keys = []) {
+  if (!window?.location || !window?.history?.replaceState) return false;
+
+  const currentUrl = new URL(window.location.href);
+  let hasChanges = false;
+
+  keys.forEach((key) => {
+    const normalizedKey = String(key || "").trim();
+    if (!normalizedKey || !currentUrl.searchParams.has(normalizedKey)) return;
+    currentUrl.searchParams.delete(normalizedKey);
+    hasChanges = true;
+  });
+
+  if (!hasChanges) return false;
+
+  const nextSearch = currentUrl.searchParams.toString();
+  const nextUrl = `${currentUrl.pathname}${nextSearch ? `?${nextSearch}` : ""}${currentUrl.hash || ""}`;
+  window.history.replaceState(window.history.state, "", nextUrl);
+  return true;
+}
+
 function getPlanDefinition(planName, fallbackName = "Mensual") {
   const normalizedPlanName = String(planName || "").trim();
   if (PLAN_CATALOG_BY_NAME[normalizedPlanName]) return PLAN_CATALOG_BY_NAME[normalizedPlanName];
@@ -3663,6 +3684,10 @@ function setBusyRegion(region, overlay, isBusy) {
 window.TurnoListoUiBusy = {
   setBusyButton,
   setBusyRegion,
+};
+
+window.TurnoListoUrl = {
+  sanitizeSensitiveQueryParams,
 };
 
 function notifyFirebaseError(error, fallbackMessage) {

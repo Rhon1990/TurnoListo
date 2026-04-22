@@ -121,6 +121,7 @@ const formatRuntimeKey = (key, params = {}, fallback = "") =>
 const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
+const sanitizeSensitiveQueryParams = window.TurnoListoUrl?.sanitizeSensitiveQueryParams;
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
 const restaurantDashboardPeriod = document.querySelector("#restaurantDashboardPeriod");
 const dashboardStatusDonut = document.querySelector("#dashboardStatusDonut");
@@ -205,6 +206,7 @@ const restaurantProfilePhoneController = window.TurnoListoPhoneFields?.create({
   isRequired: () => false,
 });
 
+sanitizeSensitiveQueryParams?.(["username", "password"]);
 initializeRestaurantFirebaseAuth();
 bootRestaurantPage();
 window.setInterval(() => {

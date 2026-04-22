@@ -101,6 +101,7 @@ const formatRuntimeKey = (key, params = {}, fallback = "") =>
 const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
+const sanitizeSensitiveQueryParams = window.TurnoListoUrl?.sanitizeSensitiveQueryParams;
 const adminActivatePlanBackdrop = document.querySelector("#adminActivatePlanBackdrop");
 const adminActivatePlanClose = document.querySelector("#adminActivatePlanClose");
 const adminActivatePlanBack = document.querySelector("#adminActivatePlanBack");
@@ -252,6 +253,7 @@ const adminCreateAdminPhoneController = window.TurnoListoPhoneFields?.create({
   isRequired: () => false,
 });
 
+sanitizeSensitiveQueryParams?.(["username", "password"]);
 initializeAdminFirebaseAuth();
 bootAdminPage();
 onOrdersChanged(() => {
