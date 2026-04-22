@@ -5750,6 +5750,13 @@ button:hover,
     padding-top: 1rem;
   }
 
+  .admin-inbox-quick-filters--restaurant-summary {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .hero,
   .hero--compact {
     grid-template-columns: 1fr;

@@ -35,6 +35,12 @@ assert.match(
 
 assert.match(
   stylesCss,
+  /@media \(max-width: 640px\)\s*\{[\s\S]*?\.admin-inbox-quick-filters--restaurant-summary\s*\{[\s\S]*?flex-wrap:\s*nowrap;[\s\S]*?overflow-x:\s*auto;[\s\S]*?overflow-y:\s*hidden;/,
+  "En movil, el resumen del restaurante debe mantenerse en una sola linea con scroll horizontal."
+);
+
+assert.match(
+  stylesCss,
   /\.admin-inbox-quick-filters--restaurant-summary\s+\.admin-inbox-quick-filter\s*\{[\s\S]*white-space:\s*nowrap;/,
   "Cada KPI del restaurante debe impedir saltos internos de linea para mantenerse en horizontal."
 );
