@@ -1,3 +1,4 @@
+(function () {
 const restaurantLoginView = document.querySelector("#restaurantLoginView");
 const restaurantWorkspace = document.querySelector("#restaurantWorkspace");
 const restaurantLoginForm = document.querySelector("#restaurantLoginForm");
@@ -118,7 +119,7 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
-const uiSetBusyButton = window.TurnoListoUiBusy?.setBusyButton;
+const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
 const sanitizeSensitiveUrlQueryParams = window.TurnoListoUrl?.sanitizeSensitiveQueryParams;
@@ -934,7 +935,7 @@ async function handleRestaurantLogin(event) {
     return;
   }
 
-  uiSetBusyButton(restaurantLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
+  setBusyButton(restaurantLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
 
   try {
     const backend = await waitForFirebaseBackend();
@@ -980,7 +981,7 @@ async function handleRestaurantLogin(event) {
       showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}."), "error");
     }
   } finally {
-    uiSetBusyButton(restaurantLoginSubmitButton, false, { busyLabel });
+    setBusyButton(restaurantLoginSubmitButton, false, { busyLabel });
   }
 }
 
@@ -2287,3 +2288,5 @@ function handleRestaurantGlobalKeydown(event) {
     closeCancelModal();
   }
 }
+
+})();

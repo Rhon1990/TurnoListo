@@ -1,3 +1,4 @@
+(function () {
 const adminLoginView = document.querySelector("#adminLoginView");
 const adminWorkspace = document.querySelector("#adminWorkspace");
 const adminLoginForm = document.querySelector("#adminLoginForm");
@@ -98,7 +99,7 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
-const uiSetBusyButton = window.TurnoListoUiBusy?.setBusyButton;
+const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
 const sanitizeSensitiveUrlQueryParams = window.TurnoListoUrl?.sanitizeSensitiveQueryParams;
@@ -488,7 +489,7 @@ async function handleAdminLogin(event) {
   const username = String(formData.get("username") || "").trim();
   const password = String(formData.get("password") || "").trim();
   const busyLabel = translateRuntimeText("Entrando...");
-  uiSetBusyButton(adminLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
+  setBusyButton(adminLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
 
   try {
     const backend = await waitForFirebaseBackend();
@@ -510,7 +511,7 @@ async function handleAdminLogin(event) {
     adminLoginFeedback.hidden = false;
     showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion como administrador. Verifica credenciales, dominio autorizado y el perfil users/{uid}."), "error");
   } finally {
-    uiSetBusyButton(adminLoginSubmitButton, false, { busyLabel });
+    setBusyButton(adminLoginSubmitButton, false, { busyLabel });
   }
 }
 
@@ -535,7 +536,7 @@ async function handleCreateRestaurant(event) {
   event.preventDefault();
   const formData = new FormData(adminCreateRestaurantForm);
   const busyLabel = translateRuntimeText("Creando acceso...");
-  uiSetBusyButton(adminCreateRestaurantSubmitButton, true, { busyLabel: translateRuntimeText("Creando acceso...") });
+  setBusyButton(adminCreateRestaurantSubmitButton, true, { busyLabel: translateRuntimeText("Creando acceso...") });
 
   try {
     const backend = await waitForFirebaseBackend();
@@ -605,7 +606,7 @@ async function handleCreateRestaurant(event) {
     adminCreateFeedback.hidden = false;
     showTurnoAlert(message, "error");
   } finally {
-    uiSetBusyButton(adminCreateRestaurantSubmitButton, false, { busyLabel });
+    setBusyButton(adminCreateRestaurantSubmitButton, false, { busyLabel });
   }
 }
 
@@ -1186,7 +1187,7 @@ async function handleAdminAvatarSelection(event) {
 async function handleAdminProfileSubmit(event) {
   event.preventDefault();
   const busyLabel = translateRuntimeText("Guardando perfil...");
-  uiSetBusyButton(adminProfileSubmitButton, true, { busyLabel: translateRuntimeText("Guardando perfil...") });
+  setBusyButton(adminProfileSubmitButton, true, { busyLabel: translateRuntimeText("Guardando perfil...") });
 
   try {
     const backend = await waitForFirebaseBackend();
@@ -1218,14 +1219,14 @@ async function handleAdminProfileSubmit(event) {
     adminProfileFeedback.hidden = false;
     showTurnoAlert(translateRuntimeText("No se pudo guardar el perfil administrador."), "error");
   } finally {
-    uiSetBusyButton(adminProfileSubmitButton, false, { busyLabel });
+    setBusyButton(adminProfileSubmitButton, false, { busyLabel });
   }
 }
 
 async function handleCreateAdminAccount(event) {
   event.preventDefault();
   const busyLabel = translateRuntimeText("Creando admin...");
-  uiSetBusyButton(adminCreateAdminSubmitButton, true, { busyLabel: translateRuntimeText("Creando admin...") });
+  setBusyButton(adminCreateAdminSubmitButton, true, { busyLabel: translateRuntimeText("Creando admin...") });
 
   const formData = new FormData(adminCreateAdminForm);
   try {
@@ -1274,7 +1275,7 @@ async function handleCreateAdminAccount(event) {
     adminCreateAdminFeedback.hidden = false;
     showTurnoAlert(message, "error");
   } finally {
-    uiSetBusyButton(adminCreateAdminSubmitButton, false, { busyLabel });
+    setBusyButton(adminCreateAdminSubmitButton, false, { busyLabel });
   }
 }
 
@@ -2775,3 +2776,5 @@ function confirmRenewRestaurantPlan() {
   closeRenewPlanModal();
   renderAdminWorkspace();
 }
+
+})();

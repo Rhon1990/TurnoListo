@@ -1,5 +1,7 @@
 # TurnoListo demo
 
+Estado del proyecto: estable.
+
 La demo está separada en tres páginas:
 
 - `admin.html`: el administrador crea restaurantes y genera sus accesos
