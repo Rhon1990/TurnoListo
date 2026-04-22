@@ -25,6 +25,11 @@
     <div class="app-shell">
       <main class="grid grid--single">
         <section class="panel panel--client glass-card">
+          <div class="tl-busy-overlay client-panel-loading" id="clientPanelLoading" hidden aria-live="polite" role="status">
+            <span class="tl-spinner client-panel-loading__spinner" aria-hidden="true"></span>
+            <strong class="client-panel-loading__title" data-i18n-key="client.loading.title">Cargando tu pedido...</strong>
+            <span class="client-panel-loading__text" data-i18n-key="client.loading.text">Estamos preparando el seguimiento mas reciente.</span>
+          </div>
           <div class="hero-brand client-page-brand" id="clientBrand" hidden>
             <div class="hero-brand__logo-wrap client-page-brand__logo-wrap">
               <img class="hero-brand__logo" id="clientBrandLogo" alt="Logo del restaurante" />

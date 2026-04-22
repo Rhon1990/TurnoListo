@@ -1167,11 +1167,69 @@ body.celebration-active::after {
 }
 
 .panel--client {
+  position: relative;
   width: min(100%, 680px);
   margin: 0 auto;
   padding: 1rem;
   background: rgba(255, 251, 246, 0.78);
   overflow: hidden;
+}
+
+.tl-busy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(251, 245, 237, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.tl-spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 3px solid rgba(236, 124, 13, 0.18);
+  border-top-color: var(--brand);
+  animation: clientPanelLoadingSpin 780ms linear infinite;
+}
+
+.tl-busy-overlay .tl-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.tl-busy-button {
+  gap: 0.55rem;
+}
+
+.tl-busy-button.is-busy {
+  pointer-events: none;
+}
+
+.tl-busy-button__label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.client-panel-loading__spinner {
+  flex: 0 0 auto;
+}
+
+.client-panel-loading__title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.client-panel-loading__text {
+  max-width: 24ch;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .client-page-brand {
@@ -7155,6 +7213,16 @@ html.js-landing:not(.js-landing-reduced-motion) .market-shot--client {
     left: 0;
     right: 0;
     width: auto;
+  }
+}
+
+@keyframes clientPanelLoadingSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 

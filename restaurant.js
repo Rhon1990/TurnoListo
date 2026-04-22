@@ -5,6 +5,7 @@ const restaurantLoginFeedback = document.querySelector("#restaurantLoginFeedback
 const restaurantLoginUsername = document.querySelector("#restaurantLoginUsername");
 const restaurantLoginPassword = document.querySelector("#restaurantLoginPassword");
 const restaurantLoginTogglePassword = document.querySelector("#restaurantLoginTogglePassword");
+const restaurantLoginSubmitButton = restaurantLoginForm.querySelector('[type="submit"]');
 const restaurantHeroEyebrow = document.querySelector("#restaurantHeroEyebrow");
 const restaurantSessionLabel = document.querySelector("#restaurantSessionLabel");
 const restaurantAccountButton = document.querySelector("#restaurantAccountButton");
@@ -117,6 +118,7 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
 const dashboardHeroRating = document.querySelector("#dashboardHeroRating");
@@ -917,6 +919,7 @@ async function handleRestaurantLogin(event) {
   const formData = new FormData(restaurantLoginForm);
   const username = String(formData.get("username") || "");
   const password = String(formData.get("password") || "");
+  const busyLabel = translateRuntimeText("Entrando...");
   const knownRestaurant = loadRestaurants().find(
     (item) => normalizeRestaurantUsername(item.username) === normalizeRestaurantUsername(username),
   );
@@ -929,16 +932,18 @@ async function handleRestaurantLogin(event) {
     return;
   }
 
-  const backend = await waitForFirebaseBackend();
-  if (!backend?.enabled || typeof backend.signIn !== "function") {
-    restaurantLoginFeedback.textContent = translateRuntimeText("Firebase Authentication no está disponible en esta configuración.");
-    restaurantLoginFeedback.className = "form-feedback form-feedback--error";
-    restaurantLoginFeedback.hidden = false;
-    showTurnoAlert(translateRuntimeText("Firebase Authentication no esta disponible en esta configuracion."), "error");
-    return;
-  }
+  setBusyButton(restaurantLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
 
   try {
+    const backend = await waitForFirebaseBackend();
+    if (!backend?.enabled || typeof backend.signIn !== "function") {
+      restaurantLoginFeedback.textContent = translateRuntimeText("Firebase Authentication no está disponible en esta configuración.");
+      restaurantLoginFeedback.className = "form-feedback form-feedback--error";
+      restaurantLoginFeedback.hidden = false;
+      showTurnoAlert(translateRuntimeText("Firebase Authentication no esta disponible en esta configuracion."), "error");
+      return;
+    }
+
     await backend.signIn(username, password, { persistence: "local" });
     restaurantLoginForm.reset();
     restaurantLoginUsername.focus();
@@ -972,6 +977,8 @@ async function handleRestaurantLogin(event) {
     if (!isCredentialError) {
       showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion. Revisa credenciales, dominio autorizado y el perfil users/{uid}."), "error");
     }
+  } finally {
+    setBusyButton(restaurantLoginSubmitButton, false, { busyLabel });
   }
 }
 

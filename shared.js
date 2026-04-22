@@ -3612,6 +3612,59 @@ function showTurnoAlert(message, type = "error", options = {}) {
   }, timeoutMs);
 }
 
+function setBusyButton(button, isBusy, options = {}) {
+  if (!button) return;
+
+  const isPending = Boolean(isBusy);
+  const busyLabel = String(options.busyLabel || "").trim();
+
+  button.classList.add("tl-busy-button");
+  button.classList.toggle("is-busy", isPending);
+
+  if (isPending) {
+    if (!Object.prototype.hasOwnProperty.call(button.dataset, "tlBusyRestoreHtml")) {
+      button.dataset.tlBusyRestoreHtml = button.innerHTML;
+      button.dataset.tlBusyRestoreDisabled = button.disabled ? "true" : "false";
+    }
+
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    button.innerHTML = isPending
+      ? `<span class="tl-spinner" aria-hidden="true"></span><span class="tl-busy-button__label">${busyLabel}</span>`
+      : button.innerHTML;
+    return;
+  }
+
+  const restoreHtml = button.dataset.tlBusyRestoreHtml;
+  const restoreDisabled = button.dataset.tlBusyRestoreDisabled === "true";
+
+  if (typeof restoreHtml === "string") {
+    button.innerHTML = restoreHtml;
+  }
+
+  button.disabled = restoreDisabled;
+  button.removeAttribute("aria-busy");
+  button.classList.toggle("is-busy", isPending);
+  delete button.dataset.tlBusyRestoreHtml;
+  delete button.dataset.tlBusyRestoreDisabled;
+}
+
+function setBusyRegion(region, overlay, isBusy) {
+  const isPending = Boolean(isBusy);
+  if (overlay) {
+    overlay.hidden = !isPending;
+    overlay.setAttribute("aria-hidden", isPending ? "false" : "true");
+  }
+  if (region) {
+    region.setAttribute("aria-busy", isPending ? "true" : "false");
+  }
+}
+
+window.TurnoListoUiBusy = {
+  setBusyButton,
+  setBusyRegion,
+};
+
 function notifyFirebaseError(error, fallbackMessage) {
   const code = error?.code || "";
   const message = mapFirebaseErrorMessage(code, fallbackMessage);

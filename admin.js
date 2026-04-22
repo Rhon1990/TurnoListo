@@ -5,8 +5,10 @@ const adminLoginFeedback = document.querySelector("#adminLoginFeedback");
 const adminLoginUsername = adminLoginForm.querySelector('[name="username"]');
 const adminLoginPassword = document.querySelector("#adminLoginPassword");
 const adminLoginTogglePassword = document.querySelector("#adminLoginTogglePassword");
+const adminLoginSubmitButton = adminLoginForm.querySelector('[type="submit"]');
 const adminCreateRestaurantForm = document.querySelector("#adminCreateRestaurantForm");
 const adminCreateFeedback = document.querySelector("#adminCreateFeedback");
+const adminCreateRestaurantSubmitButton = adminCreateRestaurantForm.querySelector('[type="submit"]');
 const adminRestaurantLogoInput = document.querySelector("#adminRestaurantLogoInput");
 const adminRestaurantLogoFilename = document.querySelector("#adminRestaurantLogoFilename");
 const adminRestaurantLogoPreview = document.querySelector("#adminRestaurantLogoPreview");
@@ -96,6 +98,7 @@ const translateRuntimeKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatRuntimeKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setDynamicRuntimeAttribute = window.TurnoListoDom?.setDynamicAttribute;
 const setDynamicRuntimeText = window.TurnoListoDom?.setDynamicText;
 const adminActivatePlanBackdrop = document.querySelector("#adminActivatePlanBackdrop");
@@ -155,8 +158,10 @@ const adminProfileEmail = document.querySelector("#adminProfileEmail");
 const adminProfilePhone = document.querySelector("#adminProfilePhone");
 const adminProfileTitle = document.querySelector("#adminProfileTitle");
 const adminProfileFeedback = document.querySelector("#adminProfileFeedback");
+const adminProfileSubmitButton = adminProfileForm?.querySelector('[type="submit"]');
 const adminCreateAdminForm = document.querySelector("#adminCreateAdminForm");
 const adminCreateAdminFeedback = document.querySelector("#adminCreateAdminFeedback");
+const adminCreateAdminSubmitButton = adminCreateAdminForm?.querySelector('[type="submit"]');
 const adminCreateAdminPhone = document.querySelector("#adminCreateAdminPhoneFull");
 const adminCreateAdminPhoneField = document.querySelector("#adminCreateAdminPhoneField");
 const adminCreateAdminPhoneCountryTrigger = document.querySelector("#adminCreateAdminPhoneCountryTrigger");
@@ -480,16 +485,18 @@ async function handleAdminLogin(event) {
   const formData = new FormData(adminLoginForm);
   const username = String(formData.get("username") || "").trim();
   const password = String(formData.get("password") || "").trim();
-
-  const backend = await waitForFirebaseBackend();
-  if (!backend?.enabled || typeof backend.signIn !== "function") {
-    adminLoginFeedback.textContent = translateRuntimeText("Firebase Authentication no está disponible en esta configuración.");
-    adminLoginFeedback.className = "form-feedback form-feedback--error";
-    adminLoginFeedback.hidden = false;
-    return;
-  }
+  const busyLabel = translateRuntimeText("Entrando...");
+  setBusyButton(adminLoginSubmitButton, true, { busyLabel: translateRuntimeText("Entrando...") });
 
   try {
+    const backend = await waitForFirebaseBackend();
+    if (!backend?.enabled || typeof backend.signIn !== "function") {
+      adminLoginFeedback.textContent = translateRuntimeText("Firebase Authentication no está disponible en esta configuración.");
+      adminLoginFeedback.className = "form-feedback form-feedback--error";
+      adminLoginFeedback.hidden = false;
+      return;
+    }
+
     await backend.signIn(username, password);
     adminLoginForm.reset();
     adminLoginFeedback.hidden = true;
@@ -500,6 +507,8 @@ async function handleAdminLogin(event) {
     adminLoginFeedback.className = "form-feedback form-feedback--error";
     adminLoginFeedback.hidden = false;
     showTurnoAlert(translateRuntimeText("No se pudo iniciar sesion como administrador. Verifica credenciales, dominio autorizado y el perfil users/{uid}."), "error");
+  } finally {
+    setBusyButton(adminLoginSubmitButton, false, { busyLabel });
   }
 }
 
@@ -523,17 +532,19 @@ async function handleAdminLogout() {
 async function handleCreateRestaurant(event) {
   event.preventDefault();
   const formData = new FormData(adminCreateRestaurantForm);
-  const backend = await waitForFirebaseBackend();
-
-  if (!backend?.enabled || typeof backend.createRestaurantAccount !== "function") {
-    adminCreateFeedback.textContent = translateRuntimeText("La automatizacion del alta no esta disponible. Revisa Firebase Functions.");
-    adminCreateFeedback.className = "form-feedback form-feedback--error";
-    adminCreateFeedback.hidden = false;
-    showTurnoAlert(translateRuntimeText("La automatizacion del alta no esta disponible. Revisa Firebase Functions."), "error");
-    return;
-  }
+  const busyLabel = translateRuntimeText("Creando acceso...");
+  setBusyButton(adminCreateRestaurantSubmitButton, true, { busyLabel: translateRuntimeText("Creando acceso...") });
 
   try {
+    const backend = await waitForFirebaseBackend();
+    if (!backend?.enabled || typeof backend.createRestaurantAccount !== "function") {
+      adminCreateFeedback.textContent = translateRuntimeText("La automatizacion del alta no esta disponible. Revisa Firebase Functions.");
+      adminCreateFeedback.className = "form-feedback form-feedback--error";
+      adminCreateFeedback.hidden = false;
+      showTurnoAlert(translateRuntimeText("La automatizacion del alta no esta disponible. Revisa Firebase Functions."), "error");
+      return;
+    }
+
     const phoneValidation = validateAdminPhoneNumber({ report: true });
     if (!phoneValidation.valid) {
       adminRestaurantPhoneLocal?.focus();
@@ -591,6 +602,8 @@ async function handleCreateRestaurant(event) {
     adminCreateFeedback.className = "form-feedback form-feedback--error";
     adminCreateFeedback.hidden = false;
     showTurnoAlert(message, "error");
+  } finally {
+    setBusyButton(adminCreateRestaurantSubmitButton, false, { busyLabel });
   }
 }
 
@@ -1170,15 +1183,18 @@ async function handleAdminAvatarSelection(event) {
 
 async function handleAdminProfileSubmit(event) {
   event.preventDefault();
-  const backend = await waitForFirebaseBackend();
-  if (!backend?.enabled || typeof backend.updateCurrentAdminProfile !== "function") {
-    adminProfileFeedback.textContent = translateRuntimeText("No se pudo guardar el perfil admin en esta configuración.");
-    adminProfileFeedback.className = "form-feedback form-feedback--error";
-    adminProfileFeedback.hidden = false;
-    return;
-  }
+  const busyLabel = translateRuntimeText("Guardando perfil...");
+  setBusyButton(adminProfileSubmitButton, true, { busyLabel: translateRuntimeText("Guardando perfil...") });
 
   try {
+    const backend = await waitForFirebaseBackend();
+    if (!backend?.enabled || typeof backend.updateCurrentAdminProfile !== "function") {
+      adminProfileFeedback.textContent = translateRuntimeText("No se pudo guardar el perfil admin en esta configuración.");
+      adminProfileFeedback.className = "form-feedback form-feedback--error";
+      adminProfileFeedback.hidden = false;
+      return;
+    }
+
     await backend.updateCurrentAdminProfile({
       displayName: adminProfileDisplayName?.value || "",
       phone: adminProfilePhone?.value || "",
@@ -1199,29 +1215,35 @@ async function handleAdminProfileSubmit(event) {
     adminProfileFeedback.className = "form-feedback form-feedback--error";
     adminProfileFeedback.hidden = false;
     showTurnoAlert(translateRuntimeText("No se pudo guardar el perfil administrador."), "error");
+  } finally {
+    setBusyButton(adminProfileSubmitButton, false, { busyLabel });
   }
 }
 
 async function handleCreateAdminAccount(event) {
   event.preventDefault();
-  const backend = await waitForFirebaseBackend();
-  if (!backend?.enabled || typeof backend.createAdminAccount !== "function") {
-    adminCreateAdminFeedback.textContent = translateRuntimeText("No se pudo crear el usuario administrador en esta configuración.");
-    adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
-    adminCreateAdminFeedback.hidden = false;
-    return;
-  }
+  const busyLabel = translateRuntimeText("Creando admin...");
+  setBusyButton(adminCreateAdminSubmitButton, true, { busyLabel: translateRuntimeText("Creando admin...") });
 
   const formData = new FormData(adminCreateAdminForm);
-  const phoneValidation = validateAdminCreateAdminPhoneNumber({ report: true });
-  if (!phoneValidation.valid) {
-    adminCreateAdminFeedback.textContent = phoneValidation.message;
-    adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
-    adminCreateAdminFeedback.hidden = false;
-    showTurnoAlert(phoneValidation.message, "error");
-    return;
-  }
   try {
+    const backend = await waitForFirebaseBackend();
+    if (!backend?.enabled || typeof backend.createAdminAccount !== "function") {
+      adminCreateAdminFeedback.textContent = translateRuntimeText("No se pudo crear el usuario administrador en esta configuración.");
+      adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
+      adminCreateAdminFeedback.hidden = false;
+      return;
+    }
+
+    const phoneValidation = validateAdminCreateAdminPhoneNumber({ report: true });
+    if (!phoneValidation.valid) {
+      adminCreateAdminFeedback.textContent = phoneValidation.message;
+      adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
+      adminCreateAdminFeedback.hidden = false;
+      showTurnoAlert(phoneValidation.message, "error");
+      return;
+    }
+
     const result = await backend.createAdminAccount({
       displayName: formData.get("displayName"),
       email: formData.get("email"),
@@ -1249,6 +1271,8 @@ async function handleCreateAdminAccount(event) {
     adminCreateAdminFeedback.className = "form-feedback form-feedback--error";
     adminCreateAdminFeedback.hidden = false;
     showTurnoAlert(message, "error");
+  } finally {
+    setBusyButton(adminCreateAdminSubmitButton, false, { busyLabel });
   }
 }
 

@@ -14,6 +14,7 @@ const queueCount = document.querySelector("#clientQueueCount");
 const metaStrip = document.querySelector("#clientMetaStrip");
 const etaValue = document.querySelector("#clientEtaValue");
 const etaStat = document.querySelector("#clientEtaStat");
+const clientPanelLoading = document.querySelector("#clientPanelLoading");
 const clientBrand = document.querySelector("#clientBrand");
 const clientBrandLogo = document.querySelector("#clientBrandLogo");
 const clientBrandLogoWrap = clientBrandLogo?.parentElement || null;
@@ -105,6 +106,8 @@ const translateKey = (key, fallback = "") =>
   window.TurnoListoI18n?.translateKey ? window.TurnoListoI18n.translateKey(key, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
 const formatKey = (key, params = {}, fallback = "") =>
   window.TurnoListoI18n?.formatKey ? window.TurnoListoI18n.formatKey(key, params, window.TurnoListoI18n.getLanguage?.(), fallback) : fallback;
+const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
+const setBusyRegion = window.TurnoListoUiBusy?.setBusyRegion;
 
 function translateBuiltInOrderText(value) {
   const normalized = String(value || "").trim();
@@ -203,21 +206,45 @@ enableAlertsButton.addEventListener("click", handleEnableAlerts);
 iosInstallButton.addEventListener("click", toggleIosInstallSteps);
 copyLinkButton.addEventListener("click", handleCopyCurrentOrderLink);
 
-async function initializeClientView() {
-  await waitForDataReady();
-
-  if (String(window.__turnoDataBackendMode || "").startsWith("firebase")) {
-    await refreshPublicTrackingFromBackend(selectedOrderId);
-  }
-
-  renderClient();
+function setClientOrderLookupPending(isPending) {
+  setBusyButton(loadButton, isPending, { busyLabel: translateKey("client.dynamic.order.loading", "Buscando...") });
 }
 
-function setClientOrderLookupPending(isPending) {
-  loadButton.disabled = isPending;
-  loadButton.textContent = isPending
-    ? translateKey("client.dynamic.order.loading", "Buscando...")
-    : translateKey("client.tools.load", "Abrir");
+function setClientOrderHydrationPending(isPending) {
+  setBusyRegion(clientTicket, clientPanelLoading, isPending);
+}
+
+async function hydrateClientOrderIfNeeded(orderId, { showLoading = false } = {}) {
+  const normalizedOrderId = normalizePublicTrackingToken(orderId);
+  let order = getPublicOrderByPublicId(normalizedOrderId);
+
+  if (order) {
+    return { order, found: true, requested: false };
+  }
+
+  if (!normalizedOrderId || !String(window.__turnoDataBackendMode || "").startsWith("firebase")) {
+    return { order: null, found: false, requested: false };
+  }
+
+  if (showLoading) {
+    setClientOrderHydrationPending(true);
+  }
+
+  try {
+    await refreshPublicTrackingFromBackend(normalizedOrderId);
+    order = getPublicOrderByPublicId(normalizedOrderId);
+    return { order, found: Boolean(order), requested: true };
+  } finally {
+    if (showLoading) {
+      setClientOrderHydrationPending(false);
+    }
+  }
+}
+
+async function initializeClientView() {
+  await waitForDataReady();
+  await hydrateClientOrderIfNeeded(selectedOrderId, { showLoading: true });
+  renderClient();
 }
 
 function renderClient() {
@@ -313,12 +340,13 @@ function maybeSendNotification(order) {
 async function handleLoadOrder() {
   const nextId = orderInput.value.trim().toUpperCase();
   let order = getPublicOrderByPublicId(nextId);
+  const shouldHydrateOrder = !order && Boolean(nextId) && String(window.__turnoDataBackendMode || "").startsWith("firebase");
 
-  if (!order && String(window.__turnoDataBackendMode || "").startsWith("firebase")) {
+  if (shouldHydrateOrder) {
     setClientOrderLookupPending(true);
     try {
-      await refreshPublicTrackingFromBackend(nextId);
-      order = getPublicOrderByPublicId(nextId);
+      const hydrationResult = await hydrateClientOrderIfNeeded(nextId, { showLoading: true });
+      order = hydrationResult.order;
     } finally {
       setClientOrderLookupPending(false);
     }
@@ -765,6 +793,7 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
 }
 
 function renderAlertsBanner() {
+  const alertsBusyLabel = translateKey("client.dynamic.alerts.activating", "Activando...");
   const alertLocked = ["ready", "delivered", "cancelled"].includes(currentOrder?.status || "");
   const hasNotificationApi = typeof Notification !== "undefined";
   const hasGrantedNotificationPermission = hasNotificationApi && Notification.permission === "granted";
@@ -780,7 +809,7 @@ function renderAlertsBanner() {
       : translateKey("client.dynamic.alerts.confirmation.ready", "Tienes las notificaciones activadas.");
 
   if (alertsBanner.hidden) {
-    enableAlertsButton.classList.remove("is-pending");
+    setBusyButton(enableAlertsButton, false, { busyLabel: alertsBusyLabel });
     enableAlertsButton.classList.remove("is-success");
     return;
   }
@@ -797,12 +826,12 @@ function renderAlertsBanner() {
           "client.dynamic.alerts.pending.setup",
           "Estamos terminando de activar las notificaciones en este dispositivo.",
         );
-    enableAlertsButton.disabled = true;
-    enableAlertsButton.textContent = translateKey("client.dynamic.alerts.activating", "Activando...");
+    setBusyButton(enableAlertsButton, true, { busyLabel: alertsBusyLabel });
     enableAlertsButton.classList.remove("is-success");
-    enableAlertsButton.classList.add("is-pending");
     return;
   }
+
+  setBusyButton(enableAlertsButton, false, { busyLabel: alertsBusyLabel });
 
   if (alertsActive) {
     alertsTitle.textContent = translateKey("client.dynamic.alerts.enabled.title", "Avisos activados.");
@@ -811,7 +840,6 @@ function renderAlertsBanner() {
       : getDefaultAlertsCopy({ pageWord: "pagina" });
     enableAlertsButton.textContent = translateKey("client.dynamic.alerts.button.enabled", "Avisos activados");
     enableAlertsButton.disabled = true;
-    enableAlertsButton.classList.remove("is-pending");
     enableAlertsButton.classList.add("is-success");
     return;
   }
@@ -839,7 +867,6 @@ function renderAlertsBanner() {
     enableAlertsButton.textContent = translateKey("client.alerts.button", "Activar avisos");
     enableAlertsButton.disabled = alertLocked;
   }
-  enableAlertsButton.classList.remove("is-pending");
   enableAlertsButton.classList.remove("is-success");
 }
 
@@ -1089,12 +1116,21 @@ function renderCommentPrompt(order) {
     commentInput.value = order.rating?.comment || "";
   }
   commentInput.disabled = hasSubmittedComment;
-  commentSaveButton.disabled = hasSubmittedComment || !pendingLowRatingScore || isSubmittingComment;
-  commentSaveButton.textContent = hasSubmittedComment
-    ? translateKey("client.dynamic.comment.sent", "Comentario enviado")
-    : isSubmittingComment
-      ? translateKey("client.dynamic.comment.sending", "Enviando...")
+
+  if (isSubmittingComment) {
+    setBusyButton(commentSaveButton, isSubmittingComment, {
+      busyLabel: translateKey("client.dynamic.comment.sending", "Enviando..."),
+    });
+  } else {
+    setBusyButton(commentSaveButton, isSubmittingComment, {
+      busyLabel: translateKey("client.dynamic.comment.sending", "Enviando..."),
+    });
+    commentSaveButton.disabled = hasSubmittedComment || !pendingLowRatingScore;
+    commentSaveButton.textContent = hasSubmittedComment
+      ? translateKey("client.dynamic.comment.sent", "Comentario enviado")
       : translateKey("client.dynamic.comment.button", "Enviar comentario");
+  }
+
   commentSaveButton.classList.toggle("is-success", hasSubmittedComment);
   commentSentMessage.hidden = !hasSubmittedComment;
 }
