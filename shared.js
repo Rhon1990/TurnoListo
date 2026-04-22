@@ -2798,6 +2798,7 @@ function getDashboardStats(options = {}) {
   const cancelledOrders = cancelledMilestoneOrders.filter((order) => order.status === "cancelled");
   const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
   const progressOrders = restaurantOrders.filter((order) => !order.archivedAt && ["received", "preparing", "ready"].includes(order.status));
+  const progressTodayOrders = filterOrdersByDashboardPeriod(progressOrders, period);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
   const ratedOrders = filterOrdersByDashboardPeriod(
     restaurantOrders.filter((order) => order.rating && order.rating.score),
@@ -2982,7 +2983,8 @@ function getDashboardStats(options = {}) {
     periodScopeLabel: periodMeta.scopeLabel,
     periodResultsLabel: periodMeta.resultsLabel,
     totalToday: periodOrders.length,
-    uniqueOperationalTodayCount: getUniqueOperationalTodayCount({ progressOrders, deliveredOrders, archivedOrders }),
+    uniqueOperationalTodayCount: getUniqueOperationalTodayCount({ progressOrders: progressTodayOrders, deliveredOrders, archivedOrders }),
+    progressToday: progressTodayOrders.length,
     activeNow: activeOrders.length,
     readyNow: activeOrders.filter((order) => order.status === "ready").length,
     readyInPeriod: readyMilestoneOrders.length,

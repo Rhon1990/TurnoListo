@@ -20,8 +20,10 @@ const restaurantHeroMetricLabel = document.querySelector("#restaurantHeroMetricL
 const restaurantHeroMetricValue = document.querySelector("#restaurantHeroMetricValue");
 const restaurantHeroMetricHint = document.querySelector("#restaurantHeroMetricHint");
 const restaurantTotalTodayChip = document.querySelector("#restaurantTotalTodayChip");
+const restaurantInProgressTodayChip = document.querySelector("#restaurantInProgressTodayChip");
 const restaurantDeliveredTodayChip = document.querySelector("#restaurantDeliveredTodayChip");
 const restaurantCancelledTodayChip = document.querySelector("#restaurantCancelledTodayChip");
+const restaurantArchivedTodayChip = document.querySelector("#restaurantArchivedTodayChip");
 const restaurantHistoryQuickFilters = document.querySelectorAll("[data-restaurant-history-filter]");
 const restaurantSpotlightTitle = document.querySelector("#restaurantSpotlightTitle");
 const restaurantSpotlightBody = document.querySelector("#restaurantSpotlightBody");
@@ -159,6 +161,7 @@ let editingOrderId = null;
 let pendingCancelOrderId = null;
 let pendingCancelOrderLabel = "";
 let activeSection = "orders";
+let activeOrdersScope = "all";
 let lastRenderedRestaurantId = "";
 let lastDashboardStats = null;
 let restaurantAuthRequestToken = 0;
@@ -231,13 +234,13 @@ restaurantProfileForm?.addEventListener("submit", handleRestaurantProfileSubmit)
 restaurantProfileLogoInput?.addEventListener("change", handleRestaurantProfileLogoSelection);
 restaurantHistoryQuickFilters.forEach((button) => {
   button.addEventListener("click", () => {
-    if (button === restaurantTotalTodayChip) return;
     activeArchivedPeriod = "day";
     if (archivedPeriodFilter) archivedPeriodFilter.value = activeArchivedPeriod;
     window.localStorage.setItem("turnolisto-restaurant-archived-period", activeArchivedPeriod);
     goToHistoryView({ status: button.dataset.restaurantHistoryFilter || "all", rating: "all", search: "" });
   });
 });
+restaurantInProgressTodayChip?.addEventListener("click", () => goToOrdersView({ status: "all", priority: "all", search: "", scope: "today" }));
 window.addEventListener("click", handleRestaurantAccountOutsideClick);
 window.addEventListener("turnolisto:language-change", () => {
   window.requestAnimationFrame(() => {
@@ -470,8 +473,10 @@ function renderRestaurant() {
   renderRestaurantCreateHints(restaurant, allOrders);
   renderRestaurantPlaybook(restaurant, allOrders);
   restaurantTotalTodayChip.textContent = translateRuntimeText(`${quickStats.uniqueOperationalTodayCount} total hoy`);
+  restaurantInProgressTodayChip.textContent = translateRuntimeText(`${quickStats.progressToday} en progreso hoy`);
   restaurantDeliveredTodayChip.textContent = translateRuntimeText(`${quickStats.deliveredToday} entregados hoy`);
   restaurantCancelledTodayChip.textContent = translateRuntimeText(`${quickStats.cancelledToday} cancelados hoy`);
+  restaurantArchivedTodayChip.textContent = translateRuntimeText(`${quickStats.archivedToday} archivados hoy`);
   syncRestaurantHistoryQuickFilters();
   syncRestaurantDisplayMode();
   renderFocusStrip(orders);
@@ -1198,11 +1203,13 @@ function handleRestaurantAccountOutsideClick(event) {
 
 function setActiveSection(section) {
   activeSection = section;
+  activeOrdersScope = "all";
   syncSectionView();
 }
 
-function goToOrdersView({ status = "all", priority = "all", search = "" }) {
+function goToOrdersView({ status = "all", priority = "all", search = "", scope = "all" }) {
   activeSection = "orders";
+  activeOrdersScope = scope;
   activeStatusFilter.value = status;
   activePriorityFilter.value = priority;
   activeSearchInput.value = search;
@@ -1211,6 +1218,7 @@ function goToOrdersView({ status = "all", priority = "all", search = "" }) {
 
 function goToHistoryView({ status = "all", rating = "all", search = "" }) {
   activeSection = "history";
+  activeOrdersScope = "all";
   archivedStatusFilter.value = status;
   archivedRatingFilter.value = rating;
   archivedSearchInput.value = search;
@@ -1223,6 +1231,7 @@ function syncRestaurantHistoryQuickFilters() {
     const matchesStatus = (button.dataset.restaurantHistoryFilter || "all") === String(archivedStatusFilter?.value || "all");
     button.classList.toggle("is-active", isTodayHistory && matchesStatus);
   });
+  restaurantInProgressTodayChip?.classList.toggle("is-active", activeSection === "orders" && activeOrdersScope === "today");
 }
 
 function focusSlowestOrder() {
@@ -1558,6 +1567,8 @@ function matchesActiveFilters(order) {
   const priority = activePriorityFilter.value || "all";
   const orderTone = getElapsedOrderTone(order);
   const urgencyLevel = getOrderUrgencyLevel(order);
+
+  if (activeOrdersScope === "today" && !isWithinDashboardPeriod(order.createdAt, "day")) return false;
 
   if (search) {
     const haystack = [

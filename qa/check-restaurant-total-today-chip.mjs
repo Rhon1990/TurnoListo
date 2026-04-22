@@ -44,6 +44,12 @@ assert.match(
   "El chip total hoy debe mantenerse como boton, pero deshabilitado para que no sugiera navegacion."
 );
 
+assert.match(
+  restaurantHtml,
+  /id="restaurantTotalTodayChip"[\s\S]*id="restaurantInProgressTodayChip"[\s\S]*id="restaurantDeliveredTodayChip"[\s\S]*id="restaurantCancelledTodayChip"[\s\S]*id="restaurantArchivedTodayChip"/,
+  "Los chips del resumen deben ordenarse como total, en progreso, entregados, cancelados y archivados."
+);
+
 assert.doesNotMatch(
   restaurantHtml,
   /id="restaurantTotalTodayChip"[^>]*data-restaurant-history-filter=/,
@@ -72,6 +78,36 @@ assert.match(
   restaurantJs,
   /goToHistoryView\(\{ status: button\.dataset\.restaurantHistoryFilter \|\| "all", rating: "all", search: "" \}\);/,
   "Los demas chips deben conservar la redireccion actual a archivados."
+);
+
+assert.match(
+  restaurantJs,
+  /restaurantInProgressTodayChip\?\.addEventListener\("click", \(\) => goToOrdersView\(\{ status: "all", priority: "all", search: "", scope: "today" \}\)\);/,
+  "El chip en progreso hoy debe llevar a pedidos activos del dia."
+);
+
+assert.match(
+  restaurantJs,
+  /restaurantInProgressTodayChip\.textContent = translateRuntimeText\(`\$\{quickStats\.progressToday\} en progreso hoy`\);/,
+  "El resumen debe mostrar el conteo de pedidos en progreso del dia."
+);
+
+assert.match(
+  restaurantJs,
+  /restaurantArchivedTodayChip\.textContent = translateRuntimeText\(`\$\{quickStats\.archivedToday\} archivados hoy`\);/,
+  "El resumen debe mostrar tambien el conteo de archivados del dia."
+);
+
+assert.match(
+  sharedJs,
+  /progressToday:\s*progressTodayOrders\.length,/,
+  "El dashboard debe exponer el total de pedidos en progreso dentro del periodo actual."
+);
+
+assert.match(
+  sharedJs,
+  /uniqueOperationalTodayCount:\s*getUniqueOperationalTodayCount\(\{ progressOrders: progressTodayOrders, deliveredOrders, archivedOrders \}\),/,
+  "El total unico de hoy debe deduplicar usando solo progresos del periodo."
 );
 
 console.log("Restaurant total today chip check passed.");
