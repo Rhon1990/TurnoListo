@@ -2003,13 +2003,6 @@ function syncAdaptiveModelSummariesFromOrders(orders, currentRestaurants = loadR
       aiModelSummary: nextSummary,
     };
 
-    if (firebaseBackend?.enabled && typeof firebaseBackend.setDocument === "function") {
-      firebaseBackend.setDocument(FIREBASE_RESTAURANTS_COLLECTION, restaurant.id, nextRestaurant).catch((error) => {
-        console.error("No se pudo guardar el resumen IA del restaurante en Firebase.", error);
-        notifyFirebaseError(error, "No se pudo actualizar el resumen IA del restaurante.");
-      });
-    }
-
     return nextRestaurant;
   });
 

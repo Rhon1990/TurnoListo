@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { HttpsError, onCall } = require("firebase-functions/https");
-const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 
 admin.initializeApp();
 
@@ -972,7 +972,7 @@ exports.notifyClientOrderReady = onDocumentUpdated("orders/{orderId}", async (ev
   };
 });
 
-exports.syncRestaurantAiModelSummary = onDocumentUpdated("orders/{orderId}", async (event) => {
+exports.syncRestaurantAiModelSummary = onDocumentWritten("orders/{orderId}", async (event) => {
   const before = event.data?.before?.data() || null;
   const after = event.data?.after?.data() || null;
   const restaurantId = trimValue(after?.restaurantId || before?.restaurantId);
