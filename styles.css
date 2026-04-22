@@ -2760,11 +2760,13 @@ button:hover,
 }
 
 .progress {
+  --progress-step-gap: 0.4rem;
   margin: 1.15rem 0 1rem;
 }
 
 .progress__bar {
   position: relative;
+  margin-inline: calc(12.5% - (var(--progress-step-gap) * 3 / 8));
   height: 0.75rem;
   border-radius: 999px;
   background: rgba(29, 26, 22, 0.08);
@@ -2783,7 +2785,7 @@ button:hover,
 .progress-steps {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.4rem;
+  gap: var(--progress-step-gap);
   margin-top: 0.7rem;
 }
 
@@ -6327,9 +6329,12 @@ button:hover,
     padding: 0.65rem 0;
   }
 
+  .progress {
+    --progress-step-gap: 0.25rem;
+  }
+
   .progress-steps {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.25rem;
     align-items: start;
   }
 
