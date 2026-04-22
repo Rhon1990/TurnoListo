@@ -954,6 +954,26 @@ body.celebration-active::after {
   box-shadow: 0 12px 24px rgba(236, 124, 13, 0.18);
 }
 
+.panel__heading-copy--restaurant-summary {
+  gap: 0.85rem;
+}
+
+.admin-inbox-quick-filters--restaurant-summary {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  justify-content: start;
+  width: 100%;
+  max-width: 34rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.admin-inbox-quick-filters--restaurant-summary .admin-inbox-quick-filter {
+  white-space: nowrap;
+}
+
 .admin-inbox-list {
   display: grid;
   gap: 1rem;
