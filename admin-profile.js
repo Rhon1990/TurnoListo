@@ -192,7 +192,8 @@ function initializeAdminProfileAuth() {
         return;
       }
 
-      const profile = buildAdminProfileViewModel(storedProfile, user);
+      const currentProfile = await completeCurrentAdminInitialAccessIfPending(storedProfile);
+      const profile = buildAdminProfileViewModel(currentProfile, user);
 
       initializeAdminInbox();
       renderAdminAccount(profile);
@@ -593,6 +594,45 @@ function getAdminUserById(userId) {
   return adminUsers.find((user) => String(user?.id || user?.uid || "").trim() === normalizedId) || null;
 }
 
+async function ensureAdminAccessLinkForEmail(user) {
+  const adminUser = user && typeof user === "object" ? { ...user } : null;
+  if (!adminUser?.email || !adminUser?.id) {
+    return adminUser;
+  }
+
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.createAdminAccessLink !== "function") {
+    return {
+      ...adminUser,
+      accessLink: "",
+      accessLinkAvailable: false,
+      accessLinkReason: "unavailable",
+    };
+  }
+
+  try {
+    const result = await backend.createAdminAccessLink({
+      adminUserId: adminUser.id,
+      appUrl: buildAdminAccessUrl(),
+    });
+
+    return {
+      ...adminUser,
+      accessLink: String(result?.accessLink || "").trim(),
+      accessLinkAvailable: result?.available === true,
+      accessLinkReason: String(result?.reason || "").trim(),
+    };
+  } catch (error) {
+    console.error("No se pudo preparar el enlace de acceso del administrador.", error);
+    return {
+      ...adminUser,
+      accessLink: "",
+      accessLinkAvailable: false,
+      accessLinkReason: "error",
+    };
+  }
+}
+
 function getAdminUserEmailTemplateDefinitions(user) {
   return [
     { key: "access", label: "Acceso" },
@@ -600,29 +640,41 @@ function getAdminUserEmailTemplateDefinitions(user) {
   ];
 }
 
-function buildAdminUserAccessEmail(user, options = {}) {
+async function buildAdminUserAccessEmail(user, options = {}) {
+  const emailAdminUser = await ensureAdminAccessLinkForEmail(user);
   const accessUrl = String(options.accessUrl || "./admin.html").trim() || "./admin.html";
-  const recipientName = String(user?.displayName || user?.email || "equipo admin").trim();
+  const recipientName = String(emailAdminUser?.displayName || emailAdminUser?.email || "equipo admin").trim();
+  const accessLink =
+    emailAdminUser?.accessLink ||
+    "Este administrador ya gestiona su acceso sin reenviar enlaces desde plantillas internas.";
   const subject = `Acceso admin TurnoListo - ${recipientName}`;
   const body = [
     `Hola ${recipientName},`,
     "",
     "Te compartimos los datos base para entrar al panel administrador de TurnoListo.",
     "",
-    `Correo de acceso: ${user.email || "Sin correo"}`,
+    `Correo de acceso: ${emailAdminUser?.email || "Sin correo"}`,
     `Panel administrador: ${accessUrl}`,
     "",
-    "La contrasena se gestiona solo desde tu propia cuenta.",
-    "Por seguridad, ningun administrador puede definir o cambiar la contrasena de otro.",
+    emailAdminUser?.accessLinkAvailable
+      ? "Define tu contrasena desde este enlace seguro:"
+      : "Estado del acceso inicial:",
+    accessLink,
+    "",
+    emailAdminUser?.accessLinkReason === "oldest-admin"
+      ? "Esta cuenta conserva su gestion de acceso sin reenviar enlaces internos."
+      : emailAdminUser?.accessLinkReason === "initial-access-completed"
+        ? "Este administrador ya completó su acceso inicial y debe gestionar su cuenta desde su propia sesión."
+        : "La contrasena se gestiona solo desde tu propia cuenta.",
     "",
     "Si necesitas soporte con tu acceso, responde a este mensaje y coordinamos el siguiente paso contigo.",
   ].join("\n");
 
   return {
-    to: user.email || "",
+    to: emailAdminUser?.email || "",
     subject,
     body,
-    href: `mailto:${encodeURIComponent(user.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    href: `mailto:${encodeURIComponent(emailAdminUser?.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
   };
 }
 
@@ -652,7 +704,7 @@ function buildAdminUserOnboardingEmail(user, options = {}) {
   };
 }
 
-function buildAdminUserEmailDraft(kind, user) {
+async function buildAdminUserEmailDraft(kind, user) {
   if (!user?.email) return null;
   const accessUrl = buildAdminAccessUrl();
 
@@ -709,7 +761,7 @@ async function selectAdminUserTemplate(templateKey) {
   adminUserTemplateSubject.textContent = "-";
   adminUserTemplateTo.textContent = user.email || "-";
 
-  const draft = buildAdminUserEmailDraft(templateKey, user);
+  const draft = await buildAdminUserEmailDraft(templateKey, user);
   if (!draft) {
     activeAdminUserTemplateDraft = null;
     adminUserTemplateSubject.textContent = "No disponible";

@@ -8,6 +8,8 @@ const qaDir = path.dirname(currentFile);
 const projectRoot = path.resolve(qaDir, "..");
 const adminProfileHtml = readFileSync(path.join(projectRoot, "admin-profile.html"), "utf8");
 const adminProfileJs = readFileSync(path.join(projectRoot, "admin-profile.js"), "utf8");
+const sharedJs = readFileSync(path.join(projectRoot, "shared.js"), "utf8");
+const functionsIndexJs = readFileSync(path.join(projectRoot, "functions", "index.js"), "utf8");
 const stylesCss = readFileSync(path.join(projectRoot, "styles.css"), "utf8");
 
 assert.match(
@@ -32,6 +34,36 @@ assert.match(
   adminProfileJs,
   /La contrasena se gestiona solo desde tu propia cuenta\./,
   "Las plantillas de admins deben dejar explícito que la contrasena no se gestiona entre administradores."
+);
+
+assert.match(
+  functionsIndexJs,
+  /initialAccessPending:\s*true/,
+  "El alta de administradores debe marcar el acceso inicial como pendiente para controlar cuándo puede mostrarse el accessLink."
+);
+
+assert.match(
+  functionsIndexJs,
+  /exports\.createAdminAccessLink = onCall/,
+  "El backend debe poder generar accessLink de admins bajo reglas controladas, igual que ya hace con restaurantes."
+);
+
+assert.match(
+  functionsIndexJs,
+  /reason:\s*"oldest-admin"/,
+  "La function de accessLink admin debe identificar y bloquear al administrador más antiguo según createdAt."
+);
+
+assert.match(
+  sharedJs,
+  /function completeCurrentAdminInitialAccessIfPending\(profile\)/,
+  "El acceso inicial pendiente debe cerrarse automáticamente cuando el propio admin entra por primera vez."
+);
+
+assert.match(
+  adminProfileJs,
+  /Este administrador ya gestiona su acceso sin reenviar enlaces desde plantillas internas\./,
+  "La plantilla de acceso debe omitir el link del admin más antiguo y mostrar un mensaje seguro en su lugar."
 );
 
 assert.match(

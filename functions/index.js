@@ -403,6 +403,34 @@ async function assertAdmin(authUid) {
   }
 }
 
+function resolveAdminSnapshotCreatedAt(snapshot) {
+  const createdAt = snapshot?.data?.()?.createdAt;
+  const parsedCreatedAt = new Date(createdAt || "").getTime();
+  if (Number.isFinite(parsedCreatedAt)) {
+    return parsedCreatedAt;
+  }
+
+  const fallbackCreatedAt = snapshot?.createTime?.toMillis?.();
+  if (Number.isFinite(fallbackCreatedAt)) {
+    return fallbackCreatedAt;
+  }
+
+  return Number.POSITIVE_INFINITY;
+}
+
+async function findOldestAdminUserId() {
+  const adminSnapshots = await firestore.collection("users").where("role", "==", "admin").get();
+  if (adminSnapshots.empty) return "";
+
+  return [...adminSnapshots.docs]
+    .sort((left, right) => {
+      const createdAtDiff = resolveAdminSnapshotCreatedAt(left) - resolveAdminSnapshotCreatedAt(right);
+      if (createdAtDiff !== 0) return createdAtDiff;
+      return String(left.id).localeCompare(String(right.id));
+    })[0]
+    ?.id;
+}
+
 exports.createRestaurantAccount = onCall(async (request) => {
   const authUid = request.auth?.uid || null;
   await assertAdmin(authUid);
@@ -652,6 +680,7 @@ exports.createAdminAccount = onCall(async (request) => {
       title,
       avatarUrl,
       createdAt: nowIso,
+      initialAccessPending: true,
       updatedAt: nowIso,
     });
   } catch (error) {
@@ -680,7 +709,120 @@ exports.createAdminAccount = onCall(async (request) => {
       phone,
       title,
       avatarUrl,
+      initialAccessPending: true,
     },
+    accessLink,
+  };
+});
+
+exports.completeCurrentAdminInitialAccess = onCall(async (request) => {
+  const authUid = request.auth?.uid || null;
+  await assertAdmin(authUid);
+
+  const profileRef = firestore.collection("users").doc(authUid);
+  const profileSnapshot = await profileRef.get();
+  if (!profileSnapshot.exists) {
+    throw new HttpsError("not-found", "No se encontró el perfil admin actual.");
+  }
+
+  const profile = profileSnapshot.data() || {};
+  if (profile.initialAccessPending !== true) {
+    return {
+      ok: true,
+      profile: {
+        id: profileSnapshot.id,
+        ...profile,
+      },
+    };
+  }
+
+  const nowIso = new Date().toISOString();
+  await profileRef.set(
+    {
+      initialAccessPending: false,
+      initialAccessCompletedAt: nowIso,
+      updatedAt: nowIso,
+    },
+    { merge: true },
+  );
+
+  const updatedProfile = await profileRef.get();
+  return {
+    ok: true,
+    profile: {
+      id: updatedProfile.id,
+      ...updatedProfile.data(),
+    },
+  };
+});
+
+exports.createAdminAccessLink = onCall(async (request) => {
+  const authUid = request.auth?.uid || null;
+  await assertAdmin(authUid);
+
+  const adminUserId = trimValue(request.data?.adminUserId);
+  const appUrl = normalizeAppUrl(request.data?.appUrl);
+
+  if (!adminUserId) {
+    throw new HttpsError("invalid-argument", "Falta el administrador para generar el acceso.");
+  }
+
+  if (!appUrl) {
+    throw new HttpsError("invalid-argument", "Falta la URL de acceso del administrador.");
+  }
+
+  const adminUserSnapshot = await firestore.collection("users").doc(adminUserId).get();
+  if (!adminUserSnapshot.exists) {
+    throw new HttpsError("not-found", "No se encontró el administrador solicitado.");
+  }
+
+  const adminUser = adminUserSnapshot.data() || {};
+  if (adminUser.role !== "admin") {
+    throw new HttpsError("failed-precondition", "El usuario solicitado no tiene rol admin.");
+  }
+
+  const oldestAdminUserId = await findOldestAdminUserId();
+  const email = normalizeEmail(adminUser.email);
+  if (!email) {
+    throw new HttpsError("failed-precondition", "El administrador no tiene un correo válido.");
+  }
+
+  if (oldestAdminUserId && adminUserSnapshot.id === oldestAdminUserId) {
+    return {
+      adminUserId,
+      email,
+      available: false,
+      reason: "oldest-admin",
+      accessLink: "",
+    };
+  }
+
+  if (adminUser.initialAccessPending !== true) {
+    return {
+      adminUserId,
+      email,
+      available: false,
+      reason: "initial-access-completed",
+      accessLink: "",
+    };
+  }
+
+  let accessLink = "";
+  try {
+    accessLink = await auth.generatePasswordResetLink(email, {
+      url: appUrl,
+      handleCodeInApp: false,
+    });
+  } catch (error) {
+    console.error("No se pudo generar el enlace de acceso del administrador.", error);
+    throw new HttpsError("internal", "No se pudo generar el enlace de acceso del administrador.");
+  }
+
+  return {
+    adminUserId,
+    email,
+    available: true,
+    reason: "initial-access-pending",
     accessLink,
   };
 });

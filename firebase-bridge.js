@@ -222,8 +222,18 @@ window.__turnoFirebaseReadyPromise = (async () => {
       const result = await callable(payload);
       return result.data;
     },
+    async completeCurrentAdminInitialAccess() {
+      const callable = httpsCallable(functions, "completeCurrentAdminInitialAccess");
+      const result = await callable({});
+      return result.data;
+    },
     async createAdminAccount(payload) {
       const callable = httpsCallable(functions, "createAdminAccount");
+      const result = await callable(payload);
+      return result.data;
+    },
+    async createAdminAccessLink(payload) {
+      const callable = httpsCallable(functions, "createAdminAccessLink");
       const result = await callable(payload);
       return result.data;
     },

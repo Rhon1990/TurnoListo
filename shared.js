@@ -1442,6 +1442,25 @@ async function loadCurrentUserProfileFromBackend() {
   return null;
 }
 
+async function completeCurrentAdminInitialAccessIfPending(profile) {
+  if (String(profile?.role || "").trim() !== "admin" || profile?.initialAccessPending !== true) {
+    return profile;
+  }
+
+  const backend = await waitForFirebaseBackend();
+  if (!backend?.enabled || typeof backend.completeCurrentAdminInitialAccess !== "function") {
+    return profile;
+  }
+
+  try {
+    await backend.completeCurrentAdminInitialAccess();
+    return (await loadCurrentUserProfileFromBackend()) || profile;
+  } catch (error) {
+    console.error("No se pudo completar el acceso inicial del administrador actual.", error);
+    return profile;
+  }
+}
+
 function getCurrentUserProfile() {
   return currentUserProfile;
 }

@@ -814,7 +814,7 @@ function initializeAdminFirebaseAuth() {
       }
 
       try {
-        const profile = await loadCurrentUserProfileFromBackend();
+        let profile = await loadCurrentUserProfileFromBackend();
         if (requestToken !== adminAuthRequestToken) return;
 
         if (!profile || profile.role !== "admin") {
@@ -833,6 +833,9 @@ function initializeAdminFirebaseAuth() {
           await backend.signOut();
           return;
         }
+
+        profile = await completeCurrentAdminInitialAccessIfPending(profile);
+        if (requestToken !== adminAuthRequestToken) return;
 
         adminLoginFeedback.hidden = true;
         adminLoginFeedback.textContent = "";
