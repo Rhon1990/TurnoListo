@@ -41,6 +41,18 @@ const adminCreateAdminPhoneLocal = document.querySelector("#adminCreateAdminPhon
 const adminCreateAdminPhoneHint = document.querySelector("#adminCreateAdminPhoneHint");
 const adminCreateAdminPhoneError = document.querySelector("#adminCreateAdminPhoneError");
 const adminUsersList = document.querySelector("#adminUsersList");
+const adminUserTemplatesModal = document.querySelector("#adminUserTemplatesModal");
+const adminUserTemplatesBackdrop = document.querySelector("#adminUserTemplatesBackdrop");
+const adminUserTemplatesClose = document.querySelector("#adminUserTemplatesClose");
+const adminUserTemplatesMeta = document.querySelector("#adminUserTemplatesMeta");
+const adminUserTemplateOptions = document.querySelector("#adminUserTemplateOptions");
+const adminUserTemplateTo = document.querySelector("#adminUserTemplateTo");
+const adminUserTemplateSubject = document.querySelector("#adminUserTemplateSubject");
+const adminUserTemplateBody = document.querySelector("#adminUserTemplateBody");
+const adminUserCopySubject = document.querySelector("#adminUserCopySubject");
+const adminUserCopyBody = document.querySelector("#adminUserCopyBody");
+const adminUserCopyAll = document.querySelector("#adminUserCopyAll");
+const adminUserOpenMail = document.querySelector("#adminUserOpenMail");
 const adminMessagesShortcut = document.querySelector("#adminMessagesShortcut");
 const adminUnreadMessagesBadge = document.querySelector("#adminUnreadMessagesBadge");
 const adminAccountButton = document.querySelector("#adminAccountButton");
@@ -55,6 +67,9 @@ let selectedAdminAvatarUrl = "";
 let adminUsers = [];
 let adminMessagesUnsubscribe = null;
 let adminProfileSnapshot = null;
+let pendingAdminUserTemplateId = null;
+let activeAdminUserTemplateKey = "access";
+let activeAdminUserTemplateDraft = null;
 const SHARED_DEFAULT_PHONE_COUNTRY_ISO = window.TurnoListoPhoneFields?.defaultCountryIso || "ES";
 const translateText = (value) =>
   window.TurnoListoI18n?.translateText ? window.TurnoListoI18n.translateText(value) : value;
@@ -114,6 +129,12 @@ function initializeAdminProfilePage() {
   adminMessagesShortcut?.addEventListener("click", () => {
     window.location.href = "./admin.html#messages";
   });
+  adminUserTemplatesBackdrop?.addEventListener("click", closeAdminUserTemplatesModal);
+  adminUserTemplatesClose?.addEventListener("click", closeAdminUserTemplatesModal);
+  adminUserCopySubject?.addEventListener("click", () => copyAdminUserTemplatePart("subject"));
+  adminUserCopyBody?.addEventListener("click", () => copyAdminUserTemplatePart("body"));
+  adminUserCopyAll?.addEventListener("click", () => copyAdminUserTemplatePart("all"));
+  adminUserOpenMail?.addEventListener("click", openSelectedAdminUserTemplateInMailApp);
   adminAccountButton?.addEventListener("click", toggleAdminAccountMenu);
   adminMenuLogout?.addEventListener("click", async () => {
     closeAdminAccountMenu();
@@ -525,11 +546,14 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
     const avatar = document.createElement("span");
     const avatarImage = document.createElement("img");
     const avatarFallback = document.createElement("span");
+    const actions = document.createElement("div");
+    const templatesButton = document.createElement("button");
 
     card.className = "admin-user-card";
     top.className = "admin-user-card__top";
     identity.className = "admin-user-card__identity";
     avatar.className = "admin-user-card__avatar";
+    actions.className = "admin-user-card__actions";
     avatarFallback.textContent = String(user.displayName || user.email || "?").trim().charAt(0).toUpperCase() || "?";
     name.textContent = user.displayName || user.email || "Sin datos cargados";
     meta.textContent = [user.title || "No disponible", user.email || "Sin correo", user.phone || "Sin teléfono"].join(" · ");
@@ -543,15 +567,248 @@ function renderAdminUsersList(customEmptyMessage = "Aquí verás el equipo admin
       avatar.append(avatarFallback);
     }
 
+    templatesButton.type = "button";
+    templatesButton.className = "comment-button";
+    templatesButton.textContent = "Plantillas";
+    templatesButton.disabled = !String(user.email || "").trim();
+    templatesButton.addEventListener("click", async () => {
+      await openAdminUserTemplatesModal(user);
+    });
+
     identity.append(name, meta);
     top.append(avatar, identity);
-    card.append(top);
+    actions.append(templatesButton);
+    card.append(top, actions);
     adminUsersList.append(card);
   });
 }
 
 function buildAdminAccessUrl() {
   return new URL("./admin.html", window.location.href).toString();
+}
+
+function getAdminUserById(userId) {
+  const normalizedId = String(userId || "").trim();
+  if (!normalizedId) return null;
+  return adminUsers.find((user) => String(user?.id || user?.uid || "").trim() === normalizedId) || null;
+}
+
+function getAdminUserEmailTemplateDefinitions(user) {
+  return [
+    { key: "access", label: "Acceso" },
+    { key: "onboarding", label: "Onboarding" },
+  ];
+}
+
+function buildAdminUserAccessEmail(user, options = {}) {
+  const accessUrl = String(options.accessUrl || "./admin.html").trim() || "./admin.html";
+  const recipientName = String(user?.displayName || user?.email || "equipo admin").trim();
+  const subject = `Acceso admin TurnoListo - ${recipientName}`;
+  const body = [
+    `Hola ${recipientName},`,
+    "",
+    "Te compartimos los datos base para entrar al panel administrador de TurnoListo.",
+    "",
+    `Correo de acceso: ${user.email || "Sin correo"}`,
+    `Panel administrador: ${accessUrl}`,
+    "",
+    "La contrasena se gestiona solo desde tu propia cuenta.",
+    "Por seguridad, ningun administrador puede definir o cambiar la contrasena de otro.",
+    "",
+    "Si necesitas soporte con tu acceso, responde a este mensaje y coordinamos el siguiente paso contigo.",
+  ].join("\n");
+
+  return {
+    to: user.email || "",
+    subject,
+    body,
+    href: `mailto:${encodeURIComponent(user.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+  };
+}
+
+function buildAdminUserOnboardingEmail(user, options = {}) {
+  const accessUrl = String(options.accessUrl || "./admin.html").trim() || "./admin.html";
+  const recipientName = String(user?.displayName || user?.email || "equipo admin").trim();
+  const subject = `Onboarding admin TurnoListo - ${recipientName}`;
+  const body = [
+    `Hola ${recipientName},`,
+    "",
+    "Te damos la bienvenida al panel administrador de TurnoListo.",
+    "",
+    "Primeros pasos recomendados:",
+    `1. Entra al panel administrador: ${accessUrl}`,
+    `2. Verifica que tu correo de acceso sea ${user.email || "el correo asignado"}`,
+    "3. Revisa cartera, mensajes y equipo administrador para ubicarte rapido en la operacion.",
+    "",
+    "La contrasena se gestiona solo desde tu propia cuenta.",
+    "Si necesitas ayuda para recuperar el acceso, responde a este correo y te ayudamos sin exponer credenciales.",
+  ].join("\n");
+
+  return {
+    to: user.email || "",
+    subject,
+    body,
+    href: `mailto:${encodeURIComponent(user.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+  };
+}
+
+function buildAdminUserEmailDraft(kind, user) {
+  if (!user?.email) return null;
+  const accessUrl = buildAdminAccessUrl();
+
+  if (kind === "access") {
+    return buildAdminUserAccessEmail(user, { accessUrl });
+  }
+
+  if (kind === "onboarding") {
+    return buildAdminUserOnboardingEmail(user, { accessUrl });
+  }
+
+  return null;
+}
+
+async function openAdminUserTemplatesModal(user) {
+  return openAdminUserTemplatesModalWithOptions(user, { preserveSelection: false });
+}
+
+async function openAdminUserTemplatesModalWithOptions(user, options = {}) {
+  if (!user?.email || !adminUserTemplatesModal) return;
+  const preserveSelection = Boolean(options.preserveSelection);
+  pendingAdminUserTemplateId = String(user.id || user.uid || "").trim();
+  if (!preserveSelection || !activeAdminUserTemplateKey) {
+    activeAdminUserTemplateKey = "access";
+  }
+  adminUserTemplatesMeta.textContent = `${user.displayName || user.email} · ${user.email}`;
+  adminUserTemplatesModal.hidden = false;
+  renderAdminUserTemplateSelector(user);
+  await selectAdminUserTemplate(activeAdminUserTemplateKey);
+}
+
+function renderAdminUserTemplateSelector(user) {
+  if (!adminUserTemplateOptions) return;
+  adminUserTemplateOptions.innerHTML = "";
+
+  getAdminUserEmailTemplateDefinitions(user).forEach((template) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "email-template-switcher__button";
+    button.textContent = template.label;
+    button.dataset.templateKey = template.key;
+    button.addEventListener("click", async () => {
+      await selectAdminUserTemplate(template.key);
+    });
+    adminUserTemplateOptions.append(button);
+  });
+}
+
+async function selectAdminUserTemplate(templateKey) {
+  const user = pendingAdminUserTemplateId ? getAdminUserById(pendingAdminUserTemplateId) : null;
+  if (!user) return;
+  activeAdminUserTemplateKey = templateKey;
+  renderTextWithClickableLinks(adminUserTemplateBody, "Preparando plantilla...");
+  adminUserTemplateSubject.textContent = "-";
+  adminUserTemplateTo.textContent = user.email || "-";
+
+  const draft = buildAdminUserEmailDraft(templateKey, user);
+  if (!draft) {
+    activeAdminUserTemplateDraft = null;
+    adminUserTemplateSubject.textContent = "No disponible";
+    renderTextWithClickableLinks(adminUserTemplateBody, "No se pudo preparar esta plantilla.");
+  } else {
+    activeAdminUserTemplateDraft = draft;
+    adminUserTemplateTo.textContent = draft.to || user.email || "-";
+    adminUserTemplateSubject.textContent = draft.subject || "-";
+    renderTextWithClickableLinks(adminUserTemplateBody, draft.body || "");
+  }
+
+  adminUserTemplateOptions?.querySelectorAll(".email-template-switcher__button").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.templateKey === templateKey);
+  });
+}
+
+function closeAdminUserTemplatesModal() {
+  if (!adminUserTemplatesModal) return;
+  adminUserTemplatesModal.hidden = true;
+  pendingAdminUserTemplateId = null;
+  activeAdminUserTemplateDraft = null;
+  activeAdminUserTemplateKey = "access";
+}
+
+async function copyAdminUserTemplatePart(part) {
+  if (!activeAdminUserTemplateDraft) return;
+  const text =
+    part === "subject"
+      ? activeAdminUserTemplateDraft.subject
+      : part === "body"
+        ? activeAdminUserTemplateDraft.body
+        : `Para: ${activeAdminUserTemplateDraft.to}\nAsunto: ${activeAdminUserTemplateDraft.subject}\n\n${activeAdminUserTemplateDraft.body}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    showTurnoAlert(
+      part === "subject"
+        ? "Asunto copiado."
+        : part === "body"
+          ? "Texto copiado."
+          : "Correo completo copiado.",
+      "success",
+    );
+  } catch (error) {
+    console.error("No se pudo copiar la plantilla del admin.", error);
+    showTurnoAlert("No se pudo copiar el contenido.", "error");
+  }
+}
+
+function openSelectedAdminUserTemplateInMailApp() {
+  if (!activeAdminUserTemplateDraft?.href) return;
+  window.location.href = activeAdminUserTemplateDraft.href;
+}
+
+function renderTextWithClickableLinks(element, value) {
+  if (!element) return;
+  const text = String(value || "");
+  const fragment = document.createDocumentFragment();
+  const urlPattern = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+  let lastIndex = 0;
+  let match = urlPattern.exec(text);
+
+  while (match) {
+    const startIndex = match.index;
+    const matchedUrl = match[0];
+    let displayUrl = matchedUrl;
+    let trailingText = "";
+
+    while (/[),.;:!?]$/.test(displayUrl)) {
+      trailingText = `${displayUrl.slice(-1)}${trailingText}`;
+      displayUrl = displayUrl.slice(0, -1);
+    }
+
+    if (startIndex > lastIndex) {
+      fragment.append(document.createTextNode(text.slice(lastIndex, startIndex)));
+    }
+
+    if (displayUrl) {
+      const link = document.createElement("a");
+      link.href = /^https?:\/\//i.test(displayUrl) ? displayUrl : `https://${displayUrl}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.className = "inline-message-link";
+      link.textContent = displayUrl;
+      fragment.append(link);
+    }
+
+    if (trailingText) {
+      fragment.append(document.createTextNode(trailingText));
+    }
+
+    lastIndex = startIndex + matchedUrl.length;
+    match = urlPattern.exec(text);
+  }
+
+  if (lastIndex < text.length) {
+    fragment.append(document.createTextNode(text.slice(lastIndex)));
+  }
+
+  element.replaceChildren(fragment);
 }
 
 function formatProfileDateTime(value) {

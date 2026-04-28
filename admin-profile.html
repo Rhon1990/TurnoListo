@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=20260417m" />
+    <link rel="stylesheet" href="./styles.css?v=20260428b" />
   </head>
   <body data-private-role="admin">
     <div class="app-shell contact-page">
@@ -319,10 +319,49 @@
         </div>
       </main>
     </div>
+
+    <div class="qr-modal" id="adminUserTemplatesModal" hidden>
+      <div class="qr-modal__backdrop" id="adminUserTemplatesBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal comment-modal--wide">
+        <button class="qr-modal__close" id="adminUserTemplatesClose" type="button">
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
+          <span>Cerrar</span>
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Plantillas</p>
+          <h3>Mensajes listos para enviar</h3>
+          <p class="comment-modal__meta" id="adminUserTemplatesMeta"></p>
+          <div class="email-template-switcher" id="adminUserTemplateOptions"></div>
+          <div class="email-template-preview">
+            <div class="email-template-preview__field">
+              <span class="email-template-preview__label">Destinatario</span>
+              <strong id="adminUserTemplateTo">-</strong>
+            </div>
+            <div class="email-template-preview__field">
+              <span class="email-template-preview__label">Asunto</span>
+              <p id="adminUserTemplateSubject">-</p>
+            </div>
+            <div class="email-template-preview__field email-template-preview__field--body">
+              <span class="email-template-preview__label">Mensaje</span>
+              <div class="comment-modal__quote">
+                <p id="adminUserTemplateBody">Selecciona una plantilla.</p>
+              </div>
+            </div>
+          </div>
+          <div class="cancel-modal__actions email-template-actions">
+            <button class="button-secondary" id="adminUserCopySubject" type="button">Copiar asunto</button>
+            <button class="button-secondary" id="adminUserCopyBody" type="button">Copiar texto</button>
+            <button class="button-secondary button-secondary--primary" id="adminUserCopyAll" type="button">Copiar todo</button>
+            <button class="button-tertiary" id="adminUserOpenMail" type="button">Abrir en correo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="./i18n.js?v=20260422a"></script>
     <script src="./firebase-config.js?v=20260408a"></script>
     <script type="module" src="./firebase-bridge.js?v=20260416l"></script>
     <script src="./shared.js?v=20260422b"></script>
-    <script src="./admin-profile.js?v=20260417b"></script>
+    <script src="./admin-profile.js?v=20260428b"></script>
   </body>
 </html>
