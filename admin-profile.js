@@ -385,6 +385,8 @@ async function handleAdminProfileSubmit(event) {
     await backend.updateCurrentAdminProfile({
       displayName: adminProfileDisplayName?.value || "",
       phone: phoneValidation.phone,
+      country: phoneValidation.countryName,
+      phoneCountry: phoneValidation.phoneCountry,
       title: adminProfileTitle?.value || "",
       avatarUrl: selectedAdminAvatarUrl || getCurrentUserProfile()?.avatarUrl || "",
     });

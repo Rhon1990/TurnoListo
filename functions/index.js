@@ -602,7 +602,8 @@ exports.updateCurrentAdminProfile = onCall(async (request) => {
 
   const data = request.data || {};
   const displayName = trimValue(data.displayName);
-  const phone = trimValue(data.phone);
+  const phoneCountry = normalizePhoneCountry(data.phoneCountry);
+  const normalizedPhone = normalizeRestaurantPhone(data.phone, phoneCountry);
   const title = trimValue(data.title);
   const avatarUrl = normalizeProfileImage(data.avatarUrl);
   const nowIso = new Date().toISOString();
@@ -610,7 +611,9 @@ exports.updateCurrentAdminProfile = onCall(async (request) => {
   await firestore.collection("users").doc(authUid).set(
     {
       displayName,
-      phone,
+      phone: normalizedPhone.phone,
+      country: normalizedPhone.country,
+      phoneCountry: normalizedPhone.phoneCountry,
       title,
       avatarUrl,
       updatedAt: nowIso,
