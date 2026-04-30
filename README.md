@@ -39,6 +39,10 @@ Estado actual del proyecto: estable.
 
 - HTML, CSS y JavaScript vanilla.
 - Paginas separadas por contexto de uso: comercial, administrador, restaurante y cliente.
+- `config/firebase-environments.json` actua como fuente unica de verdad para separar `develop` y `production`.
+- `scripts/render-firebase-runtime.mjs` genera los runtimes raiz con resolucion por hostname para diagnostico y desarrollo local.
+- `scripts/build-hosting-env.mjs` construye bundles estaticos por entorno en `dist/develop` y `dist/production`.
+- Los bundles publicados no dependen del hostname para elegir proyecto Firebase: cada build de Hosting queda fijado al entorno que se despliega.
 - `shared.js` concentra el dominio compartido, utilidades comunes, persistencia y logica transversal.
 - `firebase-bridge.js` encapsula acceso a Firestore y Cloud Functions.
 - `i18n.js` resuelve traducciones y textos dinamicos en runtime.
@@ -86,8 +90,11 @@ Estado actual del proyecto: estable.
 
 - `styles.css`: sistema visual y layouts responsive.
 - `shared.js`: modelo compartido, sincronizacion y utilidades de producto.
-- `firebase-config.js`: configuracion Firebase actualmente activa para el proyecto.
+- `config/firebase-environments.json`: catalogo de entornos Firebase con hostnames, project IDs y credenciales web.
+- `firebase-config.js`: runtime raiz generado para resolver el entorno correcto por hostname.
 - `firebase-bridge.js`: integracion web con Firestore y Functions.
+- `firebase.hosting.develop.json` y `firebase.hosting.production.json`: despliegues de Hosting explicitos y aislados por entorno.
+- `scripts/deploy-firebase-env.mjs`: entrypoint para publicar Hosting y/o backend en el proyecto correcto.
 - `functions/index.js`: backend serverless y automatizaciones.
 - `firestore.rules`: control de acceso por roles.
 - `assets/landing/`: material visual real de la web comercial.
@@ -114,12 +121,31 @@ npm install
 
 ```bash
 firebase login
-firebase deploy --only functions,firestore:rules,hosting
+npm run build:runtime
+npm run build:hosting:develop
+npm run build:hosting:production
+npm run deploy:hosting:develop
+npm run deploy:hosting:production
+npm run deploy:backend:develop
+npm run deploy:backend:production
 ```
+
+Notas operativas:
+
+- `Hosting` ya no se despliega desde `firebase.json` raiz para evitar cruces ambiguos entre entornos.
+- Cada deploy de `Hosting` usa un bundle distinto en `dist/` y un `firebase.hosting.<env>.json` dedicado.
+- Cada deploy de `backend` publica `functions` y `firestore.rules` contra el `projectId` explicito del entorno elegido.
 
 ### Desarrollo local
 
-Como el frontend es estatico, la raiz del proyecto puede servirse con cualquier servidor web simple. La integracion Firebase ya esta conectada desde `firebase-config.js`, por lo que el comportamiento esperado en local depende de la disponibilidad del proyecto configurado y de sus permisos.
+Para desarrollo local:
+
+```bash
+npm run build:runtime
+python3 -m http.server
+```
+
+El runtime raiz resuelve `localhost` y `127.0.0.1` contra `develop`. Para publicar o verificar artefactos reales de Hosting, usa los bundles generados en `dist/develop` y `dist/production`.
 
 ## Operacion del sistema
 
@@ -141,3 +167,9 @@ La carpeta `qa/` incluye comprobaciones locales para puntos criticos del product
 - colisiones entre scripts clasicos
 
 Estas utilidades ayudan a validar cambios visuales, contratos de runtime y regresiones operativas antes de publicar.
+
+Comprobacion recomendada de aislamiento:
+
+```bash
+npm run qa:env-separation
+```

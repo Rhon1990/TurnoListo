@@ -1,0 +1,42 @@
+{
+  "defaultEnvironment": "develop",
+  "environments": {
+    "develop": {
+      "enabled": true,
+      "projectAlias": "develop",
+      "projectId": "turnolisto-f62c1",
+      "hostingSite": "turnolisto-dev",
+      "hostnames": [
+        "localhost",
+        "127.0.0.1",
+        "turnolisto-dev.web.app",
+        "turnolisto-f62c1.web.app",
+        "turnolisto-f62c1.firebaseapp.com"
+      ],
+      "apiKey": "AIzaSyAW4kktrmhKD6aWjXl3fCdZBX1Hbh7RKV4",
+      "authDomain": "turnolisto-f62c1.firebaseapp.com",
+      "storageBucket": "turnolisto-f62c1.firebasestorage.app",
+      "messagingSenderId": "647535131187",
+      "appId": "1:647535131187:web:ba3bbb0cca0dc7edec0146",
+      "messagingVapidKey": "BL3e7P9qvy_qmQLpBI_6nu7CZUO2y3s_L8JYPuBAgL0ZyWOR8xB3b4y4cu98d4ticgQDS3HmGzUQCqPh1mdnCcQ"
+    },
+    "production": {
+      "enabled": true,
+      "projectAlias": "production",
+      "projectId": "turnolisto-prod",
+      "hostingSite": "turnolisto-prod",
+      "hostnames": [
+        "turnolisto.com",
+        "www.turnolisto.com",
+        "turnolisto-prod.web.app",
+        "turnolisto-prod.firebaseapp.com"
+      ],
+      "apiKey": "AIzaSyAwMqqUAWuOTi5Fn51oVZKhZilmGmyJLDI",
+      "authDomain": "turnolisto-prod.firebaseapp.com",
+      "storageBucket": "turnolisto-prod.firebasestorage.app",
+      "messagingSenderId": "968962346504",
+      "appId": "1:968962346504:web:ca7027eb495e75a8e40bbd",
+      "messagingVapidKey": "REPLACE_WITH_PRODUCTION_VAPID_KEY"
+    }
+  }
+}

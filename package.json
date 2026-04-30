@@ -1,0 +1,16 @@
+{
+  "name": "turnolisto-workspace",
+  "private": true,
+  "scripts": {
+    "build:runtime": "node scripts/render-firebase-runtime.mjs",
+    "build:hosting:develop": "node scripts/build-hosting-env.mjs develop",
+    "build:hosting:production": "node scripts/build-hosting-env.mjs production",
+    "deploy:hosting:develop": "node scripts/deploy-firebase-env.mjs develop hosting",
+    "deploy:hosting:production": "node scripts/deploy-firebase-env.mjs production hosting",
+    "deploy:backend:develop": "node scripts/deploy-firebase-env.mjs develop backend",
+    "deploy:backend:production": "node scripts/deploy-firebase-env.mjs production backend",
+    "deploy:all:develop": "node scripts/deploy-firebase-env.mjs develop all",
+    "deploy:all:production": "node scripts/deploy-firebase-env.mjs production all",
+    "qa:env-separation": "node qa/check-firebase-environment-separation.mjs"
+  }
+}

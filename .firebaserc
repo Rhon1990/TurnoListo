@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "turnolisto-f62c1"
+    "default": "turnolisto-f62c1",
+    "develop": "turnolisto-f62c1",
+    "production": "turnolisto-prod"
   }
 }
