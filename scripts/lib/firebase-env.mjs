@@ -309,16 +309,35 @@ if (isFirebaseConfigReady(currentConfig)) {
   });
 }
 
-self.addEventListener("notificationclick", (event) => {
-  const rawTarget = event.notification?.data?.link || "/";
-  let targetUrl = self.location.origin;
-
-  try {
-    const parsed = new URL(rawTarget, self.location.origin);
-    targetUrl = parsed.origin === self.location.origin ? parsed.toString() : self.location.origin;
-  } catch {
-    targetUrl = self.location.origin;
+function buildScopedClientLaunchUrl(orderId) {
+  const scopedUrl = new URL("./client-launch.html", self.registration.scope || self.location.origin);
+  if (orderId) {
+    scopedUrl.hash = \`order=\${encodeURIComponent(orderId)}\`;
   }
+  return scopedUrl.toString();
+}
+
+function resolveNotificationTargetUrl(rawTarget) {
+  const fallbackUrl = new URL("./client-launch.html", self.registration.scope || self.location.origin).toString();
+  try {
+    const parsed = new URL(rawTarget || fallbackUrl, self.location.origin);
+    if (parsed.origin !== self.location.origin) return fallbackUrl;
+
+    const orderId = parsed.searchParams.get("order") || parsed.hash.replace(/^#?order=/, "");
+    const scopePath = new URL(self.registration.scope || self.location.origin).pathname;
+    const opensRootClientFromScopedWorker = scopePath !== "/" && parsed.pathname === "/client.html";
+    if (opensRootClientFromScopedWorker || parsed.pathname.endsWith("/client.html")) {
+      return buildScopedClientLaunchUrl(orderId);
+    }
+
+    return parsed.toString();
+  } catch {
+    return fallbackUrl;
+  }
+}
+
+self.addEventListener("notificationclick", (event) => {
+  const targetUrl = resolveNotificationTargetUrl(event.notification?.data?.link || "/");
 
   event.notification.close();
 
@@ -390,16 +409,35 @@ if (isFirebaseConfigReady(CURRENT_FIREBASE_CONFIG)) {
   });
 }
 
-self.addEventListener("notificationclick", (event) => {
-  const rawTarget = event.notification?.data?.link || "/";
-  let targetUrl = self.location.origin;
-
-  try {
-    const parsed = new URL(rawTarget, self.location.origin);
-    targetUrl = parsed.origin === self.location.origin ? parsed.toString() : self.location.origin;
-  } catch {
-    targetUrl = self.location.origin;
+function buildScopedClientLaunchUrl(orderId) {
+  const scopedUrl = new URL("./client-launch.html", self.registration.scope || self.location.origin);
+  if (orderId) {
+    scopedUrl.hash = \`order=\${encodeURIComponent(orderId)}\`;
   }
+  return scopedUrl.toString();
+}
+
+function resolveNotificationTargetUrl(rawTarget) {
+  const fallbackUrl = new URL("./client-launch.html", self.registration.scope || self.location.origin).toString();
+  try {
+    const parsed = new URL(rawTarget || fallbackUrl, self.location.origin);
+    if (parsed.origin !== self.location.origin) return fallbackUrl;
+
+    const orderId = parsed.searchParams.get("order") || parsed.hash.replace(/^#?order=/, "");
+    const scopePath = new URL(self.registration.scope || self.location.origin).pathname;
+    const opensRootClientFromScopedWorker = scopePath !== "/" && parsed.pathname === "/client.html";
+    if (opensRootClientFromScopedWorker || parsed.pathname.endsWith("/client.html")) {
+      return buildScopedClientLaunchUrl(orderId);
+    }
+
+    return parsed.toString();
+  } catch {
+    return fallbackUrl;
+  }
+}
+
+self.addEventListener("notificationclick", (event) => {
+  const targetUrl = resolveNotificationTargetUrl(event.notification?.data?.link || "/");
 
   event.notification.close();
 

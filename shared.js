@@ -83,6 +83,9 @@ const QUEUE_ACTIVE_STATUSES = ["received", "preparing"];
 const ORDER_CRITICAL_OVERDUE_MINUTES = 10;
 const ADAPTIVE_MODEL_LOOKBACK_DAYS = 120;
 const ADAPTIVE_MODEL_MAX_EXAMPLES = 220;
+const FIREBASE_PRIVATE_ORDER_LOOKBACK_DAYS = 31;
+const FIREBASE_PRIVATE_ORDER_LIMIT = 750;
+const FIREBASE_ADMIN_ORDER_LIMIT = 1200;
 
 const defaultOrders = createDefaultOrders();
 const defaultRestaurants = createDefaultRestaurants();
@@ -812,6 +815,23 @@ function getPrivateCollectionFilters(collectionName, profile = currentUserProfil
   return [];
 }
 
+function getPrivateCollectionQueryOptions(collectionName, profile = currentUserProfile) {
+  const filters = getPrivateCollectionFilters(collectionName, profile);
+
+  if (collectionName !== FIREBASE_ORDERS_COLLECTION && collectionName !== FIREBASE_TRACKING_COLLECTION) {
+    return { filters };
+  }
+
+  const cutoff = new Date(Date.now() - FIREBASE_PRIVATE_ORDER_LOOKBACK_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const limit = profile?.role === "admin" ? FIREBASE_ADMIN_ORDER_LIMIT : FIREBASE_PRIVATE_ORDER_LIMIT;
+
+  return {
+    filters: [...filters, { field: "createdAt", op: ">=", value: cutoff }],
+    orderBy: [{ field: "createdAt", direction: "desc" }],
+    limit,
+  };
+}
+
 async function connectPublicTrackingToFirebase() {
   const backend = await waitForFirebaseBackend();
   if (!backend?.enabled) {
@@ -885,15 +905,18 @@ async function connectPrivateDataStoreToFirebase() {
     }
 
     const [remoteOrders, remoteRestaurants, remoteTracking] = await Promise.all([
-      firebaseBackend.loadCollection(FIREBASE_ORDERS_COLLECTION, {
-        filters: getPrivateCollectionFilters(FIREBASE_ORDERS_COLLECTION, currentUserProfile),
-      }),
-      firebaseBackend.loadCollection(FIREBASE_RESTAURANTS_COLLECTION, {
-        filters: getPrivateCollectionFilters(FIREBASE_RESTAURANTS_COLLECTION, currentUserProfile),
-      }),
-      firebaseBackend.loadCollection(FIREBASE_TRACKING_COLLECTION, {
-        filters: getPrivateCollectionFilters(FIREBASE_TRACKING_COLLECTION, currentUserProfile),
-      }),
+      firebaseBackend.loadCollection(
+        FIREBASE_ORDERS_COLLECTION,
+        getPrivateCollectionQueryOptions(FIREBASE_ORDERS_COLLECTION, currentUserProfile),
+      ),
+      firebaseBackend.loadCollection(
+        FIREBASE_RESTAURANTS_COLLECTION,
+        getPrivateCollectionQueryOptions(FIREBASE_RESTAURANTS_COLLECTION, currentUserProfile),
+      ),
+      firebaseBackend.loadCollection(
+        FIREBASE_TRACKING_COLLECTION,
+        getPrivateCollectionQueryOptions(FIREBASE_TRACKING_COLLECTION, currentUserProfile),
+      ),
     ]);
 
     applyOrdersSnapshot(remoteOrders);
@@ -910,7 +933,7 @@ async function connectPrivateDataStoreToFirebase() {
         applyOrdersSnapshot(orders.length ? orders : []);
         broadcastOrdersChanged();
       },
-      { filters: getPrivateCollectionFilters(FIREBASE_ORDERS_COLLECTION, currentUserProfile) },
+      getPrivateCollectionQueryOptions(FIREBASE_ORDERS_COLLECTION, currentUserProfile),
     );
 
     restaurantsUnsubscribe = firebaseBackend.subscribeCollection(
@@ -919,7 +942,7 @@ async function connectPrivateDataStoreToFirebase() {
         applyRestaurantsSnapshot(restaurants.length ? restaurants : []);
         broadcastOrdersChanged();
       },
-      { filters: getPrivateCollectionFilters(FIREBASE_RESTAURANTS_COLLECTION, currentUserProfile) },
+      getPrivateCollectionQueryOptions(FIREBASE_RESTAURANTS_COLLECTION, currentUserProfile),
     );
 
     trackingUnsubscribe = firebaseBackend.subscribeCollection(
@@ -928,7 +951,7 @@ async function connectPrivateDataStoreToFirebase() {
         applyTrackingSnapshot(tracking.length ? tracking : []);
         broadcastOrdersChanged();
       },
-      { filters: getPrivateCollectionFilters(FIREBASE_TRACKING_COLLECTION, currentUserProfile) },
+      getPrivateCollectionQueryOptions(FIREBASE_TRACKING_COLLECTION, currentUserProfile),
     );
   } catch (error) {
     console.error("No se pudo inicializar Firebase. Se mantiene localStorage.", error);
@@ -981,9 +1004,10 @@ async function refreshOrdersFromBackend() {
   if (!firebaseBackend?.enabled) return { enabled: false, reason: "firebase-disabled" };
 
   try {
-    const remoteOrders = await firebaseBackend.loadCollection(FIREBASE_ORDERS_COLLECTION, {
-      filters: getPrivateCollectionFilters(FIREBASE_ORDERS_COLLECTION),
-    });
+    const remoteOrders = await firebaseBackend.loadCollection(
+      FIREBASE_ORDERS_COLLECTION,
+      getPrivateCollectionQueryOptions(FIREBASE_ORDERS_COLLECTION),
+    );
     applyOrdersSnapshot(remoteOrders.length ? remoteOrders : []);
     broadcastOrdersChanged();
     return { enabled: true, refreshed: true };
@@ -1002,9 +1026,10 @@ async function refreshPublicTrackingFromBackend(publicId = "") {
 
   try {
     if (requiredRole) {
-      const remoteTracking = await backend.loadCollection(FIREBASE_TRACKING_COLLECTION, {
-        filters: getPrivateCollectionFilters(FIREBASE_TRACKING_COLLECTION),
-      });
+      const remoteTracking = await backend.loadCollection(
+        FIREBASE_TRACKING_COLLECTION,
+        getPrivateCollectionQueryOptions(FIREBASE_TRACKING_COLLECTION),
+      );
       applyTrackingSnapshot(remoteTracking.length ? remoteTracking : []);
       broadcastOrdersChanged();
       return { enabled: true, refreshed: true, scope: "private" };
@@ -1395,8 +1420,20 @@ function deleteRestaurantAccount(restaurantId) {
   broadcastOrdersChanged();
 }
 
+function normalizeRestaurantOrderIdSegment(value) {
+  return (
+    String(value || DEFAULT_RESTAURANT_ID)
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "REST"
+  );
+}
+
 function buildOrderTrackingId(restaurantId, sourceOrderId) {
-  return normalizeSourceOrderId(sourceOrderId);
+  const normalizedRestaurantId = normalizeRestaurantOrderIdSegment(restaurantId);
+  const normalizedSourceOrderId = normalizeSourceOrderId(sourceOrderId);
+  return normalizedSourceOrderId ? `${normalizedRestaurantId}__${normalizedSourceOrderId}` : normalizedRestaurantId;
 }
 
 async function loadCurrentUserProfileFromBackend() {
@@ -1649,12 +1686,15 @@ function normalizeSourceOrderId(value) {
   return String(value || "").trim().toUpperCase();
 }
 
-function sourceOrderIdExists(sourceOrderId, excludedOrderId = null) {
+function sourceOrderIdExists(sourceOrderId, restaurantId, excludedOrderId = null) {
   const normalized = normalizeSourceOrderId(sourceOrderId);
+  const safeRestaurantId = String(restaurantId || DEFAULT_RESTAURANT_ID);
   if (!normalized) return false;
 
   return loadOrders().some((order) => {
     if (excludedOrderId && order.id === excludedOrderId) return false;
+    const matchesRestaurant = String(order.restaurantId || DEFAULT_RESTAURANT_ID) === safeRestaurantId;
+    if (!matchesRestaurant) return false;
     return normalizeSourceOrderId(order.sourceOrderId) === normalized;
   });
 }
@@ -2394,7 +2434,7 @@ function createOrder(orderData) {
     throw new Error("missing-source-order");
   }
 
-  if (sourceOrderIdExists(normalizedSourceOrderId)) {
+  if (sourceOrderIdExists(normalizedSourceOrderId, currentRestaurantId)) {
     throw new Error("duplicate-source-order");
   }
 
@@ -2454,7 +2494,7 @@ function updateOrder(id, updates) {
   if (Object.prototype.hasOwnProperty.call(nextUpdates, "sourceOrderId")) {
     const normalizedSourceOrderId = normalizeSourceOrderId(nextUpdates.sourceOrderId);
 
-    if (normalizedSourceOrderId && sourceOrderIdExists(normalizedSourceOrderId, id)) {
+    if (normalizedSourceOrderId && sourceOrderIdExists(normalizedSourceOrderId, currentOrder.restaurantId, id)) {
       throw new Error("duplicate-source-order");
     }
 
@@ -3313,6 +3353,15 @@ function buildRestaurantOnboardingEmail(restaurant, options = {}) {
   };
 }
 
+function buildRestaurantEmailAccessStatusLabel(restaurant) {
+  const days = getRestaurantRemainingDays(restaurant);
+  if (days === null) return "Sin vencimiento";
+  if (days < 0) return "Acceso bloqueado";
+  if (days === 0) return "Vence hoy";
+  if (days === 1) return "Vence en 1 dia";
+  return `Vence en ${days} dias`;
+}
+
 function buildRestaurantRenewalEmail(restaurant, options = {}) {
   const accessUrl = String(options.accessUrl || "./restaurant.html").trim() || "./restaurant.html";
   const subject = `Renovacion TurnoListo - ${restaurant.name}`;
@@ -3320,7 +3369,7 @@ function buildRestaurantRenewalEmail(restaurant, options = {}) {
     `Hola ${restaurant.ownerName || restaurant.name},`,
     "",
     `Tu acceso a TurnoListo esta ${restaurant.remainingDays < 0 ? "vencido" : "proximo a vencer"}.`,
-    `Estado actual: ${buildRemainingAccessLabel(restaurant)}.`,
+    `Estado actual: ${buildRestaurantEmailAccessStatusLabel(restaurant)}.`,
     `Acceso vigente hasta: ${formatAdminEmailDate(restaurant.activatedUntil)}`,
     "",
     "Si quieres mantener activo el flujo de seguimiento de pedidos y avisos al cliente, podemos renovarlo de inmediato.",

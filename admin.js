@@ -2611,7 +2611,13 @@ async function selectEmailTemplate(templateKey) {
   adminEmailTemplateSubject.textContent = "-";
   adminEmailTemplateTo.textContent = restaurant.email || "-";
 
-  const draft = await buildAdminEmailDraft(templateKey, restaurant);
+  let draft = null;
+  try {
+    draft = await buildAdminEmailDraft(templateKey, restaurant);
+  } catch (error) {
+    console.error("No se pudo preparar la plantilla de correo.", error);
+  }
+
   if (!draft) {
     activeEmailTemplateDraft = null;
     adminEmailTemplateSubject.textContent = translateRuntimeText("No disponible");

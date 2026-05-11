@@ -717,12 +717,14 @@ async function syncPushRegistrationForCurrentOrder(options = {}) {
     return { enabled: true, token: pushNotificationToken, reused: true };
   }
 
+  const orderPublicId = currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id;
   let result;
   try {
     result = await backend.enableClientPushNotifications({
       orderId: currentOrder.id,
-      orderPublicId: currentOrder.publicTrackingToken || currentOrder.sourceOrderId || currentOrder.id,
+      orderPublicId,
       orderNumber: currentOrder.orderNumber,
+      clientPath: buildClientUrl(orderPublicId),
     });
   } catch (error) {
     console.error("Fallo al registrar las notificaciones push del cliente.", error);

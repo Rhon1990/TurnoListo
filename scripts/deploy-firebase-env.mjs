@@ -45,7 +45,7 @@ export async function deployFirebaseEnvironment(environmentName, scope = "all") 
     runFirebaseCommand([
       "deploy",
       "--only",
-      "firestore:rules,functions",
+      "firestore:rules,firestore:indexes,functions",
       "--project",
       environment.projectId,
     ]);

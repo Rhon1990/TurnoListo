@@ -10,6 +10,7 @@ const auth = admin.auth();
 const messaging = admin.messaging();
 const CLIENT_PUSH_SUBSCRIPTIONS_COLLECTION = "clientPushSubscriptions";
 const CONTACT_INQUIRIES_COLLECTION = "contactInquiries";
+const AI_MODEL_SUMMARY_ORDER_LIMIT = 220;
 const PHONE_COUNTRY_RULES = {
   ES: { name: "España", dialCode: "+34", minDigits: 9, maxDigits: 9 },
   PT: { name: "Portugal", dialCode: "+351", minDigits: 9, maxDigits: 9 },
@@ -205,7 +206,12 @@ async function syncRestaurantAiModelSummary(restaurantId) {
 
   const [restaurantSnapshot, ordersSnapshot] = await Promise.all([
     firestore.collection("restaurants").doc(safeRestaurantId).get(),
-    firestore.collection("orders").where("restaurantId", "==", safeRestaurantId).get(),
+    firestore
+      .collection("orders")
+      .where("restaurantId", "==", safeRestaurantId)
+      .orderBy("createdAt", "desc")
+      .limit(AI_MODEL_SUMMARY_ORDER_LIMIT)
+      .get(),
   ]);
 
   if (!restaurantSnapshot.exists) return null;
@@ -339,6 +345,23 @@ function buildClientPath(publicId) {
   return `/client.html?order=${encodeURIComponent(normalizedPublicId)}`;
 }
 
+function normalizeClientPath(value, fallbackPublicId) {
+  const fallbackPath = buildClientPath(fallbackPublicId);
+  const candidate = trimValue(value);
+  if (!candidate || candidate.length > 2048) return fallbackPath;
+
+  try {
+    const parsed = new URL(candidate, "https://turnolisto.local");
+    const pathname = trimValue(parsed.pathname);
+    if (!pathname.endsWith("/client-launch.html") && !pathname.endsWith("/client.html")) {
+      return fallbackPath;
+    }
+    return candidate;
+  } catch {
+    return fallbackPath;
+  }
+}
+
 async function findTrackingRecordByPublicId(publicId, options = {}) {
   const normalizedPublicId = normalizePublicTrackingLookupId(publicId);
   if (!normalizedPublicId) {
@@ -401,6 +424,64 @@ async function assertAdmin(authUid) {
   if (!profileSnapshot.exists || profileSnapshot.data()?.role !== "admin") {
     throw new HttpsError("permission-denied", "Solo un administrador puede crear restaurantes.");
   }
+}
+
+async function resolveRestaurantAuthUser(restaurant) {
+  const authUid = trimValue(restaurant.authUid);
+  if (authUid) {
+    try {
+      return await auth.getUser(authUid);
+    } catch (error) {
+      if (error?.code !== "auth/user-not-found") {
+        throw new HttpsError("internal", "No se pudo validar el usuario Auth del restaurante.");
+      }
+    }
+  }
+
+  const authEmail = normalizeEmail(restaurant.username || restaurant.email);
+  if (!authEmail) {
+    throw new HttpsError("failed-precondition", "El restaurante no tiene un correo Auth valido.");
+  }
+
+  try {
+    return await auth.getUserByEmail(authEmail);
+  } catch (error) {
+    if (error?.code === "auth/user-not-found") {
+      throw new HttpsError("failed-precondition", "No existe el usuario Auth del restaurante. Crea o repara la cuenta antes de enviar acceso.");
+    }
+    throw new HttpsError("internal", "No se pudo buscar el usuario Auth del restaurante.");
+  }
+}
+
+async function syncRestaurantAccessProfile(restaurantRef, restaurantId, restaurant, userRecord) {
+  const authEmail = normalizeEmail(userRecord.email || restaurant.username || restaurant.email);
+  if (!authEmail) {
+    throw new HttpsError("failed-precondition", "El usuario Auth del restaurante no tiene correo valido.");
+  }
+
+  const nowIso = new Date().toISOString();
+  const restaurantUpdates = {
+    authUid: userRecord.uid,
+    username: authEmail,
+  };
+  const writes = [
+    firestore.collection("users").doc(userRecord.uid).set(
+      {
+        role: "restaurant",
+        restaurantId,
+        email: authEmail,
+        updatedAt: nowIso,
+      },
+      { merge: true },
+    ),
+  ];
+
+  if (restaurant.authUid !== userRecord.uid || normalizeEmail(restaurant.username) !== authEmail) {
+    writes.push(restaurantRef.set(restaurantUpdates, { merge: true }));
+  }
+
+  await Promise.all(writes);
+  return authEmail;
 }
 
 function resolveAdminSnapshotCreatedAt(snapshot) {
@@ -573,14 +654,12 @@ exports.createRestaurantAccessLink = onCall(async (request) => {
   }
 
   const restaurant = restaurantSnapshot.data() || {};
-  const email = normalizeEmail(restaurant.email);
-  if (!email) {
-    throw new HttpsError("failed-precondition", "El restaurante no tiene un correo valido.");
-  }
+  const userRecord = await resolveRestaurantAuthUser(restaurant);
+  const accessEmail = await syncRestaurantAccessProfile(restaurantSnapshot.ref, restaurantId, restaurant, userRecord);
 
   let accessLink = "";
   try {
-    accessLink = await auth.generatePasswordResetLink(email, {
+    accessLink = await auth.generatePasswordResetLink(accessEmail, {
       url: appUrl,
       handleCodeInApp: false,
     });
@@ -591,7 +670,7 @@ exports.createRestaurantAccessLink = onCall(async (request) => {
 
   return {
     restaurantId,
-    email,
+    email: accessEmail,
     accessLink,
   };
 });
@@ -1007,7 +1086,7 @@ exports.registerClientPushSubscription = onCall(async (request) => {
 
   const orderPublicId = securePublicId || requestedPublicId;
   const orderNumber = trimValue(data.orderNumber) || trimValue(order.orderNumber) || orderPublicId;
-  const clientPath = buildClientPath(orderPublicId);
+  const clientPath = normalizeClientPath(data.clientPath, orderPublicId);
   const subscriptionId = hashToken(token);
   const nowIso = new Date().toISOString();
 

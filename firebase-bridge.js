@@ -18,7 +18,9 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  limit as queryLimit,
   onSnapshot,
+  orderBy as queryOrderBy,
   query,
   setDoc,
   where,
@@ -139,16 +141,29 @@ async function replaceCollection(db, collectionName, items) {
   }
 }
 
-function buildCollectionReference(db, collectionName, filters = []) {
-  const normalizedFilters = Array.isArray(filters) ? filters.filter(Boolean) : [];
-  if (!normalizedFilters.length) {
+function buildCollectionReference(db, collectionName, options = {}) {
+  const normalizedOptions = Array.isArray(options) ? { filters: options } : options || {};
+  const normalizedFilters = Array.isArray(normalizedOptions.filters) ? normalizedOptions.filters.filter(Boolean) : [];
+  const normalizedOrderBy = Array.isArray(normalizedOptions.orderBy)
+    ? normalizedOptions.orderBy.filter(Boolean)
+    : normalizedOptions.orderBy
+      ? [normalizedOptions.orderBy]
+      : [];
+  const normalizedLimit = Number.parseInt(String(normalizedOptions.limit || ""), 10);
+  const constraints = [
+    ...normalizedFilters.map((filter) => where(filter.field, filter.op || "==", filter.value)),
+    ...normalizedOrderBy.map((sort) => queryOrderBy(sort.field, sort.direction || "asc")),
+  ];
+
+  if (Number.isFinite(normalizedLimit) && normalizedLimit > 0) {
+    constraints.push(queryLimit(normalizedLimit));
+  }
+
+  if (!constraints.length) {
     return collection(db, collectionName);
   }
 
-  return query(
-    collection(db, collectionName),
-    ...normalizedFilters.map((filter) => where(filter.field, filter.op || "==", filter.value)),
-  );
+  return query(collection(db, collectionName), ...constraints);
 }
 
 window.__turnoFirebaseReadyPromise = (async () => {
@@ -322,7 +337,7 @@ window.__turnoFirebaseReadyPromise = (async () => {
       return { disabled: true };
     },
     async loadCollection(collectionName, options = {}) {
-      const snapshot = await getDocs(buildCollectionReference(db, collectionName, options.filters));
+      const snapshot = await getDocs(buildCollectionReference(db, collectionName, options));
       return snapshot.docs.map((snapshotDoc) => ({
         ...snapshotDoc.data(),
         id: snapshotDoc.id,
@@ -347,7 +362,7 @@ window.__turnoFirebaseReadyPromise = (async () => {
     },
     subscribeCollection(collectionName, callback, options = {}) {
       return onSnapshot(
-        buildCollectionReference(db, collectionName, options.filters),
+        buildCollectionReference(db, collectionName, options),
         (snapshot) => {
           callback(
             snapshot.docs.map((snapshotDoc) => ({
