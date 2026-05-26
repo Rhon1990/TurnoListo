@@ -1430,6 +1430,20 @@ function normalizeRestaurantOrderIdSegment(value) {
   );
 }
 
+function normalizeRestaurantOrderCodeSegment(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function buildRestaurantOrderCode(restaurantId) {
+  const restaurantNameSegment = normalizeRestaurantOrderCodeSegment(getRestaurantById(restaurantId)?.name || "");
+  if (restaurantNameSegment) return restaurantNameSegment.slice(0, 3).padEnd(3, "X");
+  return normalizeRestaurantOrderCodeSegment(restaurantId || DEFAULT_RESTAURANT_ID).slice(0, 3).padEnd(3, "X");
+}
+
 function buildOrderTrackingId(restaurantId, sourceOrderId) {
   const normalizedRestaurantId = normalizeRestaurantOrderIdSegment(restaurantId);
   const normalizedSourceOrderId = normalizeSourceOrderId(sourceOrderId);
@@ -3452,9 +3466,9 @@ function formatOrderNumberDateSegment(createdAt) {
 
 function buildRestaurantOrderNumber(restaurantId, orders, createdAt = new Date()) {
   const safeRestaurantId = String(restaurantId || DEFAULT_RESTAURANT_ID);
-  const restaurantSegment = normalizeRestaurantOrderIdSegment(safeRestaurantId);
+  const restaurantCode = buildRestaurantOrderCode(safeRestaurantId);
   const dateSegment = formatOrderNumberDateSegment(createdAt);
-  const orderNumberPrefix = `${restaurantSegment}-${dateSegment}`;
+  const orderNumberPrefix = `${restaurantCode}-${dateSegment}`;
   const restaurantOrders = orders.filter(
     (order) =>
       String(order.restaurantId || DEFAULT_RESTAURANT_ID) === safeRestaurantId &&
