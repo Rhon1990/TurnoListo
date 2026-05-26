@@ -2438,7 +2438,6 @@ function createOrder(orderData) {
     throw new Error("duplicate-source-order");
   }
 
-  const nextIndex = getNextOrderIndex(orders);
   const normalizedPickupPoint = String(orderData.pickupPoint || "").trim();
   const parsedEstimatedReadyMinutes = Number.parseInt(String(orderData.estimatedReadyMinutes || ""), 10);
   const normalizedEstimatedReadyMinutes =
@@ -2450,7 +2449,7 @@ function createOrder(orderData) {
     restaurantId: currentRestaurantId,
     createdAt,
     id: buildOrderTrackingId(currentRestaurantId, normalizedSourceOrderId),
-    orderNumber: `#${nextIndex}`,
+    orderNumber: buildRestaurantOrderNumber(currentRestaurantId, orders, createdAt),
     sourceOrderId: normalizedSourceOrderId,
     publicTrackingToken: generatePublicTrackingToken(),
     sourceSystem: String(orderData.sourceSystem || "").trim() || "Alta manual",
@@ -3443,12 +3442,29 @@ function buildQrUrl(orderId) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(buildClientUrl(publicOrderId))}&cb=${encodeURIComponent(cacheKey)}`;
 }
 
-function getNextOrderIndex(orders) {
-  const values = orders
-    .map((order) => Number.parseInt(String(order.orderNumber || "").replace("#", ""), 10))
-    .filter((value) => Number.isFinite(value));
+function formatOrderNumberDateSegment(createdAt) {
+  const date = createdAt instanceof Date ? createdAt : new Date(createdAt || new Date().toISOString());
+  const year = String(date.getFullYear()).slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
 
-  return Math.max(2047, ...values) + 1;
+function buildRestaurantOrderNumber(restaurantId, orders, createdAt = new Date()) {
+  const safeRestaurantId = String(restaurantId || DEFAULT_RESTAURANT_ID);
+  const restaurantSegment = normalizeRestaurantOrderIdSegment(safeRestaurantId);
+  const dateSegment = formatOrderNumberDateSegment(createdAt);
+  const orderNumberPrefix = `${restaurantSegment}-${dateSegment}`;
+  const restaurantOrders = orders.filter(
+    (order) =>
+      String(order.restaurantId || DEFAULT_RESTAURANT_ID) === safeRestaurantId &&
+      String(order.orderNumber || "").startsWith(`${orderNumberPrefix}-`),
+  );
+  const values = restaurantOrders
+    .map((order) => Number.parseInt(String(order.orderNumber || "").split("-").pop(), 10))
+    .filter((value) => Number.isFinite(value));
+  const nextIndex = Math.max(0, ...values) + 1;
+  return `${orderNumberPrefix}-${String(nextIndex).padStart(3, "0")}`;
 }
 
 function formatRating(score) {
