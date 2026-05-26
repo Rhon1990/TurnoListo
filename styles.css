@@ -4198,6 +4198,10 @@ button:hover,
   gap: 0.75rem;
 }
 
+#restaurantPlaybook .dashboard-subsection__top {
+  margin-bottom: 0.75rem;
+}
+
 .playbook-dismiss {
   width: 42px;
   height: 42px;
