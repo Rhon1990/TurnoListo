@@ -96,6 +96,7 @@ const PUSH_TOKEN_STORAGE_KEY = "turnolisto-client-push-token";
 const PUSH_ORDER_STORAGE_KEY = "turnolisto-client-push-order";
 const progressStatusOrder = ["received", "preparing", "ready", "delivered"];
 const CLIENT_REFRESH_INTERVAL_MS = 4000;
+const READY_VIBRATION_PATTERN = Object.freeze([360, 180, 360, 180, 520]);
 const IS_IOS_DEVICE = /iPhone|iPad|iPod/i.test(String(window.navigator?.userAgent || ""));
 const IS_IOS_STANDALONE =
   IS_IOS_DEVICE &&
@@ -674,6 +675,7 @@ async function handleEnableAlerts() {
 
   try {
     await warmUpReadyTone();
+    triggerReadyVibrationPreview();
     alertsStatusOverride = "";
     alertsButtonLockedReason = "";
     let activationResult = await syncPushRegistrationForCurrentOrder({ force: true });
@@ -1018,16 +1020,24 @@ async function playReadyTone() {
   }, (finalStopAt - now) * 1000 + 120);
 }
 
+function triggerReadyVibrationPreview() {
+  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") {
+    return false;
+  }
+
+  return navigator.vibrate(READY_VIBRATION_PATTERN);
+}
+
 function playReadyVibration() {
   if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") {
     return;
   }
 
   stopReadyVibration();
-  navigator.vibrate([220, 120, 220, 120, 320]);
+  navigator.vibrate(READY_VIBRATION_PATTERN);
   readyVibrationTimer = window.setTimeout(() => {
     readyVibrationTimer = 0;
-  }, 1000);
+  }, 1800);
 }
 
 function stopReadyTonePlayback() {

@@ -297,6 +297,7 @@ if (isFirebaseConfigReady(currentConfig)) {
       body: data.body || "Tu pedido ya está listo para recoger.",
       tag: data.orderId ? \`order-ready-\${data.orderId}\` : "turnolisto-order-ready",
       renotify: true,
+      vibrate: [360, 180, 360, 180, 520],
       data: {
         link: data.link || self.location.origin,
       },
@@ -397,6 +398,7 @@ if (isFirebaseConfigReady(CURRENT_FIREBASE_CONFIG)) {
       body: data.body || "Tu pedido ya está listo para recoger.",
       tag: data.orderId ? \`order-ready-\${data.orderId}\` : "turnolisto-order-ready",
       renotify: true,
+      vibrate: [360, 180, 360, 180, 520],
       data: {
         link: data.link || self.location.origin,
       },
