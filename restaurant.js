@@ -666,9 +666,9 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   const hasClosedLoop = restaurantOrders.some((order) => order.status === "delivered" || order.archivedAt);
   const hasRatedOrder = restaurantOrders.some((order) => Number(order.rating?.score || 0) > 0);
   const isDemo = isDemoRestaurant(restaurant);
-  const completionUnlocked = hasCreatedOrder && hasReadyOrder && hasClosedLoop && hasRatedOrder;
+  const dismissUnlocked = hasCreatedOrder && hasReadyOrder && hasClosedLoop;
 
-  if (isDemo && isRestaurantPlaybookDismissed(restaurant) && completionUnlocked) {
+  if (isDemo && isRestaurantPlaybookDismissed(restaurant) && dismissUnlocked) {
     restaurantPlaybook.hidden = true;
     restaurantPlaybookList.innerHTML = "";
     if (restaurantPlaybookDismiss) {
@@ -744,7 +744,7 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   restaurantPlaybook.hidden = false;
   restaurantPlaybookList.innerHTML = "";
   if (restaurantPlaybookDismiss) {
-    restaurantPlaybookDismiss.hidden = !(isDemo && completionUnlocked);
+    restaurantPlaybookDismiss.hidden = !(isDemo && dismissUnlocked);
   }
   steps.forEach((step) => {
     const item = document.createElement("article");
@@ -789,13 +789,12 @@ function hideRestaurantPlaybook() {
 
   const allOrders = loadOrders();
   const restaurantOrders = allOrders.filter((order) => String(order.restaurantId || "") === String(restaurant.id || ""));
-  const completionUnlocked =
+  const dismissUnlocked =
     restaurantOrders.length > 0 &&
     restaurantOrders.some((order) => order.status === "ready" || order.status === "delivered") &&
-    restaurantOrders.some((order) => order.status === "delivered" || order.archivedAt) &&
-    restaurantOrders.some((order) => Number(order.rating?.score || 0) > 0);
+    restaurantOrders.some((order) => order.status === "delivered" || order.archivedAt);
 
-  if (!completionUnlocked) return;
+  if (!dismissUnlocked) return;
 
   const key = getRestaurantPlaybookStorageKey(restaurant);
   if (key) {
