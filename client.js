@@ -111,6 +111,10 @@ const formatKey = (key, params = {}, fallback = "") =>
 const setBusyButton = window.TurnoListoUiBusy?.setBusyButton;
 const setBusyRegion = window.TurnoListoUiBusy?.setBusyRegion;
 
+function getClientOrderDisplayNumber(order) {
+  return typeof formatOrderNumberForDisplay === "function" ? formatOrderNumberForDisplay(order) : String(order?.orderNumber || "");
+}
+
 function translateBuiltInOrderText(value) {
   const normalized = String(value || "").trim();
   if (!normalized) return "";
@@ -276,7 +280,7 @@ function renderClient() {
   syncClientInstallManifest(publicOrderId);
   syncOrderInputValue(publicOrderId);
   renderClientBrand(publicRestaurantBrand);
-  ticketOrderId.textContent = order.orderNumber;
+  ticketOrderId.textContent = getClientOrderDisplayNumber(order);
   ticketCustomer.textContent = translateBuiltInOrderText(order.customerName);
   statusPill.textContent = translateText(meta.label);
   statusPill.style.background = meta.bg;
@@ -558,25 +562,26 @@ function getProgressWidth(status) {
 }
 
 function buildNotificationBody(order) {
+  const orderDisplayNumber = getClientOrderDisplayNumber(order);
   if (order.status === "ready") {
-    return formatKey("client.dynamic.notification.ready.body", { orderNumber: order.orderNumber }, `${order.orderNumber} ya está listo para recoger.`);
+    return formatKey("client.dynamic.notification.ready.body", { orderNumber: orderDisplayNumber }, `${orderDisplayNumber} ya está listo para recoger.`);
   }
 
   if (order.status === "delivered") {
-    return formatKey("client.dynamic.notification.delivered.body", { orderNumber: order.orderNumber }, `${order.orderNumber} ya figura como entregado.`);
+    return formatKey("client.dynamic.notification.delivered.body", { orderNumber: orderDisplayNumber }, `${orderDisplayNumber} ya figura como entregado.`);
   }
 
   if (order.status === "cancelled") {
-    return formatKey("client.dynamic.notification.cancelled.body", { orderNumber: order.orderNumber }, `${order.orderNumber} ha sido cancelado por el restaurante.`);
+    return formatKey("client.dynamic.notification.cancelled.body", { orderNumber: orderDisplayNumber }, `${orderDisplayNumber} ha sido cancelado por el restaurante.`);
   }
 
   return formatKey(
     "client.dynamic.notification.status.body",
     {
-      orderNumber: order.orderNumber,
+      orderNumber: orderDisplayNumber,
       status: translateText(statusMeta[order.status].label).toLowerCase(),
     },
-    `${order.orderNumber} ahora está en estado ${statusMeta[order.status].label.toLowerCase()}.`,
+    `${orderDisplayNumber} ahora está en estado ${statusMeta[order.status].label.toLowerCase()}.`,
   );
 }
 

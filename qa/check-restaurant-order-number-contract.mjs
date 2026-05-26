@@ -7,11 +7,49 @@ const currentFile = fileURLToPath(import.meta.url);
 const qaDir = path.dirname(currentFile);
 const projectRoot = path.resolve(qaDir, "..");
 const sharedSource = readFileSync(path.join(projectRoot, "shared.js"), "utf8");
+const restaurantSource = readFileSync(path.join(projectRoot, "restaurant.js"), "utf8");
+const clientSource = readFileSync(path.join(projectRoot, "client.js"), "utf8");
 
 assert.match(
   sharedSource,
   /function buildRestaurantOrderNumber\(restaurantId, orders, createdAt = new Date\(\)\) \{/,
   "Debe existir un generador de numero visible por restaurante y momento de creacion."
+);
+
+assert.match(
+  sharedSource,
+  /function formatOrderNumberForDisplay\(order\) \{/,
+  "Debe existir un formateador visual para mostrar cortos tambien los numeros heredados."
+);
+
+assert.match(
+  sharedSource,
+  /String\(order\?\.orderNumber \|\| ""\)\.match\(\/\^\(\.\+\)-\(\\d\{6\}\)-\(\\d\{3,\}\)\$\/\)/,
+  "El formateador visual debe detectar numeros heredados con prefijo largo, fecha y consecutivo."
+);
+
+assert.match(
+  sharedSource,
+  /return `\$\{buildRestaurantOrderCode\(order\?\.restaurantId\)\}-\$\{legacyMatch\[2\]\}-\$\{legacyMatch\[3\]\}`;/,
+  "Los numeros heredados deben mostrarse con codigo corto del restaurante, fecha y consecutivo."
+);
+
+assert.match(
+  restaurantSource,
+  /function getOrderDisplayNumber\(order\) \{/,
+  "El panel restaurante debe usar un wrapper de visualizacion para numeros de pedido."
+);
+
+assert.match(
+  restaurantSource,
+  /compactTitle\.textContent = `\$\{orderDisplayNumber\} · \$\{translateBuiltInOrderText\(order\.customerName\)\}`;/,
+  "Las tarjetas de restaurante deben mostrar el numero visual corto."
+);
+
+assert.match(
+  clientSource,
+  /ticketOrderId\.textContent = getClientOrderDisplayNumber\(order\);/,
+  "El cliente tambien debe ver el numero visual corto."
 );
 
 assert.match(

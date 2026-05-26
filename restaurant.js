@@ -440,6 +440,10 @@ function syncRestaurantAccess() {
   restaurantHeroEyebrow.textContent = translateRuntimeText("Panel restaurante");
 }
 
+function getOrderDisplayNumber(order) {
+  return typeof formatOrderNumberForDisplay === "function" ? formatOrderNumberForDisplay(order) : String(order?.orderNumber || "");
+}
+
 function renderRestaurant() {
   const session = getCurrentRestaurantSession();
   if (!session) {
@@ -591,7 +595,7 @@ function renderRestaurantSpotlight(stats, restaurant = null, allOrders = loadOrd
   }
 
   if (stats.aiFocusOrder) {
-    restaurantSpotlightTitle.textContent = translateRuntimeText(`Prioriza ${stats.aiFocusOrder.orderNumber} ahora`);
+    restaurantSpotlightTitle.textContent = translateRuntimeText(`Prioriza ${getOrderDisplayNumber(stats.aiFocusOrder)} ahora`);
     restaurantSpotlightBody.textContent =
       stats.aiFocusOrder.aiRiskLevel === "high"
         ? translateText(
@@ -1251,7 +1255,7 @@ function focusSlowestOrder() {
     goToHistoryView({
       status: order.status === "cancelled" ? "cancelled" : order.status === "delivered" ? "delivered" : "all",
       rating: "all",
-      search: order.orderNumber,
+      search: getOrderDisplayNumber(order),
     });
     return;
   }
@@ -1259,7 +1263,7 @@ function focusSlowestOrder() {
   goToOrdersView({
     status: ["received", "preparing", "ready"].includes(order.status) ? order.status : "all",
     priority: "all",
-    search: order.orderNumber,
+    search: getOrderDisplayNumber(order),
   });
 }
 
@@ -1303,7 +1307,7 @@ function renderDashboard(stats) {
   dashboardDelayedActive.textContent = stats.delayedActive;
   dashboardDelayedActiveAction.textContent = stats.delayedActive;
   dashboardLongestWait.textContent = formatDurationMinutes(stats.longestActiveMinutes);
-  dashboardSlowestOrder.textContent = stats.slowestOrder ? stats.slowestOrder.orderNumber : translateRuntimeText("Sin datos");
+  dashboardSlowestOrder.textContent = stats.slowestOrder ? getOrderDisplayNumber(stats.slowestOrder) : translateRuntimeText("Sin datos");
   dashboardSlowestOrderHint.textContent = stats.slowestOrder
     ? translateRuntimeText(`${stats.slowestOrder.customerName} · ${formatDurationMinutes(getOrderDurationMinutes(stats.slowestOrder))}`)
     : translateRuntimeText("Pedido con mayor espera activa");
@@ -1332,7 +1336,7 @@ function renderDashboard(stats) {
   dashboardCancellationRate.textContent = `${stats.cancellationRate}%`;
   dashboardAvgResolution.textContent = stats.deliveredCount ? formatDurationMinutes(stats.avgResolutionMinutes) : "--:--";
   dashboardAiFocusOrder.textContent = stats.aiFocusOrder
-    ? translateRuntimeText(`${stats.aiFocusOrder.orderNumber} · ${formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel)}`)
+    ? translateRuntimeText(`${getOrderDisplayNumber(stats.aiFocusOrder)} · ${formatAiRiskLabel(stats.aiFocusOrder.aiRiskLevel)}`)
     : translateRuntimeText("Sin datos");
   dashboardHeroLeadMetric.textContent = stats.readyInPeriod ? formatDurationMinutes(stats.avgReadyMinutes) : "--:--";
   dashboardHeroLeadHint.textContent = stats.readyInPeriod
@@ -1582,6 +1586,7 @@ function matchesActiveFilters(order) {
   if (search) {
     const haystack = [
       order.orderNumber,
+      getOrderDisplayNumber(order),
       order.id,
       order.sourceOrderId,
       order.customerName,
@@ -1668,6 +1673,7 @@ function matchesArchivedFilters(order) {
   if (search) {
     const haystack = [
       order.orderNumber,
+      getOrderDisplayNumber(order),
       order.id,
       order.sourceOrderId,
       order.customerName,
@@ -1818,7 +1824,8 @@ function buildOrderCard(order, isArchived) {
   grid.className = "order-edit-grid";
   footer.className = "order-card__footer";
 
-  compactTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  const orderDisplayNumber = getOrderDisplayNumber(order);
+  compactTitle.textContent = `${orderDisplayNumber} · ${translateBuiltInOrderText(order.customerName)}`;
   compactLine.append(document.createTextNode(translateBuiltInOrderText(order.items)));
   if (order.sourceOrderId) {
     compactLine.append(document.createTextNode(translateRuntimeText(` · Ticket ${order.sourceOrderId}`)));
@@ -1886,7 +1893,7 @@ function buildOrderCard(order, isArchived) {
   });
 
   qr.src = buildQrUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
-  qr.alt = translateRuntimeText(`QR del pedido ${order.orderNumber}`);
+  qr.alt = translateRuntimeText(`QR del pedido ${orderDisplayNumber}`);
   qr.className = "order-card__qr";
 
   const estimatedEtaField = getDisplayEstimatedReadyMinutes(order);
@@ -2220,7 +2227,7 @@ function handleCreateOrder(event) {
 
 function openCommentModal(order) {
   activeCommentOrderId = order.id;
-  commentTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  commentTitle.textContent = `${getOrderDisplayNumber(order)} · ${translateBuiltInOrderText(order.customerName)}`;
   commentMeta.textContent = translateRuntimeText(`Valoración ${formatRating(order.rating?.score || 0)} · ${translateBuiltInOrderText(order.items)}`);
   commentBody.textContent = order.rating?.comment || translateRuntimeText("Sin comentario");
   commentModal.hidden = false;
@@ -2234,7 +2241,7 @@ function closeCommentModal() {
 function openAiModal(order, triggerButton = null) {
   activeAiOrderId = order.id;
   lastAiTriggerButton = triggerButton;
-  aiTitle.textContent = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  aiTitle.textContent = `${getOrderDisplayNumber(order)} · ${translateBuiltInOrderText(order.customerName)}`;
   aiMeta.textContent = [formatAiRiskLabel(order.aiRiskLevel), formatAiEta(order), order.aiBottleneckLabel ? `${translateRuntimeText("Cuello:")} ${translateRuntimeText(order.aiBottleneckLabel)}` : ""]
     .filter(Boolean)
     .join(" · ");
@@ -2255,7 +2262,7 @@ function closeAiModal() {
 
 function openCancelModal(order) {
   pendingCancelOrderId = order.id;
-  pendingCancelOrderLabel = `${order.orderNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  pendingCancelOrderLabel = `${getOrderDisplayNumber(order)} · ${translateBuiltInOrderText(order.customerName)}`;
   cancelMeta.textContent = pendingCancelOrderLabel;
   cancelModal.hidden = false;
 }

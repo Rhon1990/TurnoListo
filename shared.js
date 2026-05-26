@@ -3481,6 +3481,13 @@ function buildRestaurantOrderNumber(restaurantId, orders, createdAt = new Date()
   return `${orderNumberPrefix}-${String(nextIndex).padStart(3, "0")}`;
 }
 
+function formatOrderNumberForDisplay(order) {
+  const rawOrderNumber = String(order?.orderNumber || "");
+  const legacyMatch = String(order?.orderNumber || "").match(/^(.+)-(\d{6})-(\d{3,})$/);
+  if (!legacyMatch || legacyMatch[1].length <= 3) return rawOrderNumber;
+  return `${buildRestaurantOrderCode(order?.restaurantId)}-${legacyMatch[2]}-${legacyMatch[3]}`;
+}
+
 function formatRating(score) {
   if (!score) return "Sin valorar";
   return `${"★".repeat(score)}${"☆".repeat(5 - score)}`;
