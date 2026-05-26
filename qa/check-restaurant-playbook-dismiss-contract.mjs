@@ -22,8 +22,20 @@ assert.doesNotMatch(
 
 assert.match(
   restaurantJs,
+  /restaurantPlaybookDismiss\.hidden = !dismissUnlocked;/,
+  "La x del playbook debe mostrarse en demo y operativa real cuando los 3 pasos operativos desbloquean el cierre."
+);
+
+assert.doesNotMatch(
+  restaurantJs,
   /restaurantPlaybookDismiss\.hidden = !\(isDemo && dismissUnlocked\);/,
-  "La x del playbook demo debe mostrarse cuando los 3 pasos operativos desbloquean el cierre."
+  "El cierre del playbook no debe estar limitado a restaurantes demo."
+);
+
+assert.doesNotMatch(
+  restaurantJs,
+  /if \(!restaurant \|\| !isDemoRestaurant\(restaurant\)\) return;/,
+  "El handler de la x debe permitir cerrar el playbook operativo real, no solo el demo."
 );
 
 console.log("Restaurant playbook dismiss contract check passed.");

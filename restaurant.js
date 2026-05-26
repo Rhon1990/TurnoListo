@@ -668,7 +668,7 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   const isDemo = isDemoRestaurant(restaurant);
   const dismissUnlocked = hasCreatedOrder && hasReadyOrder && hasClosedLoop;
 
-  if (isDemo && isRestaurantPlaybookDismissed(restaurant) && dismissUnlocked) {
+  if (isRestaurantPlaybookDismissed(restaurant) && dismissUnlocked) {
     restaurantPlaybook.hidden = true;
     restaurantPlaybookList.innerHTML = "";
     if (restaurantPlaybookDismiss) {
@@ -744,7 +744,7 @@ function renderRestaurantPlaybook(restaurant, allOrders = loadOrders()) {
   restaurantPlaybook.hidden = false;
   restaurantPlaybookList.innerHTML = "";
   if (restaurantPlaybookDismiss) {
-    restaurantPlaybookDismiss.hidden = !(isDemo && dismissUnlocked);
+    restaurantPlaybookDismiss.hidden = !dismissUnlocked;
   }
   steps.forEach((step) => {
     const item = document.createElement("article");
@@ -785,7 +785,7 @@ function isRestaurantPlaybookDismissed(restaurant) {
 function hideRestaurantPlaybook() {
   const session = getCurrentRestaurantSession();
   const restaurant = session ? getRestaurantById(session.restaurantId) : null;
-  if (!restaurant || !isDemoRestaurant(restaurant)) return;
+  if (!restaurant) return;
 
   const allOrders = loadOrders();
   const restaurantOrders = allOrders.filter((order) => String(order.restaurantId || "") === String(restaurant.id || ""));
