@@ -2798,6 +2798,7 @@ button:hover,
 }
 
 .ticket--client {
+  container-type: inline-size;
   padding: 1.35rem;
   border-radius: 32px;
   background:
@@ -3195,9 +3196,11 @@ button:hover,
 }
 
 #clientOrderNumber {
-  font-size: clamp(2.6rem, 10vw, 4rem);
+  max-width: 100%;
+  font-size: clamp(2rem, 10cqw, 4rem);
   line-height: 0.92;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 #clientCustomer {
