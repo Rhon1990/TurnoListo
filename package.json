@@ -15,6 +15,7 @@
     "qa:scalability": "node qa/check-scalability-contracts.mjs",
     "qa:restaurant-access": "node qa/check-restaurant-access-contracts.mjs",
     "qa:admin-email-templates": "node qa/check-admin-email-template-contracts.mjs",
-    "qa:push-links": "node qa/check-push-notification-link-contracts.mjs"
+    "qa:push-links": "node qa/check-push-notification-link-contracts.mjs",
+    "qa:github-pages": "node qa/check-github-pages-workflow.mjs"
   }
 }
