@@ -5,6 +5,7 @@
     "build:runtime": "node scripts/render-firebase-runtime.mjs",
     "build:hosting:develop": "node scripts/build-hosting-env.mjs develop",
     "build:hosting:production": "node scripts/build-hosting-env.mjs production",
+    "build:github-pages": "node scripts/build-github-pages.mjs",
     "deploy:hosting:develop": "node scripts/deploy-firebase-env.mjs develop hosting",
     "deploy:hosting:production": "node scripts/deploy-firebase-env.mjs production hosting",
     "deploy:backend:develop": "node scripts/deploy-firebase-env.mjs develop backend",

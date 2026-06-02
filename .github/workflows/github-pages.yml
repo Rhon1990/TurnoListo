@@ -27,13 +27,13 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Build develop hosting bundle
-        run: npm run build:hosting:develop
+      - name: Build GitHub Pages artifact
+        run: npm run build:github-pages
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/develop
+          path: dist/github-pages
 
       - name: Deploy Pages
         id: deployment

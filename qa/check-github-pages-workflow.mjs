@@ -19,13 +19,13 @@ assert.match(workflowSource, /pages:\s*write/, "GitHub Pages workflow must be al
 assert.match(workflowSource, /id-token:\s*write/, "GitHub Pages workflow must allow OIDC deployment auth.");
 assert.match(
   workflowSource,
-  /npm run build:hosting:develop/,
-  "GitHub Pages workflow must publish the develop hosting bundle.",
+  /npm run build:github-pages/,
+  "GitHub Pages workflow must build both dev and prod bundles.",
 );
 assert.match(
   workflowSource,
-  /actions\/upload-pages-artifact@v\d+[\s\S]*path:\s*dist\/develop/,
-  "GitHub Pages workflow must upload dist/develop as the Pages artifact.",
+  /actions\/upload-pages-artifact@v\d+[\s\S]*path:\s*dist\/github-pages/,
+  "GitHub Pages workflow must upload the combined GitHub Pages artifact.",
 );
 assert.match(
   workflowSource,
