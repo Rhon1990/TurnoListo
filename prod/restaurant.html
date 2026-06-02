@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Panel restaurante de TurnoListo para gestionar pedidos, optimizar tiempos y ofrecer seguimiento por QR al cliente."
+    />
+    <title>TurnoListo | Restaurante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260526c" />
+  </head>
+  <body data-private-role="restaurant">
+    <div class="app-shell" id="restaurantLoginView" hidden>
+      <main class="grid grid--single">
+        <section class="panel glass-card auth-panel">
+          <div class="auth-layout auth-layout--restaurant">
+            <div class="auth-showcase">
+              <div class="auth-brand">
+                <img class="auth-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+                <div class="auth-brand__copy" aria-label="TurnoListo. Tecnologia que agiliza tu restaurante.">
+                  <p class="auth-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
+                  <p class="auth-brand__tagline" data-i18n-key="brand.tagline">Tecnología que Agiliza tu Restaurante</p>
+                </div>
+              </div>
+              <div class="auth-showcase__copy">
+                <p class="panel__kicker" data-i18n-key="restaurant.login.kicker">Acceso restaurante</p>
+                <h2>Convierte cada pedido en una decisión guiada por IA adaptativa, clara y lista para escalar.</h2>
+                <p class="auth-showcase__text">
+                  TurnoListo combina seguimiento en tiempo real, aprendizaje por restaurante y recomendaciones operativas
+                  para anticipar retrasos, priorizar mejor y reducir fricción en recogida sin cambiar el sistema principal.
+                </p>
+              </div>
+              <div class="auth-proof-grid">
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">IA adaptativa</p>
+                  <strong class="auth-proof-card__value">Aprende</strong>
+                  <p class="auth-proof-card__text">Ajusta tiempos, riesgo y prioridades según el comportamiento real del local.</p>
+                </article>
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Operación ligera</p>
+                  <strong class="auth-proof-card__value">1 toque</strong>
+                  <p class="auth-proof-card__text">El equipo actualiza estados rápido desde móvil, tablet o mostrador.</p>
+                </article>
+                <article class="auth-proof-card">
+                  <p class="auth-proof-card__label">Escalable</p>
+                  <strong class="auth-proof-card__value">Más margen</strong>
+                  <p class="auth-proof-card__text">Más control operativo, mejor experiencia y una propuesta más atractiva para crecer.</p>
+                </article>
+              </div>
+              <div class="auth-signal-strip">
+                <span class="auth-signal">ETA adaptativo</span>
+                <span class="auth-signal">Aprendizaje por local</span>
+                <span class="auth-signal">Seguimiento por QR</span>
+                <span class="auth-signal">Menos fricción en recogida</span>
+              </div>
+            </div>
+            <div class="auth-entry">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker" data-i18n-key="restaurant.login.kicker">Acceso restaurante</p>
+                  <h2>Inicia sesión para operar con IA que aprende de tu restaurante</h2>
+                </div>
+              </div>
+              <p class="auth-entry__text">
+                Entra para mover pedidos, activar una lectura operativa personalizada y gestionar la hora pico con más precisión, menos espera y mejor margen.
+              </p>
+              <form class="quick-form auth-form" id="restaurantLoginForm" method="post">
+                <label class="field">
+                  <span data-i18n-key="restaurant.login.email">Correo de acceso</span>
+                  <input id="restaurantLoginUsername" name="username" type="email" placeholder="correo@restaurante.com" autocomplete="username" required />
+                </label>
+                <label class="field">
+                  <span data-i18n-key="restaurant.login.password">Contraseña</span>
+                  <div class="password-field">
+                    <input id="restaurantLoginPassword" name="password" type="password" placeholder="Contraseña" data-i18n-placeholder-key="restaurant.login.password" autocomplete="current-password" required />
+                    <button class="password-toggle password-toggle--field" id="restaurantLoginTogglePassword" type="button" aria-label="Mostrar contraseña" data-i18n-aria-label-key="restaurant.login.showPassword">
+                      <span class="material-symbols-rounded" data-icon="visibility" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </label>
+                <div class="quick-form__actions auth-form__actions">
+                  <button type="submit" class="launcher" data-i18n-key="restaurant.login.submit">Entrar al restaurante</button>
+                </div>
+              </form>
+              <p class="form-feedback" id="restaurantLoginFeedback" hidden aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="app-shell" id="restaurantWorkspace" hidden>
+      <div class="floating-tooltip floating-tooltip--fixed" id="restaurantTermTooltip" hidden></div>
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo" data-i18n-aria-label-key="layout.topbar.aria">
+        <div class="workspace-topbar__inner">
+          <a class="workspace-brand workspace-brand--link" href="./restaurant.html" aria-label="Ir al panel principal del restaurante" data-i18n-aria-label-key="layout.restaurantPanel.aria">
+            <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+            <div class="workspace-brand__copy">
+              <p class="workspace-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
+              <p class="workspace-brand__tagline" data-i18n-key="brand.tagline">Tecnología que Agiliza tu Restaurante</p>
+            </div>
+          </a>
+          <div class="workspace-actions" aria-label="Acciones de cabecera" data-i18n-aria-label-key="layout.actions.aria">
+            <a class="workspace-mail-button workspace-home-button" href="./restaurant.html" aria-label="Ir al panel principal" data-i18n-aria-label-key="layout.homePanel.aria">
+              <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="home" aria-hidden="true"></span>
+              <span class="workspace-mail-button__label" data-i18n-key="layout.home">Inicio</span>
+            </a>
+            <div class="account-menu" id="restaurantAccountMenu">
+              <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false" data-i18n-aria-label-key="layout.accountMenu.aria">
+                <span class="account-menu__avatar" id="restaurantAccountAvatar">
+                  <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
+                  <span id="restaurantAccountAvatarFallback">?</span>
+                </span>
+                <span class="account-menu__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+              </button>
+              <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="restaurantAccountName" data-i18n-key="restaurant.account.emptyName">Sin datos cargados</strong>
+                  <p id="restaurantAccountMeta" data-i18n-key="restaurant.account.emptyMeta">Cuenta no cargada</p>
+                </div>
+                <div class="account-menu__actions">
+                  <a class="account-menu__item" id="restaurantMenuProfile" href="./restaurant-profile.html">
+                    <span class="material-symbols-rounded" data-icon="storefront" aria-hidden="true"></span>
+                    <span data-i18n-key="layout.profile">Perfil</span>
+                  </a>
+                  <a class="account-menu__item" href="./contact.html">
+                    <span class="material-symbols-rounded" data-icon="support_agent" aria-hidden="true"></span>
+                    <span data-i18n-key="layout.contact">Contáctenos</span>
+                  </a>
+                  <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">
+                    <span class="material-symbols-rounded" data-icon="logout" aria-hidden="true"></span>
+                    <span data-i18n-key="layout.logout">Cerrar sesión</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <header class="hero hero--compact">
+        <div class="hero__copy">
+          <p class="eyebrow" id="restaurantHeroEyebrow">Panel restaurante</p>
+          <h1>Dirige la operación con una IA que aprende de tu propio ritmo.</h1>
+          <p class="hero__text">
+            TurnoListo convierte tu flujo actual en una operación guiada por ETA adaptativo, prioridad automática y aprendizaje por local, sin cambiar tu TPV.
+          </p>
+          <div class="summary-strip hero__signals">
+            <span class="summary-chip">Sin cambiar tu TPV</span>
+            <span class="summary-chip">IA que aprende</span>
+            <span class="summary-chip">Prioridad automática</span>
+          </div>
+        </div>
+        <div class="hero__card glass-card">
+          <p class="hero__metric-label" id="restaurantSessionLabel">Sin datos cargados</p>
+          <p class="hero__metric-label" id="restaurantHeroMetricLabel">Pedidos activos</p>
+          <strong class="hero__metric" id="restaurantHeroMetricValue">0</strong>
+          <p class="hero__hint" id="restaurantHeroMetricHint">Recibido, en preparación o listo para recoger.</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel glass-card">
+          <div class="panel__heading">
+            <div class="panel__heading-copy--restaurant-summary">
+              <p class="panel__kicker">Gestión</p>
+              <h2>Operación de pedidos con IA adaptativa</h2>
+              <div class="admin-inbox-quick-filters admin-inbox-quick-filters--restaurant-summary" aria-label="Filtros rápidos de pedidos de hoy">
+                <button class="admin-inbox-quick-filter admin-inbox-quick-filter--static" id="restaurantTotalTodayChip" type="button" disabled>
+                  0 total hoy
+                </button>
+                <button class="admin-inbox-quick-filter" id="restaurantInProgressTodayChip" type="button">
+                  0 en progreso hoy
+                </button>
+                <button class="admin-inbox-quick-filter" id="restaurantDeliveredTodayChip" type="button" data-restaurant-history-filter="delivered">
+                  0 entregados hoy
+                </button>
+                <button class="admin-inbox-quick-filter" id="restaurantCancelledTodayChip" type="button" data-restaurant-history-filter="cancelled">
+                  0 cancelados hoy
+                </button>
+                <button class="admin-inbox-quick-filter" id="restaurantArchivedTodayChip" type="button" data-restaurant-history-filter="all">
+                  0 archivados hoy
+                </button>
+              </div>
+            </div>
+          </div>
+          <section class="restaurant-spotlight">
+            <article class="restaurant-spotlight__primary">
+              <p class="panel__kicker">Acción sugerida ahora</p>
+              <h3 id="restaurantSpotlightTitle">Todo bajo control</h3>
+              <p id="restaurantSpotlightBody">
+                TurnoListo te mostrará aquí la mejor acción operativa combinando riesgo, carga actual y aprendizaje histórico del local.
+              </p>
+            </article>
+            <div class="restaurant-spotlight__rail">
+              <span class="summary-chip" id="restaurantSpotlightChipPrimary">Operación estable</span>
+              <span class="summary-chip" id="restaurantSpotlightChipSecondary">Listo para hora pico</span>
+            </div>
+          </section>
+          <div class="section-switcher" id="restaurantSectionTabs">
+            <button class="section-switcher__button is-active" type="button" data-section="orders">Pedidos activos</button>
+            <button class="section-switcher__button" type="button" data-section="create">Nuevo pedido</button>
+            <button class="section-switcher__button" type="button" data-section="dashboard">Dashboard</button>
+            <button class="section-switcher__button" type="button" data-section="history">Archivados</button>
+          </div>
+          <div class="dashboard-subsection" id="restaurantPlaybook" hidden>
+            <div class="dashboard-subsection__top">
+              <div>
+                <p class="panel__kicker" id="restaurantPlaybookEyebrow">Playbook operativo</p>
+                <h3 id="restaurantPlaybookTitle">Cómo activar más valor en menos de 10 minutos</h3>
+              </div>
+              <button
+                class="playbook-dismiss"
+                id="restaurantPlaybookDismiss"
+                type="button"
+                aria-label="Cerrar recorrido demo"
+                title="Cerrar recorrido demo"
+                hidden
+              >
+                ×
+              </button>
+            </div>
+            <div class="dashboard-insights" id="restaurantPlaybookList"></div>
+          </div>
+          <section class="restaurant-section restaurant-section--active" data-section-panel="orders">
+            <p class="hero__hint">
+              Vista rápida para cocina y mostrador. Aquí aparecen los pedidos activos con señales adaptativas para priorizar mejor y aprender más rápido del servicio real.
+            </p>
+            <div class="mode-strip">
+              <button
+                class="mode-chip is-active"
+                type="button"
+                id="restaurantModeStandard"
+                data-mode-hint="Muestra la vista completa para revisar, buscar y editar pedidos."
+              >
+                Modo completo
+              </button>
+              <button
+                class="mode-chip"
+                type="button"
+                id="restaurantModeCounter"
+                data-mode-hint="Mantiene todos los pedidos visibles, pero prioriza visualmente lo urgente y acelera el cambio de estados."
+              >
+                Modo hora pico
+              </button>
+              <div class="floating-tooltip" id="restaurantModeTooltip" hidden></div>
+            </div>
+            <div class="focus-strip" id="restaurantFocusStrip">
+              <button class="focus-chip" type="button" id="focusChipCritical">
+                <span class="focus-chip__label">En riesgo</span>
+                <strong class="focus-chip__value" id="focusChipCriticalValue">0</strong>
+              </button>
+              <button class="focus-chip" type="button" id="focusChipDueSoon">
+                <span class="focus-chip__label">Vencen pronto</span>
+                <strong class="focus-chip__value" id="focusChipDueSoonValue">0</strong>
+              </button>
+              <button class="focus-chip" type="button" id="focusChipReady">
+                <span class="focus-chip__label">Listos por recoger</span>
+                <strong class="focus-chip__value" id="focusChipReadyValue">0</strong>
+              </button>
+            </div>
+            <div class="list-toolbar">
+              <label class="list-toolbar__search">
+                <span>Buscar pedido</span>
+                <input
+                  id="activeSearchInput"
+                  type="search"
+                  placeholder="Cliente, código QR, pedido original o detalle"
+                />
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Estado</span>
+                <select id="activeStatusFilter">
+                  <option value="all">Todos</option>
+                  <option value="received">Recibidos</option>
+                  <option value="preparing">En preparación</option>
+                  <option value="ready">Listos</option>
+                </select>
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Prioridad</span>
+                <select id="activePriorityFilter">
+                  <option value="all">Todas</option>
+                  <option value="delayed">Fuera de promesa</option>
+                  <option value="critical">Desvío grave</option>
+                  <option value="due-soon">A menos de 5 min</option>
+                  <option value="ready-waiting">Listos esperando</option>
+                  <option value="normal">En tiempo</option>
+                </select>
+              </label>
+              <label class="list-toolbar__filter">
+                <span>Orden</span>
+                <select id="activeSortOrder">
+                  <option value="all">Todas</option>
+                  <option value="urgency">Más urgente primero</option>
+                  <option value="newest">Más nuevos primero</option>
+                  <option value="oldest">Más antiguos primero</option>
+                </select>
+              </label>
+            </div>
+            <div class="restaurant-grid" id="restaurantOrders"></div>
+          </section>
+          <section class="restaurant-section" data-section-panel="create" hidden>
+            <form class="quick-form quick-form--order-create" id="quickCreateForm">
+              <section class="quick-form__block quick-form__block--lead" aria-labelledby="quickCreateLeadTitle">
+                <p class="quick-form__section-title" id="quickCreateLeadTitle">Dato clave</p>
+                <label class="field field--primary">
+                  <span>Código de factura / ticket</span>
+                  <input id="sourceOrderId" name="sourceOrderId" type="text" placeholder="Ej. FAC-804 o POS-804" required />
+                </label>
+              </section>
+              <section class="quick-form__block quick-form__block--aside" aria-labelledby="quickCreateAsideTitle">
+                <p class="quick-form__section-title" id="quickCreateAsideTitle">Contexto adicional</p>
+                <label class="field">
+                  <span>Cliente (opcional)</span>
+                  <input id="customerName" name="customerName" type="text" placeholder="Nombre o alias" />
+                </label>
+                <label class="field">
+                  <span>Tiempo estimado (min) (opcional)</span>
+                  <input id="estimatedReadyMinutes" name="estimatedReadyMinutes" type="number" min="1" inputmode="numeric" placeholder="Ej. 15" />
+                </label>
+              </section>
+              <section class="quick-form__block quick-form__block--main" aria-labelledby="quickCreateMainTitle">
+                <p class="quick-form__section-title" id="quickCreateMainTitle">Qué se ha pedido</p>
+                <label class="field">
+                  <span>Pedido / resumen (opcional)</span>
+                  <input id="items" name="items" type="text" placeholder="Burger doble + bebida" />
+                </label>
+              </section>
+              <div class="quick-form__actions quick-form__actions--order-create">
+                <button type="submit" class="launcher">Crear pedido</button>
+              </div>
+            </form>
+            <p class="form-feedback" id="quickCreateFeedback" hidden></p>
+            <p class="hero__hint" id="restaurantCreateDemoHint" hidden></p>
+            <p class="hero__hint">
+              Pega el codigo de factura o ticket de tu sistema actual y TurnoListo se encarga del seguimiento al cliente.
+            </p>
+          </section>
+          <section class="restaurant-section" data-section-panel="dashboard" hidden>
+            <section class="dashboard-block">
+              <div class="panel__heading dashboard-heading">
+                <div>
+                  <p class="panel__kicker">Dashboard</p>
+                  <h2>Resumen del restaurante</h2>
+                </div>
+                <label class="dashboard-filter">
+                  <span>Ver por</span>
+                  <select id="restaurantDashboardPeriod">
+                    <option value="day">Día</option>
+                    <option value="month">Mes</option>
+                    <option value="year">Año</option>
+                  </select>
+                </label>
+              </div>
+              <section class="dashboard-hero">
+                <article class="dashboard-hero__primary">
+                  <p class="panel__kicker">Pulso operativo</p>
+                  <h3 class="dashboard-hero__title">Tiempo medio hasta listo</h3>
+                  <strong class="dashboard-hero__value" id="dashboardHeroLeadMetric">--:--</strong>
+                  <p class="dashboard-hero__hint" id="dashboardHeroLeadHint">Sin datos de entrega todavía</p>
+                </article>
+                <div class="dashboard-hero__rail">
+                  <article class="dashboard-hero__mini dashboard-card--action" id="dashboardCardActiveNowHero">
+                    <p class="stat__label">Activos ahora</p>
+                    <strong class="dashboard-hero__mini-value" id="dashboardHeroActiveNow">0</strong>
+                    <p class="dashboard-card__hint">Pedidos por atender</p>
+                  </article>
+                  <article class="dashboard-hero__mini dashboard-card--action" id="dashboardCardReadyNowHero">
+                    <p class="stat__label">Listos para recoger</p>
+                    <strong class="dashboard-hero__mini-value" id="dashboardHeroReadyNow">0</strong>
+                    <p class="dashboard-card__hint">Pendientes de entrega</p>
+                  </article>
+                  <article class="dashboard-hero__mini dashboard-card--action" id="dashboardSignalFeedbackHero">
+                    <p class="stat__label">Valoración media</p>
+                    <strong class="dashboard-hero__mini-value" id="dashboardHeroRating">Sin datos</strong>
+                    <p class="dashboard-card__hint">Lo que siente el cliente</p>
+                  </article>
+                </div>
+              </section>
+              <div class="dashboard-grid">
+                <article class="dashboard-card">
+                  <p class="stat__label">Pedidos del periodo</p>
+                  <strong class="dashboard-card__value" id="dashboardTotalToday">0</strong>
+                  <p class="dashboard-card__hint">Pedidos registrados en el filtro activo</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Entregados del periodo</p>
+                  <strong class="dashboard-card__value" id="dashboardDeliveredToday">0</strong>
+                  <p class="dashboard-card__hint">Pedidos completados en el filtro activo</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Entregas a tiempo</p>
+                  <strong class="dashboard-card__value" id="dashboardOnTimeRate">0%</strong>
+                  <p class="dashboard-card__hint">Pedidos listos dentro del tiempo prometido</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Pedidos que ya llevan demasiado tiempo abiertos y pueden acabar en queja, retraso o cancelacion.">Riesgo operativo</span></p>
+                  <strong class="dashboard-card__value" id="dashboardDelayedActive">0</strong>
+                  <p class="dashboard-card__hint">Pedidos activos que ya van fuera de promesa</p>
+                </article>
+                <article class="dashboard-card">
+                  <p class="stat__label">Comentarios recibidos</p>
+                  <strong class="dashboard-card__value" id="dashboardFeedbackCountCard">0</strong>
+                  <p class="dashboard-card__hint">Feedback útil para mejorar</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Lectura predictiva de TurnoListo que estima qué pedidos tienen más probabilidad de retrasarse o generar fricción operativa.">Predicción de riesgo IA</span></p>
+                  <strong class="dashboard-card__value" id="dashboardAiHighRisk">0</strong>
+                  <p class="dashboard-card__hint">Estimación de pedidos con riesgo alto según la IA adaptativa del local</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Estimación de carga operativa que combina volumen activo, retrasos, preparación en curso y hora pico.">Estimación de presión IA</span></p>
+                  <strong class="dashboard-card__value" id="dashboardAiPressure">Baja</strong>
+                  <p class="dashboard-card__hint">Estimación en vivo de la tensión operativa del local</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Minutos adicionales que la estimación inteligente proyecta sobre la promesa actual de los pedidos activos.">Desvío estimado IA</span></p>
+                  <strong class="dashboard-card__value" id="dashboardAiEtaGap">0 min</strong>
+                  <p class="dashboard-card__hint">Proyección sobre la promesa actual</p>
+                </article>
+                <article class="dashboard-card dashboard-card--ai">
+                  <p class="stat__label"><span class="term-hint" data-term-hint="Nivel de confianza del modelo adaptativo entrenado con cierres reales de este restaurante.">Confianza del modelo IA</span></p>
+                  <strong class="dashboard-card__value" id="dashboardAiConfidence">Aprendiendo</strong>
+                  <p class="dashboard-card__hint" id="dashboardAiConfidenceHint">Indicador del modelo, no una métrica operativa directa</p>
+                </article>
+              </div>
+              <div class="dashboard-subsection">
+                <div class="dashboard-subsection__top">
+                  <div>
+                    <p class="panel__kicker">Acciones rápidas</p>
+                    <h3>Dónde intervenir</h3>
+                  </div>
+                </div>
+                <div class="dashboard-grid dashboard-grid--actions">
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardDelayedActive">
+                    <p class="stat__label">Pedidos en riesgo</p>
+                    <strong class="dashboard-card__value" id="dashboardDelayedActiveAction">0</strong>
+                    <p class="dashboard-card__hint">Entran directo al foco operativo</p>
+                  </article>
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardLongestWait">
+                    <p class="stat__label">Espera más larga</p>
+                    <strong class="dashboard-card__value" id="dashboardLongestWait">00:00</strong>
+                    <p class="dashboard-card__hint">Ir al pedido con mayor espera</p>
+                  </article>
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestOrder">
+                    <p class="stat__label">Pedido más lento</p>
+                    <strong class="dashboard-card__value" id="dashboardSlowestOrder">Sin datos</strong>
+                    <p class="dashboard-card__hint" id="dashboardSlowestOrderHint">Pedido con mayor espera activa</p>
+                  </article>
+                  <article class="dashboard-card dashboard-card--action" id="dashboardCardSlowestStatus">
+                    <p class="stat__label">Estado más lento</p>
+                    <strong class="dashboard-card__value" id="dashboardSlowestStatus">Sin datos</strong>
+                    <p class="dashboard-card__hint" id="dashboardSlowestStatusHint">Promedio por estado</p>
+                  </article>
+                </div>
+              </div>
+              <div class="dashboard-layout">
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Propietario</p>
+                      <h3>Señales clave</h3>
+                    </div>
+                    <span class="summary-chip" id="dashboardPeakHour"><span class="term-hint" data-term-hint="La hora pico es el momento del dia en el que entran mas pedidos.">Hora pico --:--</span></span>
+                  </div>
+                  <div class="dashboard-signals">
+                    <div class="dashboard-signal">
+                      <span class="dashboard-signal__label">Tiempo medio de cierre</span>
+                      <strong class="dashboard-signal__value" id="dashboardAvgResolution">00:00</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalFeedback">
+                      <span class="dashboard-signal__label">Comentarios recibidos</span>
+                      <strong class="dashboard-signal__value" id="dashboardFeedbackCount">0</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalLowRating">
+                      <span class="dashboard-signal__label">Valoraciones bajas</span>
+                      <strong class="dashboard-signal__value" id="dashboardLowRatingCount">0</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--action" id="dashboardSignalCancellation">
+                      <span class="dashboard-signal__label">Tasa de cancelación</span>
+                      <strong class="dashboard-signal__value" id="dashboardCancellationRate">0%</strong>
+                    </div>
+                    <div class="dashboard-signal dashboard-signal--ai">
+                      <span class="dashboard-signal__label term-hint" data-term-hint="Es la recomendación de TurnoListo Intelligence sobre qué pedido atender primero según riesgo, tiempo comprometido y carga del local.">Pedido recomendado por IA</span>
+                      <strong class="dashboard-signal__value" id="dashboardAiFocusOrder">Sin datos</strong>
+                    </div>
+                  </div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Estados</p>
+                      <h3>Distribución del día</h3>
+                    </div>
+                    <span class="summary-chip">Seguimiento del flujo</span>
+                  </div>
+                  <div class="dashboard-donut" id="dashboardStatusDonut"></div>
+                  <div class="dashboard-bars" id="dashboardStatusBars"></div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Cuellos de botella</p>
+                      <h3>Tiempo por estado</h3>
+                    </div>
+                    <span class="summary-chip">Promedio operativo</span>
+                  </div>
+                  <div class="dashboard-bars" id="dashboardStatusPerformanceBars"></div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Feedback</p>
+                      <h3>Respuesta del cliente</h3>
+                    </div>
+                    <span class="summary-chip">Post entrega</span>
+                  </div>
+                  <div class="dashboard-donut" id="dashboardFeedbackDonut"></div>
+                  <div class="dashboard-bars" id="dashboardFeedbackBars"></div>
+                </article>
+                <article class="dashboard-panel">
+                  <div class="dashboard-panel__top">
+                    <div>
+                      <p class="panel__kicker">Mejoras</p>
+                      <h3>Lectura y recomendaciones IA</h3>
+                    </div>
+                    <span class="summary-chip">Estimaciones y sugerencias</span>
+                  </div>
+                  <div class="dashboard-insights" id="dashboardInsights"></div>
+                </article>
+              </div>
+            </section>
+          </section>
+          <section class="restaurant-section" data-section-panel="history" hidden>
+            <section class="history-block">
+              <div class="panel__heading">
+                <div>
+                  <p class="panel__kicker">Historial seguro</p>
+                  <h2>Pedidos archivados</h2>
+                </div>
+              </div>
+              <div class="list-toolbar">
+                <label class="list-toolbar__search">
+                  <span>Buscar archivado</span>
+                  <input
+                    id="archivedSearchInput"
+                    type="search"
+                    placeholder="Cliente, código QR, pedido original o detalle"
+                  />
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Resultado</span>
+                  <select id="archivedStatusFilter">
+                    <option value="all">Todos</option>
+                    <option value="delivered">Entregados</option>
+                    <option value="cancelled">Cancelados</option>
+                  </select>
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Valoración</span>
+                  <select id="archivedRatingFilter">
+                    <option value="all">Todas</option>
+                    <option value="low">Bajas 1-2</option>
+                    <option value="rated">Con valoración</option>
+                    <option value="unrated">Sin valorar</option>
+                    <option value="commented">Con comentario</option>
+                  </select>
+                </label>
+                <label class="list-toolbar__filter">
+                  <span>Ver por</span>
+                  <select id="archivedPeriodFilter">
+                    <option value="day">Día</option>
+                    <option value="month">Mes</option>
+                    <option value="year">Año</option>
+                  </select>
+                </label>
+              </div>
+              <div class="restaurant-grid restaurant-grid--history" id="restaurantArchivedOrders"></div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="qr-modal" id="restaurantCommentModal" hidden>
+      <div class="qr-modal__backdrop" id="restaurantCommentBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="restaurantCommentClose" type="button">
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
+          <span>Cerrar</span>
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Comentario del cliente</p>
+          <h3 id="restaurantCommentTitle">Pedido</h3>
+          <p class="comment-modal__meta" id="restaurantCommentMeta"></p>
+          <div class="comment-modal__quote">
+            <p id="restaurantCommentBody"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-modal" id="restaurantCancelModal" hidden>
+      <div class="qr-modal__backdrop" id="restaurantCancelBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="restaurantCancelClose" type="button">
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
+          <span>Cerrar</span>
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Confirmación</p>
+          <h3>¿El cliente desistió o hay que cancelar este pedido?</h3>
+          <p class="comment-modal__meta" id="restaurantCancelMeta"></p>
+          <p class="hero__hint">Los pedidos cancelados pasan automáticamente a Archivados.</p>
+          <div class="cancel-modal__actions">
+            <button class="button-tertiary" id="restaurantCancelBack" type="button">Volver</button>
+            <button class="launcher" id="restaurantCancelConfirm" type="button">Sí, marcar como cancelado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-modal" id="restaurantAiModal" hidden>
+      <div class="qr-modal__backdrop" id="restaurantAiBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal">
+        <button class="qr-modal__close" id="restaurantAiClose" type="button">
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
+          <span>Cerrar</span>
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">TurnoListo Intelligence</p>
+          <h3 id="restaurantAiTitle">Pedido</h3>
+          <p class="comment-modal__meta" id="restaurantAiMeta"></p>
+          <div class="comment-modal__quote">
+            <p id="restaurantAiBody"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./i18n.js?v=20260526b"></script>
+    <script src="./firebase-config.js?v=20260430a"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260416l"></script>
+    <script src="./shared.js?v=20260526b"></script>
+    <script src="./restaurant.js?v=20260526b"></script>
+  </body>
+</html>

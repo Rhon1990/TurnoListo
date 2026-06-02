@@ -1,0 +1,25 @@
+{
+  "name": "TurnoListo",
+  "short_name": "TurnoListo",
+  "description": "Seguimiento de pedidos para cliente y restaurante en tiempo real.",
+  "start_url": "./client.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6efe6",
+  "theme_color": "#1f7a63",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./turnolisto-brand.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./turnolisto-brand.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

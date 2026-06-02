@@ -4,6 +4,10 @@ import { buildHostingEnvironment } from "./build-hosting-env.mjs";
 import { projectRoot } from "./lib/firebase-env.mjs";
 
 const githubPagesDirectory = path.join(projectRoot, "dist", "github-pages");
+const branchRootTargets = [
+  { source: "dev", target: "dev" },
+  { source: "prod", target: "prod" },
+];
 
 function renderEnvironmentIndex() {
   return `<!doctype html>
@@ -88,9 +92,22 @@ export async function buildGitHubPagesArtifact() {
   return githubPagesDirectory;
 }
 
+export async function syncGitHubPagesBranchRoot() {
+  for (const { source, target } of branchRootTargets) {
+    const sourceDirectory = path.join(githubPagesDirectory, source);
+    const targetDirectory = path.join(projectRoot, target);
+
+    await rm(targetDirectory, { recursive: true, force: true });
+    await cp(sourceDirectory, targetDirectory, { recursive: true, force: true });
+  }
+}
+
 const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
 
 if (isDirectExecution) {
   const targetDirectory = await buildGitHubPagesArtifact();
+  if (process.argv.includes("--branch-root")) {
+    await syncGitHubPagesBranchRoot();
+  }
   console.log(`GitHub Pages artifact rendered at ${path.relative(projectRoot, targetDirectory)}.`);
 }

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TurnoListo | Perfil admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260526c" />
+  </head>
+  <body data-private-role="admin">
+    <div class="app-shell contact-page">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+        <div class="workspace-topbar__inner">
+          <a class="workspace-brand workspace-brand--link" href="./admin.html" aria-label="Ir al panel principal de administración">
+            <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+            <div class="workspace-brand__copy">
+              <p class="workspace-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
+              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+            </div>
+          </a>
+          <div class="workspace-actions" aria-label="Acciones de cabecera">
+            <a class="workspace-mail-button workspace-home-button" href="./admin.html" aria-label="Ir al panel principal">
+              <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="home" aria-hidden="true"></span>
+              <span class="workspace-mail-button__label">Inicio</span>
+            </a>
+            <button class="workspace-mail-button" type="button" id="adminMessagesShortcut" aria-label="Abrir bandeja de mensajes">
+              <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="mail" aria-hidden="true"></span>
+              <span class="workspace-mail-button__label">Mensajes</span>
+              <span class="workspace-mail-button__badge" id="adminUnreadMessagesBadge" hidden>0</span>
+            </button>
+            <div class="account-menu" id="adminAccountMenu">
+              <button class="account-menu__trigger" id="adminAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+                <span class="account-menu__avatar" id="adminAccountAvatar">
+                  <img id="adminAccountAvatarImage" alt="Foto del administrador" hidden />
+                  <span id="adminAccountAvatarFallback">?</span>
+                </span>
+                <span class="account-menu__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+              </button>
+              <div class="account-menu__panel glass-card" id="adminAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="adminAccountName">Sin datos cargados</strong>
+                  <p id="adminAccountMeta">Cuenta no cargada</p>
+                </div>
+                <div class="account-menu__actions">
+                  <a class="account-menu__item" href="./admin-profile.html">
+                    <span class="material-symbols-rounded" data-icon="person" aria-hidden="true"></span>
+                    <span>Perfil</span>
+                  </a>
+                  <button class="account-menu__item account-menu__item--danger" id="adminMenuLogout" type="button">
+                    <span class="material-symbols-rounded" data-icon="logout" aria-hidden="true"></span>
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel glass-card contact-hero">
+        <div class="contact-hero__top">
+          <div>
+            <p class="panel__kicker">Perfil admin</p>
+            <h1>Gestiona tu cuenta y el equipo administrador</h1>
+          </div>
+        </div>
+        <p class="hero__text">
+          Esta pantalla concentra la información del administrador actual y el alta de nuevos usuarios con rol admin.
+        </p>
+        <div class="contact-signal-strip">
+          <span class="contact-signal">Cuenta privada</span>
+          <span class="contact-signal">Equipo administrador</span>
+          <span class="contact-signal">Gestión segura</span>
+        </div>
+      </section>
+
+      <main class="contact-page__grid admin-profile-layout">
+        <section class="panel glass-card contact-form-panel">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Mi cuenta</p>
+              <h2>Perfil actual</h2>
+            </div>
+          </div>
+          <div class="contact-card__stack admin-profile-summary">
+            <article class="contact-item admin-profile-hero">
+              <div class="admin-user-card__top">
+                <span class="admin-user-card__avatar" id="adminProfileSummaryAvatar">
+                  <img id="adminProfileSummaryAvatarImage" alt="Avatar del administrador" hidden />
+                  <span id="adminProfileSummaryAvatarFallback">?</span>
+                </span>
+                <div class="admin-user-card__identity">
+                  <h4 id="adminProfileSummaryName">Sin datos cargados</h4>
+                  <p id="adminProfileSummaryTitle">Cuenta no cargada</p>
+                </div>
+              </div>
+            </article>
+          </div>
+          <form class="quick-form admin-profile-form" id="adminProfileForm">
+            <div class="admin-profile-block">
+              <div class="admin-profile-block__header">
+                <p class="panel__kicker">Identidad visual</p>
+                <h3>Foto y presencia de cuenta</h3>
+                <p>Actualiza la imagen que verás en la cabecera y en la identificación interna del panel.</p>
+              </div>
+              <div class="profile-upload">
+                <div class="logo-upload-preview logo-upload-preview--profile" id="adminProfileAvatarPreview" hidden>
+                  <img id="adminProfileAvatarPreviewImage" alt="Vista previa de la foto del administrador" />
+                </div>
+                <label class="field field--wide">
+                  <span>Foto de perfil</span>
+                  <input id="adminProfileAvatarInput" class="file-picker__input" type="file" accept="image/*" />
+                  <span class="file-picker">
+                    <span class="file-picker__button" data-i18n-key="profile.file.choose">Seleccionar imagen</span>
+                    <span class="file-picker__name" id="adminProfileAvatarFilename" data-i18n-key="profile.file.empty">
+                      Ningún archivo seleccionado
+                    </span>
+                  </span>
+                  <small class="field__hint">Usa una imagen limpia y reconocible para mantener consistencia en toda la operación.</small>
+                </label>
+              </div>
+            </div>
+
+            <div class="admin-profile-divider" aria-hidden="true"></div>
+
+            <div class="admin-profile-block">
+              <div class="admin-profile-block__header">
+                <p class="panel__kicker">Información principal</p>
+                <p>Los datos clave del administrador quedan ordenados en una sola vista, sin ruido visual innecesario.</p>
+              </div>
+              <div class="profile-form-grid">
+                <label class="field">
+                  <span>Nombre</span>
+                  <input id="adminProfileDisplayName" name="displayName" type="text" placeholder="Tu nombre visible" />
+                </label>
+                <label class="field">
+                  <span>Cargo</span>
+                  <input id="adminProfileTitle" name="title" type="text" placeholder="Ej. Founder / Operaciones" />
+                </label>
+                <label class="field field--wide">
+                  <span>Correo</span>
+                  <input id="adminProfileEmail" name="email" type="email" readonly />
+                  <small class="field__hint">Se usa para iniciar sesión y no se modifica desde esta pantalla.</small>
+                </label>
+                <div class="field field--phone field--wide">
+                  <span>Número móvil</span>
+                  <div class="phone-field" id="adminProfilePhoneField">
+                    <input id="adminProfilePhone" name="phone" type="hidden" value="" />
+                    <div class="phone-field__country">
+                      <button
+                        class="phone-country-trigger"
+                        id="adminProfilePhoneCountryTrigger"
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="adminProfilePhoneCountryPanel"
+                      >
+                        <span class="phone-country-trigger__flag" id="adminProfilePhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                        <span class="phone-country-trigger__meta">
+                          <span class="phone-country-trigger__dial" id="adminProfilePhoneCountryDial">+34</span>
+                          <span class="phone-country-trigger__name" id="adminProfilePhoneCountryName">España</span>
+                        </span>
+                        <span class="phone-country-trigger__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+                      </button>
+                      <div class="phone-country-panel glass-card" id="adminProfilePhoneCountryPanel" hidden>
+                        <label class="phone-country-search">
+                          <span class="phone-country-search__icon material-symbols-rounded" data-icon="search" aria-hidden="true"></span>
+                          <input
+                            id="adminProfilePhoneCountrySearch"
+                            type="search"
+                            placeholder="Buscar país o indicativo"
+                            autocomplete="off"
+                          />
+                        </label>
+                        <div
+                          class="phone-country-list"
+                          id="adminProfilePhoneCountryList"
+                          role="listbox"
+                          aria-label="Lista de países para móvil de perfil administrador"
+                        ></div>
+                      </div>
+                    </div>
+                    <label class="phone-field__number" for="adminProfilePhoneLocal">
+                      <input
+                        id="adminProfilePhoneLocal"
+                        type="tel"
+                        inputmode="tel"
+                        placeholder="600 000 000"
+                        autocomplete="tel-national"
+                      />
+                    </label>
+                  </div>
+                  <small class="field__hint" id="adminProfilePhoneHint">Selecciona el país y escribe tu número local sin añadir el prefijo.</small>
+                  <p class="field__error" id="adminProfilePhoneError" hidden></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-profile-divider" aria-hidden="true"></div>
+
+            <div class="admin-profile-block">
+              <div class="admin-profile-block__header">
+                <p class="panel__kicker">Trazabilidad</p>
+                <p>Referencia rápida del ciclo de vida de la cuenta para mantener control y contexto.</p>
+              </div>
+              <div class="profile-form-grid profile-form-grid--meta">
+                <label class="field">
+                  <span>Creado</span>
+                  <input id="adminProfileCreatedAt" type="text" readonly />
+                </label>
+                <label class="field">
+                  <span>Última actualización</span>
+                  <input id="adminProfileUpdatedAt" type="text" readonly />
+                </label>
+              </div>
+            </div>
+            <div class="quick-form__actions">
+              <button type="button" class="button-tertiary" id="adminProfileResetButton">Restablecer</button>
+              <button type="submit" class="launcher">Guardar perfil</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="adminProfileFeedback" hidden></p>
+        </section>
+
+        <div class="contact-side-stack">
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Equipo admin</p>
+                <h2>Agregar administradores</h2>
+              </div>
+            </div>
+            <form class="quick-form admin-create-form" id="adminCreateAdminForm">
+              <label class="field">
+                <span>Nombre</span>
+                <input name="displayName" type="text" autocomplete="name" required />
+              </label>
+              <label class="field">
+                <span>Correo</span>
+                <input name="email" type="email" autocomplete="email" required />
+              </label>
+              <div class="field field--phone field--wide">
+                <span>Número móvil</span>
+                <div class="phone-field" id="adminCreateAdminPhoneField">
+                  <input id="adminCreateAdminPhoneFull" name="phone" type="hidden" value="" />
+                  <div class="phone-field__country">
+                    <button
+                      class="phone-country-trigger"
+                      id="adminCreateAdminPhoneCountryTrigger"
+                      type="button"
+                      aria-haspopup="dialog"
+                      aria-expanded="false"
+                      aria-controls="adminCreateAdminPhoneCountryPanel"
+                    >
+                      <span class="phone-country-trigger__flag" id="adminCreateAdminPhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                      <span class="phone-country-trigger__meta">
+                        <span class="phone-country-trigger__dial" id="adminCreateAdminPhoneCountryDial">+34</span>
+                        <span class="phone-country-trigger__name" id="adminCreateAdminPhoneCountryName">España</span>
+                      </span>
+                      <span class="phone-country-trigger__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+                    </button>
+                    <div class="phone-country-panel glass-card" id="adminCreateAdminPhoneCountryPanel" hidden>
+                      <label class="phone-country-search">
+                        <span class="phone-country-search__icon material-symbols-rounded" data-icon="search" aria-hidden="true"></span>
+                        <input
+                          id="adminCreateAdminPhoneCountrySearch"
+                          type="search"
+                          placeholder="Buscar país o indicativo"
+                          autocomplete="off"
+                        />
+                      </label>
+                      <div
+                        class="phone-country-list"
+                        id="adminCreateAdminPhoneCountryList"
+                        role="listbox"
+                        aria-label="Lista de países para móvil admin"
+                      ></div>
+                    </div>
+                  </div>
+                  <label class="phone-field__number" for="adminCreateAdminPhoneLocal">
+                    <input
+                      id="adminCreateAdminPhoneLocal"
+                      type="tel"
+                      inputmode="tel"
+                      placeholder="600 000 000"
+                      autocomplete="tel-national"
+                    />
+                  </label>
+                </div>
+                <span class="field__hint" id="adminCreateAdminPhoneHint">Selecciona el país y escribe el número local del administrador sin añadir el prefijo.</span>
+                <p class="field__error" id="adminCreateAdminPhoneError" hidden></p>
+              </div>
+              <label class="field">
+                <span>Cargo</span>
+                <input name="title" type="text" placeholder="Ej. Comercial / Operaciones" />
+              </label>
+              <div class="quick-form__actions">
+                <button type="submit" class="launcher">Agregar admin</button>
+              </div>
+            </form>
+            <p class="form-feedback" id="adminCreateAdminFeedback" hidden></p>
+          </section>
+
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Usuarios</p>
+                <h2>Equipo con acceso admin</h2>
+              </div>
+            </div>
+            <div class="dashboard-insights" id="adminUsersList"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="qr-modal" id="adminUserTemplatesModal" hidden>
+      <div class="qr-modal__backdrop" id="adminUserTemplatesBackdrop"></div>
+      <div class="qr-modal__card glass-card comment-modal comment-modal--wide">
+        <button class="qr-modal__close" id="adminUserTemplatesClose" type="button">
+          <span class="material-symbols-rounded" data-icon="close" aria-hidden="true"></span>
+          <span>Cerrar</span>
+        </button>
+        <div class="comment-modal__content">
+          <p class="ticket__label">Plantillas</p>
+          <h3>Mensajes listos para enviar</h3>
+          <p class="comment-modal__meta" id="adminUserTemplatesMeta"></p>
+          <div class="email-template-switcher" id="adminUserTemplateOptions"></div>
+          <div class="email-template-preview">
+            <div class="email-template-preview__field">
+              <span class="email-template-preview__label">Destinatario</span>
+              <strong id="adminUserTemplateTo">-</strong>
+            </div>
+            <div class="email-template-preview__field">
+              <span class="email-template-preview__label">Asunto</span>
+              <p id="adminUserTemplateSubject">-</p>
+            </div>
+            <div class="email-template-preview__field email-template-preview__field--body">
+              <span class="email-template-preview__label">Mensaje</span>
+              <div class="comment-modal__quote">
+                <p id="adminUserTemplateBody">Selecciona una plantilla.</p>
+              </div>
+            </div>
+          </div>
+          <div class="cancel-modal__actions email-template-actions">
+            <button class="button-secondary" id="adminUserCopySubject" type="button">Copiar asunto</button>
+            <button class="button-secondary" id="adminUserCopyBody" type="button">Copiar texto</button>
+            <button class="button-secondary button-secondary--primary" id="adminUserCopyAll" type="button">Copiar todo</button>
+            <button class="button-tertiary" id="adminUserOpenMail" type="button">Abrir en correo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./i18n.js?v=20260422a"></script>
+    <script src="./firebase-config.js?v=20260430a"></script>
+    <script type="module" src="./firebase-bridge.js?v=20260416l"></script>
+    <script src="./shared.js?v=20260526b"></script>
+    <script src="./admin-profile.js?v=20260428b"></script>
+  </body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Contacta con TurnoListo para soporte, alianzas comerciales o conversaciones de inversión sobre la plataforma."
+    />
+    <title>TurnoListo | Contáctenos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css?v=20260526c" />
+  </head>
+  <body>
+    <div class="app-shell contact-page">
+      <section class="workspace-topbar glass-card" aria-label="Cabecera principal TurnoListo">
+        <div class="workspace-topbar__inner">
+          <a class="workspace-brand workspace-brand--link" href="./restaurant.html" aria-label="Ir al panel principal del restaurante">
+            <img class="workspace-brand__image" src="./turnolisto-brand.png" alt="TurnoListo" />
+            <div class="workspace-brand__copy">
+              <p class="workspace-brand__name" translate="no" data-i18n-skip>Turno<span>Listo</span></p>
+              <p class="workspace-brand__tagline">Tecnología que Agiliza tu Restaurante</p>
+            </div>
+          </a>
+          <div class="workspace-actions" aria-label="Acciones de cabecera">
+            <a class="workspace-mail-button workspace-home-button" href="./restaurant.html" aria-label="Ir al panel principal">
+              <span class="workspace-mail-button__icon material-symbols-rounded" data-icon="home" aria-hidden="true"></span>
+              <span class="workspace-mail-button__label">Inicio</span>
+            </a>
+            <div class="account-menu" id="restaurantAccountMenu" hidden>
+              <button class="account-menu__trigger" id="restaurantAccountButton" type="button" aria-label="Abrir menú de cuenta" aria-expanded="false">
+                <span class="account-menu__avatar" id="restaurantAccountAvatar">
+                  <img id="restaurantAccountAvatarImage" alt="Logo del restaurante" hidden />
+                  <span id="restaurantAccountAvatarFallback">?</span>
+                </span>
+                <span class="account-menu__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+              </button>
+              <div class="account-menu__panel glass-card" id="restaurantAccountPanel" hidden>
+                <div class="account-menu__identity">
+                  <strong id="restaurantAccountName">Sin datos cargados</strong>
+                  <p id="restaurantAccountMeta">Cuenta no cargada</p>
+                </div>
+                <div class="account-menu__actions">
+                  <a class="account-menu__item" href="./restaurant-profile.html">
+                    <span class="material-symbols-rounded" data-icon="storefront" aria-hidden="true"></span>
+                    <span>Perfil</span>
+                  </a>
+                  <a class="account-menu__item" href="./contact.html">
+                    <span class="material-symbols-rounded" data-icon="support_agent" aria-hidden="true"></span>
+                    <span>Contáctenos</span>
+                  </a>
+                  <button class="account-menu__item account-menu__item--danger" id="restaurantMenuLogout" type="button">
+                    <span class="material-symbols-rounded" data-icon="logout" aria-hidden="true"></span>
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel glass-card contact-hero">
+        <div class="contact-hero__top">
+          <div>
+            <p class="panel__kicker">Contáctenos</p>
+            <h1>Hablemos de la siguiente etapa de TurnoListo</h1>
+          </div>
+        </div>
+        <p class="hero__text">
+          Si quieres conocer el producto, explorar una alianza o abrir una conversación de inversión, este canal centraliza
+          el contacto directo con el equipo a través de la bandeja privada de administración.
+        </p>
+        <div class="contact-signal-strip">
+          <span class="contact-signal">B2B para restauración</span>
+          <span class="contact-signal">Operación en tiempo real</span>
+          <span class="contact-signal">Canal directo con fundador</span>
+        </div>
+      </section>
+
+      <main class="contact-page__grid">
+        <section class="panel glass-card contact-form-panel">
+          <div class="panel__heading">
+            <div>
+              <p class="panel__kicker">Formulario</p>
+              <h2>Cuéntanos tu interés</h2>
+            </div>
+          </div>
+          <p class="hero__hint contact-form__intro">
+            Completa este formulario y registraremos internamente tu solicitud para seguimiento del equipo TurnoListo.
+          </p>
+          <form class="quick-form contact-form" id="contactForm">
+            <label class="field sr-only" aria-hidden="true">
+              <span>Sitio web</span>
+              <input id="contactWebsite" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>Nombre completo</span>
+              <input id="contactName" name="name" type="text" placeholder="Tu nombre" autocomplete="name" required />
+            </label>
+            <label class="field">
+              <span>Empresa o fondo</span>
+              <input id="contactCompany" name="company" type="text" placeholder="Nombre de tu empresa" autocomplete="organization" />
+            </label>
+            <label class="field field--wide">
+              <span>Correo de contacto</span>
+              <input id="contactEmail" name="email" type="email" placeholder="correo@empresa.com" autocomplete="email" required />
+            </label>
+            <div class="field field--phone field--wide">
+              <span>Número móvil</span>
+              <div class="phone-field" id="contactPhoneField">
+                <input id="contactPhone" name="phone" type="hidden" value="" />
+                <div class="phone-field__country">
+                  <button
+                    class="phone-country-trigger"
+                    id="contactPhoneCountryTrigger"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="contactPhoneCountryPanel"
+                  >
+                    <span class="phone-country-trigger__flag" id="contactPhoneCountryFlag" aria-hidden="true">🇪🇸</span>
+                    <span class="phone-country-trigger__meta">
+                      <span class="phone-country-trigger__dial" id="contactPhoneCountryDial">+34</span>
+                      <span class="phone-country-trigger__name" id="contactPhoneCountryName">España</span>
+                    </span>
+                    <span class="phone-country-trigger__chevron material-symbols-rounded" data-icon="expand_more" aria-hidden="true"></span>
+                  </button>
+                  <div class="phone-country-panel glass-card" id="contactPhoneCountryPanel" hidden>
+                    <label class="phone-country-search">
+                      <span class="phone-country-search__icon material-symbols-rounded" data-icon="search" aria-hidden="true"></span>
+                      <input
+                        id="contactPhoneCountrySearch"
+                        type="search"
+                        placeholder="Buscar país o indicativo"
+                        autocomplete="off"
+                      />
+                    </label>
+                    <div class="phone-country-list" id="contactPhoneCountryList" role="listbox" aria-label="Lista de países para contacto"></div>
+                  </div>
+                </div>
+                <label class="phone-field__number" for="contactPhoneLocal">
+                  <input
+                    id="contactPhoneLocal"
+                    type="tel"
+                    inputmode="tel"
+                    placeholder="600 000 000"
+                    autocomplete="tel-national"
+                  />
+                </label>
+              </div>
+              <span class="field__hint" id="contactPhoneHint">Selecciona el país del móvil y escribe el número local sin añadir el prefijo.</span>
+              <p class="field__error" id="contactPhoneError" hidden></p>
+            </div>
+            <label class="field field--wide">
+              <span>Motivo</span>
+              <select id="contactInterest" name="interest" required>
+                <option value="Soporte operativo">Soporte operativo</option>
+                <option value="Incidencia técnica">Incidencia técnica</option>
+                <option value="Consulta comercial">Consulta comercial</option>
+                <option value="Alianza estratégica">Alianza estratégica</option>
+                <option value="Seguimiento de cuenta">Seguimiento de cuenta</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </label>
+            <label class="field field--wide">
+              <span>Mensaje</span>
+              <textarea
+                id="contactMessage"
+                name="message"
+                rows="6"
+                minlength="5"
+                placeholder="Cuéntanos en qué te gustaría profundizar, tipo de colaboración o contexto de tu interés."
+                required
+              ></textarea>
+            </label>
+            <div class="quick-form__actions contact-form__actions">
+              <button class="launcher" id="contactSubmitButton" type="submit">Enviar solicitud</button>
+            </div>
+          </form>
+          <p class="form-feedback" id="contactFormFeedback" hidden aria-live="polite"></p>
+        </section>
+
+        <div class="contact-side-stack">
+          <section class="panel glass-card contact-card">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Información</p>
+                <h2>Datos de empresa</h2>
+              </div>
+            </div>
+            <div class="contact-card__stack">
+              <article class="contact-item">
+                <p class="contact-item__label">Canal de atención</p>
+                <p class="contact-item__value">Bandeja privada TurnoListo</p>
+                <p class="contact-item__text">Las solicitudes enviadas desde este formulario se revisan internamente en administración.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Teléfono</p>
+                <p class="contact-item__value">
+                  <a class="contact-item__link" href="tel:+34692960498">+34 692960498</a>
+                </p>
+                <p class="contact-item__text">Línea principal de contacto y coordinación.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Horario de atención</p>
+                <p class="contact-item__value">Lunes a viernes, de 9:00 a 17:00</p>
+                <p class="contact-item__text">Horario laboral legal para atención y seguimiento.</p>
+              </article>
+              <article class="contact-item">
+                <p class="contact-item__label">Ubicación</p>
+                <p class="contact-item__value">Calle Vilatan 19, Ituero y Lama, Segovia</p>
+                <p class="contact-item__text">Atención desde nuestra ubicación operativa en Segovia.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel glass-card contact-map">
+            <div class="panel__heading">
+              <div>
+                <p class="panel__kicker">Mapa</p>
+                <h2>Ubicación de la empresa</h2>
+              </div>
+            </div>
+            <div class="contact-map__frame">
+              <a
+                class="contact-item__link"
+                href="https://www.google.com/maps/search/?api=1&query=Calle+Vilatan+19,+Ituero+y+Lama,+Segovia"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Abrir ubicación en Google Maps
+              </a>
+              <iframe
+                class="contact-map__embed"
+                title="Mapa de TurnoListo"
+                src="https://maps.google.com/maps?q=Calle%20vilatan%2019%2C%20Ituero%20y%20Lama%2C%20Segovia%2C%20Spain&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+            <p class="hero__hint">
+              Puedes abrir la ubicación directamente en Google Maps o consultar el mapa embebido desde esta misma página.
+            </p>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="./i18n.js?v=20260422a"></script>
+    <script src="./firebase-config.js?v=20260430a"></script>
+    <script src="./shared.js?v=20260526b"></script>
+    <script type="module" src="./firebase-bridge.js"></script>
+    <script type="module" src="./contact.js?v=20260417b"></script>
+  </body>
+</html>

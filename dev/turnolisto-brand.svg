@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 520" role="img" aria-labelledby="title desc">
+  <title id="title">TurnoListo</title>
+  <desc id="desc">Marca TurnoListo con simbolo ascendente y nombre de producto.</desc>
+  <defs>
+    <linearGradient id="tlOrange" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ec7c0d" />
+      <stop offset="52%" stop-color="#ec7c0d" />
+      <stop offset="100%" stop-color="#b91d2b" />
+    </linearGradient>
+    <linearGradient id="tlRed" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ec7c0d" />
+      <stop offset="100%" stop-color="#b91d2b" />
+    </linearGradient>
+    <filter id="tlShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#ec7c0d" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <g transform="translate(200 36)" filter="url(#tlShadow)">
+    <path
+      d="M36 180c18-24 42-36 72-36h74c10 0 16 12 9 20l-21 25c-5 6-12 9-19 9h-44c-12 0-22 5-30 14l-10 13c-7 9-22 6-26-5-5-14-7-28-5-40z"
+      fill="url(#tlOrange)"
+    />
+    <path
+      d="M30 250c7-10 22-12 31-4l78 62c8 7 20 6 28-2l157-160c5-5 12-8 19-8h37c12 0 18 14 10 23L199 356c-10 10-26 11-37 2L35 278c-9-6-11-19-5-28z"
+      fill="url(#tlOrange)"
+    />
+    <path
+      d="M269 89l74-73c7-7 17-11 27-11h39c12 0 17 15 8 23l-74 73c-5 5-12 8-19 8h-44c-12 0-18-13-11-20z"
+      fill="#b91d2b"
+    />
+    <path
+      d="M333 6h77c12 0 18 14 10 23l-39 46c-7 8-20 8-28 1-7-7-7-18-1-26l9-10h-28c-10 0-17-8-17-17s8-17 17-17z"
+      fill="#b91d2b"
+    />
+    <path
+      d="M175 145l33 31c8 7 8 20 0 28l-28 29c-8 8-21 7-29-2l-26-31c-7-8-6-19 2-27l18-19c8-8 21-9 30-1z"
+      fill="#ef5b5b"
+      opacity="0.95"
+    />
+    <path
+      d="M287 267h67c12 0 17 15 8 23l-19 18c-4 4-9 6-14 6h-67c-12 0-17-15-8-23l19-18c4-4 9-6 14-6z"
+      fill="url(#tlRed)"
+    />
+  </g>
+
+  <g transform="translate(98 398)">
+    <text
+      x="0"
+      y="0"
+      font-family="Space Grotesk, Arial, sans-serif"
+      font-size="88"
+      font-weight="700"
+      letter-spacing="-3"
+      fill="url(#tlOrange)"
+    >
+      TurnoListo
+    </text>
+    <text
+      x="8"
+      y="46"
+      font-family="Space Grotesk, Arial, sans-serif"
+      font-size="26"
+      font-weight="500"
+      letter-spacing="0.2"
+      fill="#ec7c0d"
+    >
+      Tecnologia que agiliza tu restaurante
+    </text>
+  </g>
+</svg>
