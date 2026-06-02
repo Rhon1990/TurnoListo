@@ -3197,16 +3197,22 @@ button:hover,
 
 #clientOrderNumber {
   max-width: 100%;
-  font-size: clamp(2rem, 10cqw, 4rem);
-  line-height: 0.92;
+  font-size: clamp(0.85rem, 3.2cqw, 1.05rem);
+  line-height: 1.2;
   letter-spacing: 0;
   white-space: nowrap;
 }
 
 #clientCustomer {
-  margin-top: 0.4rem;
-  color: var(--muted);
-  font-size: 0.9rem;
+  max-width: 100%;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 12cqw, 4.6rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 #clientStatus {
@@ -3390,6 +3396,15 @@ button:hover,
 .order-card__summary-meta span {
   color: var(--muted);
   font-size: 0.92rem;
+}
+
+.order-card__secure-code {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .order-card__intelligence {

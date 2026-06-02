@@ -280,8 +280,12 @@ function renderClient() {
   syncClientInstallManifest(publicOrderId);
   syncOrderInputValue(publicOrderId);
   renderClientBrand(publicRestaurantBrand);
-  ticketOrderId.textContent = getClientOrderDisplayNumber(order);
   ticketCustomer.textContent = translateBuiltInOrderText(order.customerName);
+  ticketOrderId.textContent = formatKey(
+    "client.dynamic.order.secureCode",
+    { code: publicOrderId },
+    `Código ${publicOrderId}`,
+  );
   statusPill.textContent = translateText(meta.label);
   statusPill.style.background = meta.bg;
   statusPill.style.color = meta.color;
@@ -379,8 +383,8 @@ async function handleLoadOrder() {
 }
 
 function renderMissingOrder() {
-  ticketOrderId.textContent = translateKey("client.dynamic.order.unavailable.title", "Pedido no disponible");
-  ticketCustomer.textContent = translateKey(
+  ticketCustomer.textContent = translateKey("client.dynamic.order.unavailable.title", "Pedido no disponible");
+  ticketOrderId.textContent = translateKey(
     "client.dynamic.order.unavailable.text",
     "Este seguimiento ya no está activo o fue archivado.",
   );

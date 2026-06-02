@@ -1769,6 +1769,7 @@ function buildOrderCard(order, isArchived) {
   const compactTop = document.createElement("div");
   const elapsedTime = document.createElement("span");
   const compactTitle = document.createElement("strong");
+  const compactSecureCode = document.createElement("span");
   const compactLine = document.createElement("span");
   const compactTime = document.createElement("span");
   const intelligence = document.createElement("div");
@@ -1825,7 +1826,14 @@ function buildOrderCard(order, isArchived) {
   footer.className = "order-card__footer";
 
   const orderDisplayNumber = getOrderDisplayNumber(order);
+  const publicOrderId = order.publicTrackingToken || order.sourceOrderId || order.id;
   compactTitle.textContent = `${orderDisplayNumber} · ${translateBuiltInOrderText(order.customerName)}`;
+  compactSecureCode.className = "order-card__secure-code";
+  compactSecureCode.textContent = formatRuntimeKey(
+    "restaurant.dynamic.order.secureCode",
+    { code: publicOrderId },
+    `Código seguro: ${publicOrderId}`,
+  );
   compactLine.append(document.createTextNode(translateBuiltInOrderText(order.items)));
   if (order.sourceOrderId) {
     compactLine.append(document.createTextNode(translateRuntimeText(` · Ticket ${order.sourceOrderId}`)));
@@ -1874,7 +1882,7 @@ function buildOrderCard(order, isArchived) {
   badge.style.color = statusMeta[order.status].color;
 
   compactTop.append(elapsedTime);
-  compactMeta.append(compactTop, compactTitle, compactLine);
+  compactMeta.append(compactTop, compactTitle, compactSecureCode, compactLine);
   if (!isArchived) {
     intelligence.append(intelligenceLabel, intelligenceBadge, intelligenceEta, intelligenceInfo);
     compactMeta.append(intelligence);
@@ -1892,7 +1900,7 @@ function buildOrderCard(order, isArchived) {
     renderRestaurant();
   });
 
-  qr.src = buildQrUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
+  qr.src = buildQrUrl(publicOrderId);
   qr.alt = translateRuntimeText(`QR del pedido ${orderDisplayNumber}`);
   qr.className = "order-card__qr";
 
@@ -1941,7 +1949,7 @@ function buildOrderCard(order, isArchived) {
 
   initializeRestaurantTermHints(card);
 
-  link.href = buildClientUrl(order.publicTrackingToken || order.sourceOrderId || order.id);
+  link.href = buildClientUrl(publicOrderId);
   link.target = "_blank";
   link.rel = "noreferrer";
   link.className = "qr-link";

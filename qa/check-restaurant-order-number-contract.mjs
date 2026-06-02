@@ -48,8 +48,14 @@ assert.match(
 
 assert.match(
   clientSource,
-  /ticketOrderId\.textContent = getClientOrderDisplayNumber\(order\);/,
-  "El cliente tambien debe ver el numero visual corto."
+  /ticketOrderId\.textContent = formatKey\(\s*"client\.dynamic\.order\.secureCode",\s*\{ code: publicOrderId \},\s*`Código \$\{publicOrderId\}`,\s*\);/,
+  "El cliente debe ver el codigo seguro como dato secundario para poder consultar el pedido."
+);
+
+assert.match(
+  restaurantSource,
+  /compactSecureCode\.textContent = formatRuntimeKey\(\s*"restaurant\.dynamic\.order\.secureCode",\s*\{ code: publicOrderId \},\s*`Código seguro: \$\{publicOrderId\}`,\s*\);/,
+  "Las tarjetas de restaurante deben exponer el codigo seguro de consulta."
 );
 
 assert.match(
