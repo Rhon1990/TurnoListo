@@ -2860,36 +2860,46 @@ function getUniqueOperationalTodayCount({ progressOrders = [], deliveredOrders =
 function getDashboardStats(options = {}) {
   const period = normalizeDashboardPeriod(options.period);
   const periodMeta = getDashboardPeriodMeta(period);
+  const referenceDate = options.referenceDate instanceof Date ? options.referenceDate : new Date();
+  const periodFilterOptions = { referenceDate };
   const currentRestaurantId = getCurrentRestaurantSession()?.restaurantId;
   const allOrders = loadOrders();
   const restaurantOrders = allOrders.filter((order) => {
     if (!currentRestaurantId) return true;
     return order.restaurantId === currentRestaurantId;
   });
-  const periodOrders = filterOrdersByDashboardPeriod(restaurantOrders, period);
-  const activeOrders = restaurantOrders.filter((order) => !order.archivedAt);
+  const periodOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, periodFilterOptions);
+  const activeOrders = filterOrdersByDashboardPeriod(
+    restaurantOrders.filter((order) => !order.archivedAt),
+    period,
+    periodFilterOptions,
+  );
   const readyMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "lifecycleMilestones.readyAt",
+    referenceDate,
   });
   const deliveredMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "lifecycleMilestones.deliveredAt",
+    referenceDate,
   });
   const cancelledMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "lifecycleMilestones.cancelledAt",
+    referenceDate,
   });
   const archivedMilestoneOrders = filterOrdersByDashboardPeriod(restaurantOrders, period, {
     dateField: "archivedAt",
+    referenceDate,
   });
   const deliveredOrders = deliveredMilestoneOrders.filter((order) => order.status === "delivered");
   const cancelledOrders = cancelledMilestoneOrders.filter((order) => order.status === "cancelled");
   const archivedOrders = archivedMilestoneOrders.filter((order) => Boolean(order.archivedAt));
   const progressOrders = restaurantOrders.filter((order) => !order.archivedAt && ["received", "preparing", "ready"].includes(order.status));
-  const progressTodayOrders = filterOrdersByDashboardPeriod(progressOrders, period);
+  const progressTodayOrders = filterOrdersByDashboardPeriod(progressOrders, period, periodFilterOptions);
   const intelligentActiveOrders = enrichOrdersWithIntelligence(activeOrders, { allOrders });
   const ratedOrders = filterOrdersByDashboardPeriod(
     restaurantOrders.filter((order) => order.rating && order.rating.score),
     period,
-    { dateField: "rating.createdAt" },
+    { dateField: "rating.createdAt", referenceDate },
   );
   const delayedActiveOrders = activeOrders.filter((order) => {
     const promiseDelayMinutes = getOrderPromiseDelayMinutes(order);
